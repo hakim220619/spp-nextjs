@@ -23,24 +23,21 @@ import axiosConfig from '../../../configs/axiosConfig'
 import { useRouter } from 'next/navigation'
 
 interface ClassForm {
-  class_name: string
-  class_desc: string
-  class_status: 'ON' | 'OFF'
+  major_name: string
+  major_status: 'ON' | 'OFF'
 }
 
 const schema = yup.object().shape({
-  class_name: yup.string().required('Class Name is required'),
-  class_desc: yup.string().required('Class Description is required'),
-  class_status: yup.string().oneOf(['ON', 'OFF'], 'Invalid class status').required('Class Status is required')
+  major_name: yup.string().required('Class Name is required'),
+  major_status: yup.string().oneOf(['ON', 'OFF'], 'Invalid class status').required('Class Status is required')
 })
 
 const ClassFormComponent = () => {
   const router = useRouter()
 
   const defaultValues: ClassForm = {
-    class_name: '',
-    class_desc: '',
-    class_status: 'ON'
+    major_name: '',
+    major_status: 'ON'
   }
 
   const {
@@ -58,13 +55,12 @@ const ClassFormComponent = () => {
   const onSubmit = (data: ClassForm) => {
     const formData = new FormData()
     formData.append('school_id', schoolId)
-    formData.append('class_name', data.class_name)
-    formData.append('class_desc', data.class_desc)
-    formData.append('class_status', data.class_status)
+    formData.append('major_name', data.major_name)
+    formData.append('major_status', data.major_status)
 
     const storedToken = window.localStorage.getItem('token')
     axiosConfig
-      .post('/create-kelas', formData, {
+      .post('/create-jurusan', formData, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'multipart/form-data',
@@ -74,7 +70,7 @@ const ClassFormComponent = () => {
       .then(response => {
         console.log(response)
         toast.success('Successfully Added Class!')
-        router.push('/ms/kelas')
+        router.push('/ms/jurusan')
       })
       .catch(() => {
         toast.error('Failed to add class')
@@ -89,7 +85,7 @@ const ClassFormComponent = () => {
           <Grid container spacing={5}>
             <Grid item xs={6}>
               <Controller
-                name='class_name'
+                name='major_name'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
@@ -98,15 +94,15 @@ const ClassFormComponent = () => {
                     label='Nama Kelas'
                     onChange={onChange}
                     placeholder='e.g. Class A'
-                    error={Boolean(errors.class_name)}
-                    helperText={errors.class_name?.message}
+                    error={Boolean(errors.major_name)}
+                    helperText={errors.major_name?.message}
                   />
                 )}
               />
             </Grid>
             <Grid item xs={6}>
               <Controller
-                name='class_status'
+                name='major_status'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
@@ -115,8 +111,8 @@ const ClassFormComponent = () => {
                     value={value}
                     label='Status'
                     onChange={onChange}
-                    error={Boolean(errors.class_status)}
-                    helperText={errors.class_status?.message}
+                    error={Boolean(errors.major_status)}
+                    helperText={errors.major_status?.message}
                   >
                     <MenuItem value='ON'>ON</MenuItem>
                     <MenuItem value='OFF'>OFF</MenuItem>
@@ -125,29 +121,11 @@ const ClassFormComponent = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Controller
-                name='class_desc'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <CustomTextField
-                    fullWidth
-                    value={value}
-                    label='Deskripsi'
-                    onChange={onChange}
-                    placeholder='Enter class description'
-                    error={Boolean(errors.class_desc)}
-                    helperText={errors.class_desc?.message}
-                  />
-                )}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
               <Button type='submit' variant='contained'>
                 Submit
               </Button>
               <Box m={1} display='inline' />
-              <Button type='button' variant='contained' color='secondary' onClick={() => router.push('/ms/kelas')}>
+              <Button type='button' variant='contained' color='secondary' onClick={() => router.push('/ms/jurusan')}>
                 Back
               </Button>
             </Grid>

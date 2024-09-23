@@ -27,15 +27,16 @@ const FormValidationSchema = () => {
   const router = useRouter()
   const { uid } = router.query
   const storedToken = window.localStorage.getItem('token')
-  const [class_status, setStatus] = useState<string>('ON')
-  const [class_name, setClassName] = useState<string>('')
-  const [class_desc, setClassDesc] = useState<string>('')
+  const [month_status, setStatus] = useState<string>('ON')
+  const [month, setMonth] = useState<string>('')
+  const [month_number, setMonthNumber] = useState<string>('')
   const [school_id, setSchoolId] = useState<string>('')
+
   useEffect(() => {
     if (storedToken) {
       axiosConfig
         .post(
-          '/detailKelas',
+          '/detailBulan',
           { uid },
           {
             headers: {
@@ -45,11 +46,11 @@ const FormValidationSchema = () => {
           }
         )
         .then(response => {
-          const { class_name, class_desc, class_status, school_id } = response.data
+          const { month, month_number, month_status, school_id } = response.data
           // Set default values
-          setClassName(class_name)
-          setClassDesc(class_desc)
-          setStatus(class_status)
+          setMonth(month)
+          setMonthNumber(month_number)
+          setStatus(month_status)
           setSchoolId(school_id)
         })
         .catch(error => {
@@ -62,15 +63,14 @@ const FormValidationSchema = () => {
     const formData = {
       uid: uid,
       school_id: school_id,
-      class_name,
-      class_desc,
-      class_status
+      month_number,
+      month_status
     }
 
     if (storedToken) {
       axiosConfig
         .post(
-          '/update-kelas',
+          '/update-bulan',
           { data: formData },
           {
             headers: {
@@ -81,7 +81,7 @@ const FormValidationSchema = () => {
         )
         .then(() => {
           toast.success('Successfully Updated!')
-          router.push('/ms/kelas')
+          router.push('/ms/bulan')
         })
         .catch(() => {
           toast.error("Failed. This didn't work.")
@@ -91,28 +91,41 @@ const FormValidationSchema = () => {
 
   return (
     <Card>
-      <CardHeader title='Update Kelas' />
+      <CardHeader title='Update Bulan' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={5}>
-            {/* Class Name Field */}
-            <Grid item xs={6}>
+            <Grid item xs={4}>
               <CustomTextField
                 fullWidth
-                value={class_name}
-                onChange={e => setClassName(e.target.value)}
-                label='Nama Kelas'
-                placeholder='Nama Kelas'
+                value={month}
+                label='Nama Bulan'
+                placeholder='Nama Bulan'
+                InputProps={{ readOnly: true }}
               />
             </Grid>
 
-            {/* Class Status Field */}
-            <Grid item xs={6}>
+            <Grid item xs={4}>
+              <CustomTextField
+                fullWidth
+                value={month_number}
+                onChange={e => {
+                  const newValue = e.target.value.replace(/[^0-9]/g, '') // Allow only numbers
+                  if (newValue === '' || Number(newValue) <= 12) {
+                    setMonthNumber(newValue)
+                  }
+                }}
+                label='Nomor Urut Bulan'
+                placeholder='No Urut Bulan'
+              />
+            </Grid>
+
+            <Grid item xs={4}>
               <CustomTextField
                 select
                 fullWidth
                 label='Status'
-                value={class_status}
+                value={month_status}
                 onChange={e => setStatus(e.target.value)}
               >
                 <MenuItem value='ON'>ON</MenuItem>
@@ -120,24 +133,12 @@ const FormValidationSchema = () => {
               </CustomTextField>
             </Grid>
 
-            {/* Class Description Field */}
             <Grid item xs={12}>
-              <CustomTextField
-                fullWidth
-                value={class_desc}
-                onChange={e => setClassDesc(e.target.value)}
-                label='Deskripsi'
-                placeholder='Deskripsi'
-              />
-            </Grid>
-
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Button type='submit' variant='contained'>
+              <Button type='submit' variant='contained' sx={{ marginRight: 2 }}>
                 Save
               </Button>
               <Box m={1} display='inline'></Box>
-              <Link href='/ms/kelas' passHref>
+              <Link href='/ms/bulan' passHref>
                 <Button type='button' variant='contained' color='secondary'>
                   Back
                 </Button>

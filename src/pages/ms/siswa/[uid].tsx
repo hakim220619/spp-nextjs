@@ -91,7 +91,7 @@ const FormValidationSchema = () => {
     if (storedToken) {
       axiosConfig
         .post(
-          '/detailAdmin',
+          '/detailSiswa',
           { uid },
           {
             headers: {
@@ -293,7 +293,7 @@ const FormValidationSchema = () => {
                 Save
               </Button>
               <Box m={1} display='inline'></Box>
-              <Link href='/ms/admin' passHref>
+              <Link href='/ms/siswa' passHref>
                 <Button type='button' variant='contained' color='secondary'>
                   Back
                 </Button>

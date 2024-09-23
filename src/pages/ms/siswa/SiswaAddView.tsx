@@ -26,6 +26,8 @@ import { useRouter } from 'next/navigation'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
+import { IconButton, InputAdornment } from '@mui/material'
+import { GridVisibilityOffIcon } from '@mui/x-data-grid'
 
 interface User {
   nisn: string
@@ -76,10 +78,13 @@ const FormValidationSchema = () => {
   const router = useRouter()
   const [majors, setMajorses] = useState<Major[]>([])
   const [clas, setClas] = useState<Class[]>([])
+  const [showPassword, setShowPassword] = useState(false)
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const schoolId = getDataLocal?.school_id
-
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword)
+  }
   const defaultValues: any = {
     nisn: '1242324534',
     full_name: 'asdasd',
@@ -273,9 +278,22 @@ const FormValidationSchema = () => {
                     value={value}
                     label='Password'
                     onChange={onChange}
-                    type='password'
+                    type={showPassword ? 'text' : 'password'}
                     error={Boolean(errors.password)}
                     helperText={errors.password?.message}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <IconButton
+                            aria-label='toggle password visibility'
+                            onClick={handleClickShowPassword}
+                            edge='end'
+                          >
+                            {showPassword ? <GridVisibilityOffIcon /> : <GridVisibilityOffIcon />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }}
                   />
                 )}
               />

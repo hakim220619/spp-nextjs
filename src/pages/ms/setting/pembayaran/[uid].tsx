@@ -3,33 +3,35 @@ import {
   Card,
   Grid,
   Divider,
-  MenuItem,
   IconButton,
   CardHeader,
-  CardContent,
   CircularProgress,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
+  CardContent,
+  MenuItem,
+  SelectChangeEvent
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import { SelectChangeEvent } from '@mui/material/Select'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import CustomTextField from 'src/@core/components/mui/text-field'
-import { fetchDataSiswa, deleteUserSiswa } from 'src/store/apps/siswa/index'
+import { fetchDataSettingPembayaran, deleteSettingPembayaran } from 'src/store/apps/setting/pembayaran/index'
 import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
-import TableHeader from 'src/pages/ms/siswa/TableHeader'
+import TableHeader from 'src/pages/ms/setting/pembayaran/TabelHeaderDetail'
 import { useRouter } from 'next/router'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../configs/axiosConfig'
+import axiosConfig from '../../../../configs/axiosConfig'
+import CustomTextField from 'src/@core/components/mui/text-field'
+import { Box } from '@mui/system'
+import { Link } from 'react-router-dom'
 
 const MySwal = withReactContent(Swal)
 
@@ -41,29 +43,31 @@ const statusObj: any = {
   ON: { title: 'ON', color: 'primary' },
   OFF: { title: 'OFF', color: 'error' }
 }
+const typeObj: any = {
+  BULANAN: { title: 'BULANAN', color: 'success' },
+  BEBAS: { title: 'BEBAS', color: 'error' }
+}
 
-const RowOptions = ({ uid }: { uid: any }) => {
+const RowOptions = ({ id }: { id: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
-  const [clas, setClas] = useState<string>('')
-  const [major, setMajor] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowEditedClick = () => router.push('/ms/siswa/' + uid)
+  const handleRowEditedClick = () => router.push('/ms/setting/pembayaran/' + id)
 
   const handleDelete = async () => {
     try {
-      await dispatch(deleteUserSiswa(uid)).unwrap()
-      await dispatch(fetchDataSiswa({ school_id, major, clas, status: '', q: value }))
+      await dispatch(deleteSettingPembayaran(id)).unwrap()
+      await dispatch(fetchDataSettingPembayaran({ school_id, year: '', sp_type: '', sp_status: '', q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
-      console.error('Failed to delete user:', error)
-      toast.error('Failed to delete user. Please try again.')
+      console.error('Failed to delete jurusan:', error)
+      toast.error('Failed to delete jurusan. Please try again.')
     }
   }
 
@@ -72,9 +76,10 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
   return (
     <>
-      <IconButton size='small' color='success' onClick={handleRowEditedClick}>
-        <Icon icon='tabler:edit' />
+      <IconButton size='large' color='success' onClick={handleRowEditedClick}>
+        <Icon icon='tabler:settings' /> {/* Changed to 'settings' icon */}
       </IconButton>
+
       <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
         <Icon icon='tabler:trash' />
       </IconButton>
@@ -98,34 +103,35 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
-  { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 140 },
-  { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.25, minWidth: 180 },
-  { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 290 },
-  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 140 },
-  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 80 },
-  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 100 },
+  { field: 'sp_name', headerName: 'Nama Pembayaran', flex: 0.175, minWidth: 140 },
+  { field: 'sp_desc', headerName: 'Deskripsi', flex: 0.175, minWidth: 140 },
+  { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 140 },
   {
-    field: 'date_of_birth',
-    headerName: 'Tanggal Lahir',
+    field: 'sp_type',
+    headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 120,
-    valueFormatter: params => {
-      if (!params.value) return ''
-      const date = new Date(params.value)
-      const day = String(date.getDate()).padStart(2, '0')
-      const month = String(date.getMonth() + 1).padStart(2, '0')
-      const year = date.getFullYear()
-      return `${day}/${month}/${year}`
+    minWidth: 80,
+    renderCell: (params: GridRenderCellParams) => {
+      const type = typeObj[params.row.sp_type]
+      return (
+        <CustomChip
+          rounded
+          size='small'
+          skin='light'
+          color={type.color}
+          label={type.title}
+          sx={{ '& .MuiChip-label': { textTransform: 'capitalize' } }}
+        />
+      )
     }
   },
-  { field: 'image', headerName: 'Gambar', flex: 0.175, minWidth: 260 },
   {
-    field: 'status',
+    field: 'sp_status',
     headerName: 'Status',
     flex: 0.175,
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
-      const status = statusObj[params.row.status]
+      const status = statusObj[params.row.sp_status]
       return (
         <CustomChip
           rounded
@@ -144,100 +150,109 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions uid={row.uid} />
+    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
   }
 ]
 
-interface Clases {
-  id: any
-  class_name: string
-}
-
-const UserList = () => {
+const SettingPembayaran = () => {
+  const router = useRouter()
+  const { uid } = router.query
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [school_id] = useState<number>(getDataLocal.school_id)
-  const [clases, setClases] = useState<Clases[]>([])
-  const [clas, setClas] = useState<string>('')
   const [value, setValue] = useState<string>('')
-  const [major, setMajor] = useState<string>('')
+  const [year, setYear] = useState<string>('')
+  const [years, setYears] = useState<any[]>([])
+  const [sp_type, setSpType] = useState<string>('')
+  const [sp_types, setSpTypes] = useState<any[]>(['BULANAN', 'BEBAS'])
+  const [sp_status, setSpStatus] = useState<string>('')
+  const [statuses, setSpStatuses] = useState<any[]>(['ON', 'OFF'])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
-  const [majors, setMajors] = useState<any[]>([])
-  const [statuses, setStatuses] = useState<any[]>(['ON', 'OFF'])
-  const [status, setStatus] = useState<any>('')
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.siswa)
-  const schoolId = getDataLocal.school_id
+  const store = useSelector((state: RootState) => state.SettingPembayaran)
 
   useEffect(() => {
-    const storedToken = window.localStorage.getItem('token')
-
-    setLoading(true)
-    dispatch(fetchDataSiswa({ school_id, major, clas, status, q: value })).finally(() => {
-      setLoading(false)
-    })
-
-    const fetchMajors = async () => {
+    const fetchData = async () => {
+      setLoading(true)
       try {
-        const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setMajors(response.data)
+        await dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q: value }))
       } catch (error) {
-        console.error('Error fetching majors:', error)
+        console.error('Error fetching data:', error)
+        toast.error('Failed to fetch data. Please try again.')
+      } finally {
+        setLoading(false)
       }
     }
 
-    const fetchClases = async () => {
-      try {
-        const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setClases(response.data)
-      } catch (error) {
-        console.error('Error fetching classes:', error)
-      }
-    }
+    fetchData()
+  }, [dispatch, school_id, year, sp_type, sp_status, value])
+  useEffect(() => {
+    const currentYear = new Date().getFullYear()
+    const years = []
 
-    fetchMajors()
-    fetchClases()
-  }, [dispatch, major, clas, status, value])
+    for (let i = currentYear - 2; i <= currentYear + 2; i++) {
+      years.push(`${i}/${i + 1}`)
+    }
+    setYears(years)
+  }, [])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
-  const handleMajorChange = useCallback((e: SelectChangeEvent<unknown>) => setMajor(e.target.value as string), [])
-  const handleClasChange = useCallback((e: SelectChangeEvent<unknown>) => setClas(e.target.value as string), [])
-  const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setStatus(e.target.value as string), [])
+  const handleYearChange = useCallback((e: SelectChangeEvent<unknown>) => setYear(e.target.value as string), [])
+  const handleTypeChange = useCallback((e: SelectChangeEvent<unknown>) => setSpType(e.target.value as string), [])
+  const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setSpStatus(e.target.value as string), [])
+  const handleNavigate = () => {
+    router.push(`/ms/setting/pembayaran/kelas/${uid}`)
+  }
 
   return (
     <Grid container spacing={6.5}>
-      <Grid item xs={12}></Grid>
       <Grid item xs={12}>
         <Card>
-          <CardHeader title='Data Siswa' />
+          <CardHeader title='Pengaturan Pembayaran' />
           <CardContent>
             <Grid container spacing={12}>
+              <Grid item xs={4}>
+                <Button
+                  variant='contained'
+                  color='primary'
+                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
+                  onClick={handleNavigate}
+                >
+                  <Icon fontSize='1.125rem' icon='tabler:plus' />
+                  Pembayaran Baru Kelas
+                </Button>
+              </Grid>
+
+              <Grid item xs={4}>
+                <Button variant='contained' color='success' sx={{ '& svg': { mr: 2 }, width: '100%' }}>
+                  <Icon fontSize='1.125rem' icon='tabler:plus' />
+                  Buat Pembayaran Siswa
+                </Button>
+              </Grid>
+              <Grid item xs={4}>
+                <a href='/ms/setting/pembayaran' style={{ textDecoration: 'none', width: '100%' }}>
+                  <Button variant='contained' color='error' sx={{ '& svg': { mr: 2 }, width: '100%' }}>
+                    <Icon fontSize='1.125rem' icon='tabler:reload' />
+                    Kembali
+                  </Button>
+                </a>
+              </Grid>
               <Grid item sm={4} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Jurusan'
+                  defaultValue='Pilih Tahun'
                   SelectProps={{
-                    value: major,
+                    value: year,
                     displayEmpty: true,
-                    onChange: handleMajorChange
+                    onChange: handleYearChange
                   }}
                 >
-                  <MenuItem value=''>Pilih Jurusan</MenuItem>
-                  {majors.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.major_name}
+                  <MenuItem value=''>Pilih Tahun</MenuItem>
+                  {years.map(data => (
+                    <MenuItem key={data} value={data}>
+                      {data}
                     </MenuItem>
                   ))}
                 </CustomTextField>
@@ -246,17 +261,17 @@ const UserList = () => {
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Kelas'
+                  defaultValue='Pilih Tipe'
                   SelectProps={{
-                    value: clas,
+                    value: sp_type,
                     displayEmpty: true,
-                    onChange: handleClasChange
+                    onChange: handleTypeChange
                   }}
                 >
-                  <MenuItem value=''>Pilih Kelas</MenuItem>
-                  {clases.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.class_name}
+                  <MenuItem value=''>Pilih Tipe</MenuItem>
+                  {sp_types.map(data => (
+                    <MenuItem key={data} value={data}>
+                      {data}
                     </MenuItem>
                   ))}
                 </CustomTextField>
@@ -267,7 +282,7 @@ const UserList = () => {
                   fullWidth
                   defaultValue='Select Status'
                   SelectProps={{
-                    value: status,
+                    value: sp_status,
                     displayEmpty: true,
                     onChange: handleStatusChange
                   }}
@@ -314,4 +329,4 @@ const UserList = () => {
   )
 }
 
-export default UserList
+export default SettingPembayaran

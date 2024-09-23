@@ -6,7 +6,7 @@ import axiosConfig from 'src/configs/axiosConfig'
 interface DataParams {
   school_id: number
   q: string
-  status: string
+  major_status: string
 }
 interface Redux {
   getState: any
@@ -14,7 +14,7 @@ interface Redux {
 }
 
 // ** Fetch Users
-export const fetchDataKelas = createAsyncThunk('appUsers/fetchDataKelas', async (params: DataParams) => {
+export const fetchDataJurusan = createAsyncThunk('appUsers/fetchDataJurusan', async (params: DataParams) => {
   const storedToken = window.localStorage.getItem('token')
   const customConfig = {
     params,
@@ -23,13 +23,15 @@ export const fetchDataKelas = createAsyncThunk('appUsers/fetchDataKelas', async 
       Authorization: 'Bearer ' + storedToken
     }
   }
-  const response = await axiosConfig.get('/list-kelas', customConfig)
+  const response = await axiosConfig.get('/list-jurusan', customConfig)
   return response.data
 })
 
-export const deleteKelas = createAsyncThunk(
-  'appUsers/deleteKelas',
+export const deleteJurusan = createAsyncThunk(
+  'appUsers/deleteJurusan',
   async (uid: number | string, { getState, dispatch }: Redux) => {
+    console.log(getState().jurusan)
+
     const storedToken = window.localStorage.getItem('token')
     const dataAll = {
       data: uid
@@ -40,11 +42,11 @@ export const deleteKelas = createAsyncThunk(
         Authorization: 'Bearer ' + storedToken
       }
     }
-    const response = await axiosConfig.post('/delete-kelas', dataAll, customConfig)
-    const { school_id, status, q } = getState().kelas
+    const response = await axiosConfig.post('/delete-jurusan', dataAll, customConfig)
+    const { school_id, major_status, q } = getState().Jurusan
 
-    // Memanggil fetchDataKelas untuk memperbarui data setelah penghapusan
-    dispatch(fetchDataKelas({ school_id, status, q }))
+    // Memanggil fetchDataJurusan untuk memperbarui data setelah penghapusan
+    dispatch(fetchDataJurusan({ school_id, major_status, q }))
 
     return response.data
   }
@@ -59,7 +61,7 @@ export const appUsersSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(fetchDataKelas.fulfilled, (state, action) => {
+    builder.addCase(fetchDataJurusan.fulfilled, (state, action) => {
       state.data = action.payload
       state.total = action.payload.total
       state.params = action.payload.params

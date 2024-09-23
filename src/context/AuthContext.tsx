@@ -54,14 +54,29 @@ const AuthProvider = ({ children }: Props) => {
             setLoading(false)
             setUser({ ...response.data.userData })
           })
-          .catch(() => {
-            localStorage.removeItem('userData')
-            localStorage.removeItem('refreshToken')
-            localStorage.removeItem('accessToken')
-            setUser(null)
+          .catch(async error => {
             setLoading(false)
-            if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-              router.replace('/login')
+            if (error.response && error.response.data.message === 'Invalid token') {
+              // Refresh token logic or redirect to login
+              localStorage.removeItem('userData')
+              localStorage.removeItem('refreshToken')
+              localStorage.removeItem('accessToken')
+              setUser(null)
+
+              // Optional: Refresh token logic here
+              // If token cannot be refreshed, redirect to login
+              if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+                router.replace('/login')
+              }
+            } else {
+              // Handle other errors
+              localStorage.removeItem('userData')
+              localStorage.removeItem('refreshToken')
+              localStorage.removeItem('accessToken')
+              setUser(null)
+              if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+                router.replace('/login')
+              }
             }
           })
       } else {

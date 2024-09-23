@@ -334,10 +334,22 @@ const navigation = (): VerticalNavItemsType => {
           {
             title: 'Kelas',
             path: '/ms/kelas'
+          },
+          {
+            title: 'Jurusan',
+            path: '/ms/jurusan'
+          },
+          {
+            title: 'Bulan',
+            path: '/ms/bulan'
           }
         ]
       },
-
+      {
+        title: 'Setting Pembayaran',
+        icon: 'ion:wallet',
+        path: '/ms/setting/pembayaran'
+      },
       {
         title: 'Setting',
         icon: 'tabler:settings-cog',

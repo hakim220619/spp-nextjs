@@ -6,7 +6,6 @@ import axiosConfig from 'src/configs/axiosConfig'
 interface DataParams {
   school_id: number
   q: string
-  status: string
 }
 interface Redux {
   getState: any
@@ -14,7 +13,7 @@ interface Redux {
 }
 
 // ** Fetch Users
-export const fetchDataKelas = createAsyncThunk('appUsers/fetchDataKelas', async (params: DataParams) => {
+export const fetchDataBulan = createAsyncThunk('appBulan/fetchDataBulan', async (params: DataParams) => {
   const storedToken = window.localStorage.getItem('token')
   const customConfig = {
     params,
@@ -23,13 +22,15 @@ export const fetchDataKelas = createAsyncThunk('appUsers/fetchDataKelas', async 
       Authorization: 'Bearer ' + storedToken
     }
   }
-  const response = await axiosConfig.get('/list-kelas', customConfig)
+  const response = await axiosConfig.get('/list-bulan', customConfig)
   return response.data
 })
 
-export const deleteKelas = createAsyncThunk(
-  'appUsers/deleteKelas',
+export const deleteBulan = createAsyncThunk(
+  'appBulan/deleteBulan',
   async (uid: number | string, { getState, dispatch }: Redux) => {
+    console.log(getState().jurusan)
+
     const storedToken = window.localStorage.getItem('token')
     const dataAll = {
       data: uid
@@ -40,17 +41,17 @@ export const deleteKelas = createAsyncThunk(
         Authorization: 'Bearer ' + storedToken
       }
     }
-    const response = await axiosConfig.post('/delete-kelas', dataAll, customConfig)
-    const { school_id, status, q } = getState().kelas
+    const response = await axiosConfig.post('/delete-bulan', dataAll, customConfig)
+    const { school_id, q } = getState().Bulan
 
-    // Memanggil fetchDataKelas untuk memperbarui data setelah penghapusan
-    dispatch(fetchDataKelas({ school_id, status, q }))
+    // Memanggil fetchDataBulan untuk memperbarui data setelah penghapusan
+    dispatch(fetchDataBulan({ school_id, q }))
 
     return response.data
   }
 )
-export const appUsersSlice = createSlice({
-  name: 'appUsers',
+export const appBulanSlice = createSlice({
+  name: 'appBulan',
   initialState: {
     data: [],
     total: 1,
@@ -59,7 +60,7 @@ export const appUsersSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(fetchDataKelas.fulfilled, (state, action) => {
+    builder.addCase(fetchDataBulan.fulfilled, (state, action) => {
       state.data = action.payload
       state.total = action.payload.total
       state.params = action.payload.params
@@ -68,4 +69,4 @@ export const appUsersSlice = createSlice({
   }
 })
 
-export default appUsersSlice.reducer
+export default appBulanSlice.reducer
