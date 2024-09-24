@@ -38,8 +38,7 @@ const CustomInput = forwardRef((props, ref) => {
   return <TextField fullWidth {...props} inputRef={ref} label='Birth Date' autoComplete='off' />
 })
 
-const AddPaymentDetailByClass = () => {
-  // ** States
+const FormLayoutsSeparator = () => {
   const [date, setDate] = useState<DateType>(null)
   const [language, setLanguage] = useState<string[]>([])
   const [spName, setSpName] = useState<string>('')
@@ -51,6 +50,10 @@ const AddPaymentDetailByClass = () => {
   const [majors, setMajors] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
+  const [users, setUsers] = useState<any[]>([])
+  const [selectedUser, setSelectedUser] = useState<string>('')
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([])
+
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
@@ -158,10 +161,28 @@ const AddPaymentDetailByClass = () => {
         console.error('Error fetching majors:', error)
       }
     }
+    const fetchUsers = async () => {
+      try {
+        const response = await axiosConfig.get(`/list-siswa/?schoolId=${schoolId}`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        setUsers(response.data)
+      } catch (error) {
+        console.error('Error fetching users:', error)
+      }
+    }
+    fetchUsers()
     fetchMajors()
     fetchClases()
     fetchMonths()
   }, [uid, storedToken])
+  useEffect(() => {
+    const filtered = users.filter(user => user.class_id === kelas && user.major_id === major)
+    setFilteredUsers(filtered)
+  }, [users, kelas, major])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as any)
@@ -175,6 +196,7 @@ const AddPaymentDetailByClass = () => {
 
     // Collect the form data
     const formData = {
+      user_id: selectedUser,
       school_id: schoolId,
       sp_name: spName,
       years: years,
@@ -194,14 +216,15 @@ const AddPaymentDetailByClass = () => {
         }
       })
     }
+    // console.log(formData)
+
     try {
-      const response = await axiosConfig.post('/create-payment-byMonth', formData, {
+      const response = await axiosConfig.post('/create-payment-byStudent', formData, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${storedToken}`
         }
       })
-      console.log(uid)
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
@@ -219,7 +242,7 @@ const AddPaymentDetailByClass = () => {
 
   return (
     <Card>
-      <CardHeader title='Tambah Pembayaran Baru' />
+      <CardHeader title='Tambah Pembayaran Baru Siswa' />
       <Divider sx={{ m: '0 !important' }} />
       <form onSubmit={handleSubmit}>
         <CardContent>
@@ -266,7 +289,7 @@ const AddPaymentDetailByClass = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <InputLabel id='form-layouts-separator-select-label'>Kelas</InputLabel>
               <FormControl fullWidth>
                 <Select
@@ -286,7 +309,7 @@ const AddPaymentDetailByClass = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
               <InputLabel id='form-layouts-separator-select-label'>Jurusan</InputLabel>
               <FormControl fullWidth>
                 <Select
@@ -305,7 +328,27 @@ const AddPaymentDetailByClass = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={6}>
+              <InputLabel id='form-layouts-separator-select-label'>Siswa</InputLabel>
+              <FormControl fullWidth>
+                <Select
+                  label='Siswa'
+                  defaultValue=''
+                  id='form-layouts-separator-select-users'
+                  labelId='form-layouts-separator-select-users-label'
+                  value={selectedUser}
+                  onChange={e => setSelectedUser(e.target.value as string)}
+                >
+                  {filteredUsers.map(user => (
+                    <MenuItem key={user.id} value={user.id}>
+                      {user.full_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah Pembayaran Rp.</InputLabel>
               <TextField
                 fullWidth
@@ -366,4 +409,4 @@ const AddPaymentDetailByClass = () => {
   )
 }
 
-export default AddPaymentDetailByClass
+export default FormLayoutsSeparator

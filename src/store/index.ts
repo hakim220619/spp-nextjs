@@ -8,6 +8,7 @@ import kelas from 'src/store/apps/kelas/index'
 import Jurusan from 'src/store/apps/jurusan/index'
 import Bulan from 'src/store/apps/bulan/index'
 import SettingPembayaran from 'src/store/apps/setting/pembayaran/index'
+import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
 export const store = configureStore({
   reducer: {
@@ -16,7 +17,8 @@ export const store = configureStore({
     kelas,
     Jurusan,
     Bulan,
-    SettingPembayaran
+    SettingPembayaran,
+    SettingPembayaranDetail
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

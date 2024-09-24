@@ -20,7 +20,10 @@ import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import { fetchDataSettingPembayaran, deleteSettingPembayaran } from 'src/store/apps/setting/pembayaran/index'
+import {
+  fetchDataSettingPembayaranDetail,
+  deleteSettingPembayaranDetail
+} from 'src/store/apps/setting/pembayaran/detail/index'
 import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/setting/pembayaran/TabelHeaderDetail'
@@ -40,15 +43,14 @@ interface CellType {
 }
 
 const statusObj: any = {
-  ON: { title: 'ON', color: 'primary' },
-  OFF: { title: 'OFF', color: 'error' }
+  Pending: { title: 'Pending', color: 'error' }
 }
 const typeObj: any = {
   BULANAN: { title: 'BULANAN', color: 'success' },
   BEBAS: { title: 'BEBAS', color: 'error' }
 }
 
-const RowOptions = ({ id }: { id: any }) => {
+const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_payment_id: any; user_id: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
@@ -57,17 +59,44 @@ const RowOptions = ({ id }: { id: any }) => {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowEditedClick = () => router.push('/ms/setting/pembayaran/' + id)
-
+  const { uuid } = router.query
   const handleDelete = async () => {
     try {
-      await dispatch(deleteSettingPembayaran(id)).unwrap()
-      await dispatch(fetchDataSettingPembayaran({ school_id, year: '', sp_type: '', sp_status: '', q: value }))
+      // Memanggil action untuk menghapus detail pembayaran dengan argumen yang benar
+      await dispatch(
+        deleteSettingPembayaranDetail({
+          uid,
+          setting_payment_id,
+          user_id
+        })
+      ).unwrap()
+
+      // Mengambil ulang data setelah penghapusan berhasil
+      await dispatch(
+        fetchDataSettingPembayaranDetail({
+          school_id,
+          year: '',
+          status: '',
+          setting_payment_uid: setting_payment_id,
+          q: value
+        })
+      )
+
+      // Menampilkan notifikasi kesuksesan
       toast.success('Successfully deleted!')
+
+      // Menutup modal atau dialog setelah penghapusan berhasil
       setOpen(false)
-    } catch (error) {
-      console.error('Failed to delete jurusan:', error)
-      toast.error('Failed to delete jurusan. Please try again.')
+    } catch (error: any) {
+      // Menangani dan menampilkan kesalahan jika penghapusan gagal
+      console.error('Failed to delete payment setting:', error)
+
+      // Jika error memiliki pesan, tampilkan di notifikasi
+      const errorMessage = error?.message || 'Failed to delete. Please try again.'
+      toast.error(errorMessage)
+
+      // Menutup modal atau dialog meskipun ada error
+      setOpen(false)
     }
   }
 
@@ -76,9 +105,9 @@ const RowOptions = ({ id }: { id: any }) => {
 
   return (
     <>
-      <IconButton size='large' color='success' onClick={handleRowEditedClick}>
-        <Icon icon='tabler:settings' /> {/* Changed to 'settings' icon */}
-      </IconButton>
+      {/* <IconButton size='large' color='success' onClick={handleRowEditedClick}>
+        <Icon icon='tabler:settings' />
+      </IconButton> */}
 
       <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
         <Icon icon='tabler:trash' />
@@ -103,16 +132,30 @@ const RowOptions = ({ id }: { id: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
-  { field: 'sp_name', headerName: 'Nama Pembayaran', flex: 0.175, minWidth: 140 },
-  { field: 'sp_desc', headerName: 'Deskripsi', flex: 0.175, minWidth: 140 },
+  { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 140 },
+  { field: 'setting_payment_uid', headerName: 'Nama Siswa', flex: 0.175, minWidth: 600 },
+  {
+    field: 'jumlah',
+    headerName: 'Jumlah',
+    flex: 0.175,
+    minWidth: 140,
+    valueFormatter: params => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(params.value)
+    }
+  },
   { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 140 },
   {
-    field: 'sp_type',
+    field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
-      const type = typeObj[params.row.sp_type]
+      const type = typeObj[params.row.type]
       return (
         <CustomChip
           rounded
@@ -126,12 +169,12 @@ const columns: GridColDef[] = [
     }
   },
   {
-    field: 'sp_status',
+    field: 'status',
     headerName: 'Status',
     flex: 0.175,
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
-      const status = statusObj[params.row.sp_status]
+      const status = statusObj[params.row.status]
       return (
         <CustomChip
           rounded
@@ -150,7 +193,9 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
+    renderCell: ({ row }: any) => (
+      <RowOptions uid={row.uid} setting_payment_id={row.setting_payment_uid} user_id={row.user_id} />
+    )
   }
 ]
 
@@ -163,20 +208,23 @@ const SettingPembayaran = () => {
   const [value, setValue] = useState<string>('')
   const [year, setYear] = useState<string>('')
   const [years, setYears] = useState<any[]>([])
-  const [sp_type, setSpType] = useState<string>('')
+  const [type, setSpType] = useState<string>('')
   const [sp_types, setSpTypes] = useState<any[]>(['BULANAN', 'BEBAS'])
-  const [sp_status, setSpStatus] = useState<string>('')
-  const [statuses, setSpStatuses] = useState<any[]>(['ON', 'OFF'])
+  const [setting_payment_uid, setSettingPembayaranId] = useState<any>(uid)
+  const [status, setSpStatus] = useState<string>('')
+  const [statuses, setSpStatuses] = useState<any[]>(['Pending', 'Paid'])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.SettingPembayaran)
+  const store = useSelector((state: RootState) => state.SettingPembayaranDetail)
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        await dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q: value }))
+        // Delay by 2 seconds (2000 milliseconds)
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        await dispatch(fetchDataSettingPembayaranDetail({ school_id, year, status, setting_payment_uid, q: value }))
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
@@ -186,7 +234,8 @@ const SettingPembayaran = () => {
     }
 
     fetchData()
-  }, [dispatch, school_id, year, sp_type, sp_status, value])
+  }, [dispatch, school_id, year, status, setting_payment_uid, value])
+
   useEffect(() => {
     const currentYear = new Date().getFullYear()
     const years = []
@@ -203,6 +252,12 @@ const SettingPembayaran = () => {
   const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setSpStatus(e.target.value as string), [])
   const handleNavigate = () => {
     router.push(`/ms/setting/pembayaran/kelas/${uid}`)
+  }
+  const handleNavigateSiswa = () => {
+    router.push(`/ms/setting/pembayaran/siswa/${uid}`)
+  }
+  const handleNavigateBack = () => {
+    router.push(`/ms/setting/pembayaran`)
   }
 
   return (
@@ -225,20 +280,28 @@ const SettingPembayaran = () => {
               </Grid>
 
               <Grid item xs={4}>
-                <Button variant='contained' color='success' sx={{ '& svg': { mr: 2 }, width: '100%' }}>
+                <Button
+                  variant='contained'
+                  color='success'
+                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
+                  onClick={handleNavigateSiswa}
+                >
                   <Icon fontSize='1.125rem' icon='tabler:plus' />
                   Buat Pembayaran Siswa
                 </Button>
               </Grid>
               <Grid item xs={4}>
-                <a href='/ms/setting/pembayaran' style={{ textDecoration: 'none', width: '100%' }}>
-                  <Button variant='contained' color='error' sx={{ '& svg': { mr: 2 }, width: '100%' }}>
-                    <Icon fontSize='1.125rem' icon='tabler:reload' />
-                    Kembali
-                  </Button>
-                </a>
+                <Button
+                  variant='contained'
+                  color='error'
+                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
+                  onClick={handleNavigateBack}
+                >
+                  <Icon fontSize='1.125rem' icon='tabler:reload' />
+                  Kembali
+                </Button>
               </Grid>
-              <Grid item sm={4} xs={12}>
+              <Grid item sm={6} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
@@ -257,32 +320,13 @@ const SettingPembayaran = () => {
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid item sm={4} xs={12}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  defaultValue='Pilih Tipe'
-                  SelectProps={{
-                    value: sp_type,
-                    displayEmpty: true,
-                    onChange: handleTypeChange
-                  }}
-                >
-                  <MenuItem value=''>Pilih Tipe</MenuItem>
-                  {sp_types.map(data => (
-                    <MenuItem key={data} value={data}>
-                      {data}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid item sm={4} xs={12}>
+              <Grid item sm={6} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
                   defaultValue='Select Status'
                   SelectProps={{
-                    value: sp_status,
+                    value: status,
                     displayEmpty: true,
                     onChange: handleStatusChange
                   }}

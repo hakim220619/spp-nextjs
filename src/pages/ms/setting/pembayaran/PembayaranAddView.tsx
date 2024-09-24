@@ -77,8 +77,6 @@ const SettingAddPemabayaran = () => {
   }, [])
 
   const onSubmit = (data: ClassForm) => {
-    console.log(data)
-
     const formData = new FormData()
     formData.append('school_id', schoolId)
     formData.append('sp_name', data.sp_name)
@@ -86,7 +84,7 @@ const SettingAddPemabayaran = () => {
     formData.append('years', data.year) // Use the selected year state
     formData.append('sp_type', data.sp_type) // Use the selected type state
     formData.append('sp_status', data.sp_status)
-
+    console.log(formData)
     const storedToken = window.localStorage.getItem('token')
     axiosConfig
       .post('/create-setting-pembayaran', formData, {
@@ -97,6 +95,8 @@ const SettingAddPemabayaran = () => {
         }
       })
       .then(response => {
+        console.log(response)
+
         toast.success('Successfully Added Class!')
         router.push('/ms/setting/pembayaran')
       })
