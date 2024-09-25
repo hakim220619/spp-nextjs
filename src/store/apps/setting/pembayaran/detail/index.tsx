@@ -6,8 +6,8 @@ import axiosConfig from 'src/configs/axiosConfig'
 interface DataParams {
   school_id: number
   q: string
-  year: string
-  status: string
+  clas: string
+  major: string
   setting_payment_uid: string
 }
 interface Redux {
@@ -19,8 +19,6 @@ interface Redux {
 export const fetchDataSettingPembayaranDetail = createAsyncThunk(
   'appSettingPembayaranDetail/fetchDataSettingPembayaranDetail',
   async (params: DataParams) => {
-    console.log(params)
-
     const storedToken = window.localStorage.getItem('token')
     const customConfig = {
       params,

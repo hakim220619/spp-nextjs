@@ -20,7 +20,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select'
 
 // ** Third Party Imports
 import DatePicker from 'react-datepicker'
-import axiosConfig from '../../../../../configs/axiosConfig'
+import axiosConfig from '../../../../../../configs/axiosConfig'
 
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
@@ -228,7 +228,7 @@ const FormLayoutsSeparator = () => {
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/${uid}`)
+        router.push(`/ms/setting/pembayaran/bulanan/${uid}`)
       } else if (response.status === 404) {
         toast.error('Users Not found')
       } else {
@@ -399,7 +399,7 @@ const FormLayoutsSeparator = () => {
             size='large'
             color='secondary'
             variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/${uid}`)} // Navigate to the route when clicked
+            onClick={() => router.push(`/ms/setting/pembayaran/bulanan/${uid}`)} // Navigate to the route when clicked
           >
             Kembali
           </Button>

@@ -43,10 +43,10 @@ const statusObj: any = {
 }
 const typeObj: any = {
   BULANAN: { title: 'BULANAN', color: 'success' },
-  BEBAS: { title: 'BEBAS', color: 'error' }
+  BEBAS: { title: 'BEBAS', color: 'warning' }
 }
 
-const RowOptions = ({ uid }: { uid: any }) => {
+const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
@@ -55,7 +55,11 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowEditedClick = () => router.push('/ms/setting/pembayaran/' + uid)
+  const handleRowEditedClick = () => {
+    dataAll.sp_type == 'BULANAN'
+      ? router.push('/ms/setting/pembayaran/bulanan/' + uid)
+      : router.push('/ms/setting/pembayaran/bebas/' + uid)
+  }
 
   const handleDelete = async () => {
     try {
@@ -148,7 +152,7 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions uid={row.uid} />
+    renderCell: ({ row }: CellType) => <RowOptions uid={row.uid} dataAll={row} />
   }
 ]
 

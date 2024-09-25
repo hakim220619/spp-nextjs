@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, ChangeEvent } from 'react'
 import {
   Card,
   Grid,
@@ -31,7 +31,7 @@ import { useRouter } from 'next/router'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../../configs/axiosConfig'
+import axiosConfig from '../../../../../configs/axiosConfig'
 import CustomTextField from 'src/@core/components/mui/text-field'
 import { Box } from '@mui/system'
 import { Link } from 'react-router-dom'
@@ -75,8 +75,8 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
       await dispatch(
         fetchDataSettingPembayaranDetail({
           school_id,
-          year: '',
-          status: '',
+          clas: '',
+          major: '',
           setting_payment_uid: setting_payment_id,
           q: value
         })
@@ -102,12 +102,14 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
 
   const handleClickOpenDelete = () => setOpen(true)
   const handleClose = () => setOpen(false)
-
+  const handleRowEditedClick = () => {
+    router.push(`/ms/setting/pembayaran/bulanan/edit/${uid}`)
+  }
   return (
     <>
-      {/* <IconButton size='large' color='success' onClick={handleRowEditedClick}>
-        <Icon icon='tabler:settings' />
-      </IconButton> */}
+      <IconButton size='large' color='success' onClick={handleRowEditedClick}>
+        <Icon icon='tabler:edit' />
+      </IconButton>
 
       <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
         <Icon icon='tabler:trash' />
@@ -133,7 +135,8 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
   { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 140 },
-  { field: 'setting_payment_uid', headerName: 'Nama Siswa', flex: 0.175, minWidth: 600 },
+  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 140 },
+  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 140 },
   {
     field: 'jumlah',
     headerName: 'Jumlah',
@@ -206,25 +209,25 @@ const SettingPembayaran = () => {
   const getDataLocal = JSON.parse(data)
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
-  const [year, setYear] = useState<string>('')
-  const [years, setYears] = useState<any[]>([])
-  const [type, setSpType] = useState<string>('')
-  const [sp_types, setSpTypes] = useState<any[]>(['BULANAN', 'BEBAS'])
+  const [clas, setClas] = useState<string>('')
+  const [classes, setClases] = useState<any[]>([])
+  const [major, setMajor] = useState<string>('')
+  const [majors, setMajors] = useState<any[]>([])
   const [setting_payment_uid, setSettingPembayaranId] = useState<any>(uid)
-  const [status, setSpStatus] = useState<string>('')
-  const [statuses, setSpStatuses] = useState<any[]>(['Pending', 'Paid'])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.SettingPembayaranDetail)
-
+  const userData = JSON.parse(localStorage.getItem('userData') as string)
+  const storedToken = window.localStorage.getItem('token')
+  const schoolId = userData.school_id
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         // Delay by 2 seconds (2000 milliseconds)
         await new Promise(resolve => setTimeout(resolve, 1000))
-        await dispatch(fetchDataSettingPembayaranDetail({ school_id, year, status, setting_payment_uid, q: value }))
+        await dispatch(fetchDataSettingPembayaranDetail({ school_id, clas, major, setting_payment_uid, q: value }))
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
@@ -232,29 +235,49 @@ const SettingPembayaran = () => {
         setLoading(false)
       }
     }
-
-    fetchData()
-  }, [dispatch, school_id, year, status, setting_payment_uid, value])
-
-  useEffect(() => {
-    const currentYear = new Date().getFullYear()
-    const years = []
-
-    for (let i = currentYear - 2; i <= currentYear + 2; i++) {
-      years.push(`${i}/${i + 1}`)
+    const fetchClases = async () => {
+      try {
+        const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        setClases(response.data)
+      } catch (error) {
+        console.error('Error fetching classes:', error)
+      }
     }
-    setYears(years)
-  }, [])
+    const fetchMajors = async () => {
+      try {
+        const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        setMajors(response.data)
+      } catch (error) {
+        console.error('Error fetching majors:', error)
+      }
+    }
+    fetchClases()
+    fetchMajors()
+    fetchData()
+  }, [dispatch, school_id, clas, major, setting_payment_uid, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
-  const handleYearChange = useCallback((e: SelectChangeEvent<unknown>) => setYear(e.target.value as string), [])
-  const handleTypeChange = useCallback((e: SelectChangeEvent<unknown>) => setSpType(e.target.value as string), [])
-  const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setSpStatus(e.target.value as string), [])
+  const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
+    setClas(e.target.value as any)
+  }, [])
+  const handleMajorChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
+    setMajor(e.target.value as any)
+  }, [])
   const handleNavigate = () => {
-    router.push(`/ms/setting/pembayaran/kelas/${uid}`)
+    router.push(`/ms/setting/pembayaran/bulanan/kelas/${uid}`)
   }
   const handleNavigateSiswa = () => {
-    router.push(`/ms/setting/pembayaran/siswa/${uid}`)
+    router.push(`/ms/setting/pembayaran/bulanan/siswa/${uid}`)
   }
   const handleNavigateBack = () => {
     router.push(`/ms/setting/pembayaran`)
@@ -293,7 +316,7 @@ const SettingPembayaran = () => {
               <Grid item xs={4}>
                 <Button
                   variant='contained'
-                  color='error'
+                  color='secondary'
                   sx={{ '& svg': { mr: 2 }, width: '100%' }}
                   onClick={handleNavigateBack}
                 >
@@ -305,36 +328,37 @@ const SettingPembayaran = () => {
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Tahun'
+                  value={clas} // Bind the selected value to the state
+                  onChange={handleClassChange} // Attach the event handler
+                  defaultValue=''
                   SelectProps={{
-                    value: year,
-                    displayEmpty: true,
-                    onChange: handleYearChange
+                    displayEmpty: true
                   }}
                 >
-                  <MenuItem value=''>Pilih Tahun</MenuItem>
-                  {years.map(data => (
-                    <MenuItem key={data} value={data}>
-                      {data}
+                  <MenuItem value=''>Pilih Kelas</MenuItem>
+                  {classes.map(data => (
+                    <MenuItem key={data.id} value={data.id}>
+                      {data.class_name}
                     </MenuItem>
                   ))}
                 </CustomTextField>
               </Grid>
+
               <Grid item sm={6} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Select Status'
+                  value={major} // Bind the selected value to the state
+                  onChange={handleMajorChange} // Attach the event handler
+                  defaultValue=''
                   SelectProps={{
-                    value: status,
-                    displayEmpty: true,
-                    onChange: handleStatusChange
+                    displayEmpty: true
                   }}
                 >
-                  <MenuItem value=''>Select Status</MenuItem>
-                  {statuses.map(data => (
-                    <MenuItem key={data} value={data}>
-                      {data}
+                  <MenuItem value=''>Pilih Jurusan</MenuItem>
+                  {majors.map(data => (
+                    <MenuItem key={data.id} value={data.id}>
+                      {data.major_name}
                     </MenuItem>
                   ))}
                 </CustomTextField>
