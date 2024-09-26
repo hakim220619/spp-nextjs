@@ -50,12 +50,14 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const [value, setValue] = useState<string>('')
   const [clas, setClas] = useState<string>('')
   const [major, setMajor] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false) // Tambahkan state isLoading
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const handleRowEditedClick = () => router.push('/ms/siswa/' + uid)
 
   const handleDelete = async () => {
+    setIsLoading(true) // Set isLoading menjadi true saat mulai delete
     try {
       await dispatch(deleteUserSiswa(uid)).unwrap()
       await dispatch(fetchDataSiswa({ school_id, major, clas, status: '', q: value }))
@@ -64,6 +66,8 @@ const RowOptions = ({ uid }: { uid: any }) => {
     } catch (error) {
       console.error('Failed to delete user:', error)
       toast.error('Failed to delete user. Please try again.')
+    } finally {
+      setIsLoading(false) // Set isLoading menjadi false setelah proses selesai
     }
   }
 
@@ -87,8 +91,8 @@ const RowOptions = ({ uid }: { uid: any }) => {
           <Button onClick={handleClose} color='primary'>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color='error'>
-            Delete
+          <Button color='error' type='submit' disabled={isLoading} onClick={handleDelete}>
+            {isLoading ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -26,6 +26,7 @@ import axiosConfig from '../../../../../../configs/axiosConfig'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { useRouter } from 'next/router'
 import CustomTextField from 'src/@core/components/mui/text-field'
+import { CircularProgress } from '@mui/material'
 
 interface State {
   password: string
@@ -51,6 +52,7 @@ const FormLayoutsSeparator = () => {
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
   const [users, setUsers] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [filteredUsers, setFilteredUsers] = useState<any[]>([])
 
@@ -193,7 +195,7 @@ const FormLayoutsSeparator = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
+    setLoading(true)
     // Collect the form data
     const formData = {
       user_id: selectedUser,
@@ -237,6 +239,8 @@ const FormLayoutsSeparator = () => {
     } catch (error: any) {
       console.error('Error creating payment:', error)
       toast.error('Terjadi kesalahan saat menyimpan pembayaran: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setLoading(false) // Ensure loading state is reset after request
     }
   }
 
@@ -392,8 +396,14 @@ const FormLayoutsSeparator = () => {
         </CardContent>
         <Divider sx={{ m: '0 !important' }} />
         <CardActions>
-          <Button size='large' type='submit' sx={{ mr: 2 }} variant='contained'>
-            Simpan
+          <Button
+            size='large'
+            type='submit'
+            variant='contained'
+            disabled={loading} // Disable button when loading
+            startIcon={loading ? <CircularProgress size={20} /> : null} // Show CircularProgress when loading
+          >
+            {loading ? 'Loading...' : 'Simpan'}
           </Button>
           <Button
             size='large'

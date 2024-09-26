@@ -3,6 +3,7 @@
  */
 const getHomeRoute = (role: number) => {
   if (role === 150) return '/ms/admin'
+  else if (role === 160) return 'ms/dashboard/siswa'
   else if (role === 170) return 'ms/siswa'
   else return '/ms/siswa'
 }

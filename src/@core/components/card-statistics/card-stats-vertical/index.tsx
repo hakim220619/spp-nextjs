@@ -1,59 +1,51 @@
 // ** MUI Imports
+import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
-import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 
-// ** Type Import
-import { CardStatsVerticalProps } from 'src/@core/components/card-statistics/types'
-
-// ** Custom Component Import
-import Icon from 'src/@core/components/icon'
+// ** Custom Components Imports
 import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+
+// ** Types Imports
+import { CardStatsVerticalProps } from 'src/@core/components/card-statistics/types'
+
 const CardStatsVertical = (props: CardStatsVerticalProps) => {
   // ** Props
-  const {
-    sx,
-    stats,
-    title,
-    chipText,
-    subtitle,
-    avatarIcon,
-    avatarSize = 44,
-    iconSize = '1.75rem',
-    chipColor = 'primary',
-    avatarColor = 'primary'
-  } = props
-
-  const RenderChip = chipColor === 'default' ? Chip : CustomChip
+  const { title, color, icon, stats, chipText, trendNumber, trend = 'positive' } = props
 
   return (
-    <Card sx={{ ...sx }}>
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-        <CustomAvatar
-          skin='light'
-          variant='rounded'
-          color={avatarColor}
-          sx={{ mb: 3.5, width: avatarSize, height: avatarSize }}
-        >
-          <Icon icon={avatarIcon} fontSize={iconSize} />
-        </CustomAvatar>
-        <Typography variant='h5' sx={{ mb: 1 }}>
+    <Card>
+      <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ mb: 6, width: '100%', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <CustomAvatar skin='light' variant='rounded' color={color}>
+            {icon}
+          </CustomAvatar>
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', color: trend === 'positive' ? 'success.main' : 'error.main' }}
+          >
+            <Typography variant='subtitle2' sx={{ color: trend === 'positive' ? 'success.main' : 'error.main' }}>
+              {trendNumber}
+            </Typography>
+            <Icon icon={trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'} fontSize='1.25rem' />
+          </Box>
+        </Box>
+        <Typography variant='h6' sx={{ mb: 1 }}>
+          {stats}
+        </Typography>
+        <Typography variant='body2' sx={{ mb: 5 }}>
           {title}
         </Typography>
-        <Typography variant='body2' sx={{ mb: 1, color: 'text.disabled' }}>
-          {subtitle}
-        </Typography>
-        <Typography sx={{ mb: 3.5, color: 'text.secondary' }}>{stats}</Typography>
-        <RenderChip
+        <CustomChip
+          skin='light'
           size='small'
           label={chipText}
-          color={chipColor}
-          {...(chipColor === 'default'
-            ? { sx: { borderRadius: '4px', color: 'text.secondary' } }
-            : { rounded: true, skin: 'light' })}
+          color='secondary'
+          sx={{ height: 20, fontWeight: 500, fontSize: '0.75rem', alignSelf: 'flex-start', color: 'text.secondary' }}
         />
       </CardContent>
     </Card>

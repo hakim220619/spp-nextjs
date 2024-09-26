@@ -1,32 +1,53 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
+import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import { AvatarProps } from '@mui/material/Avatar'
 import CardContent from '@mui/material/CardContent'
 
-// ** Type Import
+// ** Custom Components Imports
+import CustomAvatar from 'src/@core/components/mui/avatar'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+
+// ** Types Imports
 import { CardStatsHorizontalProps } from 'src/@core/components/card-statistics/types'
 
-// ** Custom Component Import
-import Icon from 'src/@core/components/icon'
-import CustomAvatar from 'src/@core/components/mui/avatar'
+// ** Styled Avatar component
+const Avatar = styled(CustomAvatar)<AvatarProps>(({ theme }) => ({
+  width: 40,
+  height: 40,
+  marginRight: theme.spacing(4)
+}))
 
 const CardStatsHorizontal = (props: CardStatsHorizontalProps) => {
   // ** Props
-  const { sx, icon, stats, title, avatarSize = 42, iconSize = '1.625rem', avatarColor = 'primary' } = props
+  const { title, icon, stats, trendNumber, color = 'primary', trend = 'positive' } = props
 
   return (
-    <Card sx={{ ...sx }}>
-      <CardContent sx={{ gap: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <Typography variant='h5' sx={{ mb: 0.5 }}>
-            {stats}
-          </Typography>
-          <Typography variant='body2'>{title}</Typography>
+    <Card>
+      <CardContent sx={{ py: theme => `${theme.spacing(4.125)} !important` }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar skin='light' color={color} variant='rounded'>
+            {icon}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Typography variant='h6'>{stats}</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: 'inline-flex', color: trend === 'positive' ? 'success.main' : 'error.main' }}>
+                  <Icon icon={trend === 'positive' ? 'mdi:chevron-up' : 'mdi:chevron-down'} />
+                </Box>
+                <Typography variant='caption' sx={{ color: trend === 'positive' ? 'success.main' : 'error.main' }}>
+                  {trendNumber}
+                </Typography>
+              </Box>
+            </Box>
+            <Typography variant='caption'>{title}</Typography>
+          </Box>
         </Box>
-        <CustomAvatar skin='light' color={avatarColor} sx={{ width: avatarSize, height: avatarSize }}>
-          <Icon icon={icon} fontSize={iconSize} />
-        </CustomAvatar>
       </CardContent>
     </Card>
   )

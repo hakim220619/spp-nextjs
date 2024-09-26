@@ -1,20 +1,13 @@
-// ** Next Import
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-
-// ** MUI Imports
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography, { TypographyProps } from '@mui/material/Typography'
-
-// ** Type Import
 import { LayoutProps } from 'src/@core/layouts/types'
-
-// ** Custom Icon Import
 import Icon from 'src/@core/components/icon'
-
-// ** Configs
 import themeConfig from 'src/configs/themeConfig'
+import urlImage from '../../../../../configs/url_image'
 
 interface Props {
   navHover: boolean
@@ -70,6 +63,8 @@ const VerticalNavHeader = (props: Props) => {
   const theme = useTheme()
   const { navCollapsed } = settings
 
+  const [logo, setLogo] = useState<string | null>(null) // State for the logo URL
+
   const menuCollapsedStyles = navCollapsed && !navHover ? { opacity: 0 } : { opacity: 1 }
 
   const menuHeaderPaddingLeft = () => {
@@ -84,8 +79,16 @@ const VerticalNavHeader = (props: Props) => {
     }
   }
 
-  const MenuLockedIcon = () => userMenuLockedIcon || <Icon icon='tabler:circle-dot' />
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData') as string)
+    // Fetch the logo from localStorage
+    const storedLogo = userData.logo
+    console.log(urlImage + storedLogo)
 
+    setLogo(urlImage + storedLogo)
+  }, [])
+
+  const MenuLockedIcon = () => userMenuLockedIcon || <Icon icon='tabler:circle-dot' />
   const MenuUnlockedIcon = () => userMenuUnlockedIcon || <Icon icon='tabler:circle' />
 
   return (
@@ -94,34 +97,12 @@ const VerticalNavHeader = (props: Props) => {
         userNavMenuBranding(props)
       ) : (
         <LinkStyled href='/'>
-          <svg width={34} viewBox='0 0 32 22' fill='none' xmlns='http://www.w3.org/2000/svg'>
-            <path
-              fillRule='evenodd'
-              clipRule='evenodd'
-              fill={theme.palette.primary.main}
-              d='M0.00172773 0V6.85398C0.00172773 6.85398 -0.133178 9.01207 1.98092 10.8388L13.6912 21.9964L19.7809 21.9181L18.8042 9.88248L16.4951 7.17289L9.23799 0H0.00172773Z'
-            />
-            <path
-              fill='#161616'
-              opacity={0.06}
-              fillRule='evenodd'
-              clipRule='evenodd'
-              d='M7.69824 16.4364L12.5199 3.23696L16.5541 7.25596L7.69824 16.4364Z'
-            />
-            <path
-              fill='#161616'
-              opacity={0.06}
-              fillRule='evenodd'
-              clipRule='evenodd'
-              d='M8.07751 15.9175L13.9419 4.63989L16.5849 7.28475L8.07751 15.9175Z'
-            />
-            <path
-              fillRule='evenodd'
-              clipRule='evenodd'
-              fill={theme.palette.primary.main}
-              d='M7.77295 16.3566L23.6563 0H32V6.88383C32 6.88383 31.8262 9.17836 30.6591 10.4057L19.7824 22H13.6938L7.77295 16.3566Z'
-            />
-          </svg>
+          <img
+            src={logo || `${urlImage}uploads/aplikasi/logo.png`} // Use the logo from state or a default
+            alt='Logo' // Provide an alt text for accessibility
+            style={{ width: 34, height: 34 }} // Set the width and height
+          />
+
           <HeaderTitle variant='h4' sx={{ ...menuCollapsedStyles, ...(navCollapsed && !navHover ? {} : { ml: 2.5 }) }}>
             {themeConfig.templateName}
           </HeaderTitle>

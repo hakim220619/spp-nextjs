@@ -20,6 +20,7 @@ import axiosConfig from '../../../../../../configs/axiosConfig'
 // ** Types
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { useRouter } from 'next/router'
+import { CircularProgress } from '@mui/material'
 
 const AddPaymentDetailByClass = () => {
   // ** States
@@ -34,6 +35,8 @@ const AddPaymentDetailByClass = () => {
   const [MajorName, setMajorName] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
+  const [Loading, setLoading] = useState<boolean>(false)
+
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
@@ -99,6 +102,7 @@ const AddPaymentDetailByClass = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setLoading(true)
     let cleanedPayment = amount
 
     // Check if payment contains "Rp", ".", or spaces
@@ -137,6 +141,8 @@ const AddPaymentDetailByClass = () => {
       }
     } catch (error: any) {
       toast.error('Terjadi kesalahan saat menyimpan pembayaran: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setLoading(false) // Set loading to false after the request completes
     }
   }
 
@@ -186,8 +192,14 @@ const AddPaymentDetailByClass = () => {
         </CardContent>
         <Divider />
         <CardActions>
-          <Button size='large' type='submit' variant='contained'>
-            Simpan
+          <Button
+            size='large'
+            type='submit'
+            variant='contained'
+            disabled={Loading} // Disable button when loading
+            startIcon={Loading ? <CircularProgress size={20} /> : null} // Show CircularProgress when loading
+          >
+            {Loading ? 'Loading...' : 'Simpan'}
           </Button>
           <Button
             size='large'

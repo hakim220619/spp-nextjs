@@ -56,13 +56,14 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
+  const [isDeleting, setIsDeleting] = useState(false) // State untuk melacak proses penghapusan
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const { uuid } = router.query
   const handleDelete = async () => {
+    setIsDeleting(true) // Set isDeleting true ketika penghapusan dimulai
     try {
-      // Memanggil action untuk menghapus detail pembayaran dengan argumen yang benar
       await dispatch(
         deleteSettingPembayaranDetail({
           uid,
@@ -71,7 +72,6 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
         })
       ).unwrap()
 
-      // Mengambil ulang data setelah penghapusan berhasil
       await dispatch(
         fetchDataSettingPembayaranDetail({
           school_id,
@@ -82,21 +82,15 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
         })
       )
 
-      // Menampilkan notifikasi kesuksesan
       toast.success('Successfully deleted!')
-
-      // Menutup modal atau dialog setelah penghapusan berhasil
       setOpen(false)
     } catch (error: any) {
-      // Menangani dan menampilkan kesalahan jika penghapusan gagal
       console.error('Failed to delete payment setting:', error)
-
-      // Jika error memiliki pesan, tampilkan di notifikasi
       const errorMessage = error?.message || 'Failed to delete. Please try again.'
       toast.error(errorMessage)
-
-      // Menutup modal atau dialog meskipun ada error
       setOpen(false)
+    } finally {
+      setIsDeleting(false) // Set isDeleting kembali false setelah proses selesai
     }
   }
 
@@ -123,8 +117,8 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
           <Button onClick={handleClose} color='primary'>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color='error'>
-            Delete
+          <Button onClick={handleDelete} color='error' disabled={isDeleting}>
+            {isDeleting ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>

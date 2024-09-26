@@ -18,6 +18,7 @@ import toast from 'react-hot-toast'
 import axiosConfig from '../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { CircularProgress } from '@mui/material'
 
 interface Major {
   id: string
@@ -49,6 +50,7 @@ const FormValidationSchema = () => {
   const [clases, setClases] = useState<Class[]>([])
   const [clas, setClas] = useState<number | string>('')
   const [dateOfBirth, setDateOfBirth] = useState<string>('')
+  const [loading, setLoading] = useState(false) // Add loading state
   const schoolId = userData.school_id
   const router = useRouter()
   const { uid } = router.query
@@ -154,7 +156,7 @@ const FormValidationSchema = () => {
     return true
   }
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (!validateForm()) {
       return
     }
@@ -174,8 +176,9 @@ const FormValidationSchema = () => {
     }
 
     if (storedToken) {
-      axiosConfig
-        .post(
+      setLoading(true)
+      try {
+        await axiosConfig.post(
           '/update-siswa',
           { data: formData },
           {
@@ -185,13 +188,14 @@ const FormValidationSchema = () => {
             }
           }
         )
-        .then(() => {
-          toast.success('Successfully Updated!')
-          router.push('/ms/siswa')
-        })
-        .catch(() => {
-          toast.error("Failed. This didn't work.")
-        })
+        toast.success('Successfully Updated!')
+        router.push('/ms/siswa')
+      } catch (error) {
+        console.error('Failed to update:', error)
+        toast.error("Failed. This didn't work.")
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -289,8 +293,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Button type='submit' variant='contained'>
-                Save
+              <Button type='submit' variant='contained' disabled={loading}>
+                {loading ? <CircularProgress size={24} /> : 'Save'} {/* CircularProgress when loading */}
               </Button>
               <Box m={1} display='inline'></Box>
               <Link href='/ms/siswa' passHref>

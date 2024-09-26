@@ -14,7 +14,7 @@ import {
   DialogTitle,
   CardContent,
   MenuItem,
-  SelectChangeEvent
+  Backdrop
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -28,7 +28,6 @@ import { useRouter } from 'next/router'
 import Swal from 'sweetalert2'
 import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../../configs/axiosConfig'
 import CustomTextField from 'src/@core/components/mui/text-field'
 
 const MySwal = withReactContent(Swal)
@@ -41,6 +40,7 @@ const statusObj: any = {
   ON: { title: 'ON', color: 'primary' },
   OFF: { title: 'OFF', color: 'error' }
 }
+
 const typeObj: any = {
   BULANAN: { title: 'BULANAN', color: 'success' },
   BEBAS: { title: 'BEBAS', color: 'warning' }
@@ -50,26 +50,29 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
+  const [loadingDelete, setLoadingDelete] = useState(false) // Track loading state for delete action
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const handleRowEditedClick = () => {
-    dataAll.sp_type == 'BULANAN'
+    dataAll.sp_type === 'BULANAN'
       ? router.push('/ms/setting/pembayaran/bulanan/' + uid)
       : router.push('/ms/setting/pembayaran/bebas/' + uid)
   }
 
   const handleDelete = async () => {
+    setLoadingDelete(true) // Activate loading state
     try {
       await dispatch(deleteSettingPembayaran(uid)).unwrap()
       await dispatch(fetchDataSettingPembayaran({ school_id, year: '', sp_type: '', sp_status: '', q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
-      console.error('Failed to delete jurusan:', error)
       toast.error('Failed to delete jurusan. Please try again.')
+    } finally {
+      setLoadingDelete(false) // Deactivate loading state
     }
   }
 
@@ -79,12 +82,13 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
   return (
     <>
       <IconButton size='large' color='success' onClick={handleRowEditedClick}>
-        <Icon icon='tabler:settings' /> {/* Changed to 'settings' icon */}
+        <Icon icon='tabler:settings' />
       </IconButton>
 
       <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
         <Icon icon='tabler:trash' />
       </IconButton>
+
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{'Are you sure you want to delete this user?'}</DialogTitle>
         <DialogContent>
@@ -94,11 +98,16 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
           <Button onClick={handleClose} color='primary'>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color='error'>
-            Delete
+          <Button onClick={handleDelete} color='error' disabled={loadingDelete}>
+            {loadingDelete ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Backdrop for loading overlay during delete action */}
+      <Backdrop sx={{ color: '#fff', zIndex: theme => theme.zIndex.drawer + 1 }} open={loadingDelete}>
+        <CircularProgress color='inherit' />
+      </Backdrop>
     </>
   )
 }
@@ -164,9 +173,9 @@ const SettingPembayaran = () => {
   const [year, setYear] = useState<string>('')
   const [years, setYears] = useState<any[]>([])
   const [sp_type, setSpType] = useState<string>('')
-  const [sp_types, setSpTypes] = useState<any[]>(['BULANAN', 'BEBAS'])
+  const [sp_types] = useState<any[]>(['BULANAN', 'BEBAS'])
   const [sp_status, setSpStatus] = useState<string>('')
-  const [statuses, setSpStatuses] = useState<any[]>(['ON', 'OFF'])
+  const [statuses] = useState<any[]>(['ON', 'OFF'])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
@@ -178,7 +187,6 @@ const SettingPembayaran = () => {
       try {
         await dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q: value }))
       } catch (error) {
-        console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
       } finally {
         setLoading(false)
@@ -187,6 +195,7 @@ const SettingPembayaran = () => {
 
     fetchData()
   }, [dispatch, school_id, year, sp_type, sp_status, value])
+
   useEffect(() => {
     const currentYear = new Date().getFullYear()
     const years = []
@@ -198,9 +207,9 @@ const SettingPembayaran = () => {
   }, [])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
-  const handleYearChange = useCallback((e: SelectChangeEvent<unknown>) => setYear(e.target.value as string), [])
-  const handleTypeChange = useCallback((e: SelectChangeEvent<unknown>) => setSpType(e.target.value as string), [])
-  const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setSpStatus(e.target.value as string), [])
+  const handleYearChange = useCallback((e: any) => setYear(e.target.value as string), [])
+  const handleTypeChange = useCallback((e: any) => setSpType(e.target.value as string), [])
+  const handleStatusChange = useCallback((e: any) => setSpStatus(e.target.value as string), [])
 
   return (
     <Grid container spacing={6.5}>

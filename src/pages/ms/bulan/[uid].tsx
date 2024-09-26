@@ -8,6 +8,8 @@ import Button from '@mui/material/Button'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import MenuItem from '@mui/material/MenuItem'
+import CircularProgress from '@mui/material/CircularProgress'
+import Backdrop from '@mui/material/Backdrop'
 import toast from 'react-hot-toast'
 
 // Axios Import
@@ -23,14 +25,15 @@ const FormValidationSchema = () => {
     handleSubmit,
     formState: { errors }
   } = useForm()
-
   const router = useRouter()
   const { uid } = router.query
   const storedToken = window.localStorage.getItem('token')
-  const [month_status, setStatus] = useState<string>('ON')
-  const [month, setMonth] = useState<string>('')
-  const [month_number, setMonthNumber] = useState<string>('')
-  const [school_id, setSchoolId] = useState<string>('')
+
+  const [monthStatus, setMonthStatus] = useState('ON')
+  const [month, setMonth] = useState('')
+  const [monthNumber, setMonthNumber] = useState('')
+  const [schoolId, setSchoolId] = useState('')
+  const [loading, setLoading] = useState(false) // New state for loading
 
   useEffect(() => {
     if (storedToken) {
@@ -47,10 +50,9 @@ const FormValidationSchema = () => {
         )
         .then(response => {
           const { month, month_number, month_status, school_id } = response.data
-          // Set default values
           setMonth(month)
           setMonthNumber(month_number)
-          setStatus(month_status)
+          setMonthStatus(month_status)
           setSchoolId(school_id)
         })
         .catch(error => {
@@ -60,11 +62,12 @@ const FormValidationSchema = () => {
   }, [uid, storedToken])
 
   const onSubmit = () => {
+    setLoading(true) // Start loading
     const formData = {
-      uid: uid,
-      school_id: school_id,
-      month_number,
-      month_status
+      uid,
+      school_id: schoolId,
+      month_number: monthNumber,
+      month_status: monthStatus
     }
 
     if (storedToken) {
@@ -86,68 +89,79 @@ const FormValidationSchema = () => {
         .catch(() => {
           toast.error("Failed. This didn't work.")
         })
+        .finally(() => {
+          setLoading(false) // Stop loading
+        })
     }
   }
 
   return (
-    <Card>
-      <CardHeader title='Update Bulan' />
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={5}>
-            <Grid item xs={4}>
-              <CustomTextField
-                fullWidth
-                value={month}
-                label='Nama Bulan'
-                placeholder='Nama Bulan'
-                InputProps={{ readOnly: true }}
-              />
-            </Grid>
+    <>
+      <Card>
+        <CardHeader title='Update Bulan' />
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={5}>
+              <Grid item xs={4}>
+                <CustomTextField
+                  fullWidth
+                  value={month}
+                  label='Nama Bulan'
+                  placeholder='Nama Bulan'
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
 
-            <Grid item xs={4}>
-              <CustomTextField
-                fullWidth
-                value={month_number}
-                onChange={e => {
-                  const newValue = e.target.value.replace(/[^0-9]/g, '') // Allow only numbers
-                  if (newValue === '' || Number(newValue) <= 12) {
-                    setMonthNumber(newValue)
-                  }
-                }}
-                label='Nomor Urut Bulan'
-                placeholder='No Urut Bulan'
-              />
-            </Grid>
+              <Grid item xs={4}>
+                <CustomTextField
+                  fullWidth
+                  value={monthNumber}
+                  onChange={e => {
+                    const newValue = e.target.value.replace(/[^0-9]/g, '')
+                    if (newValue === '' || Number(newValue) <= 12) {
+                      setMonthNumber(newValue)
+                    }
+                  }}
+                  label='Nomor Urut Bulan'
+                  placeholder='No Urut Bulan'
+                />
+              </Grid>
 
-            <Grid item xs={4}>
-              <CustomTextField
-                select
-                fullWidth
-                label='Status'
-                value={month_status}
-                onChange={e => setStatus(e.target.value)}
-              >
-                <MenuItem value='ON'>ON</MenuItem>
-                <MenuItem value='OFF'>OFF</MenuItem>
-              </CustomTextField>
-            </Grid>
+              <Grid item xs={4}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  label='Status'
+                  value={monthStatus}
+                  onChange={e => setMonthStatus(e.target.value)}
+                >
+                  <MenuItem value='ON'>ON</MenuItem>
+                  <MenuItem value='OFF'>OFF</MenuItem>
+                </CustomTextField>
+              </Grid>
 
-            <Grid item xs={12}>
-              <Button type='submit' variant='contained' sx={{ marginRight: 2 }}>
-                Save
-              </Button>
-              <Box m={1} display='inline'></Box>
-              <Link href='/ms/bulan' passHref>
-                <Button type='button' variant='contained' color='secondary'>
-                  Back
+              <Grid item xs={12}>
+                <Button
+                  type='submit'
+                  variant='contained'
+                  sx={{ marginRight: 2 }}
+                  disabled={loading} // Disable button when loading
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Save'}
                 </Button>
-              </Link>
+
+                <Box m={1} display='inline'></Box>
+                <Link href='/ms/bulan' passHref>
+                  <Button type='button' variant='contained' color='secondary'>
+                    Back
+                  </Button>
+                </Link>
+              </Grid>
             </Grid>
-          </Grid>
-        </form>
-      </CardContent>
-    </Card>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

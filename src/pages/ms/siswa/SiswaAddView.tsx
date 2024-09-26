@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
-import { IconButton, InputAdornment } from '@mui/material'
+import { CircularProgress, IconButton, InputAdornment } from '@mui/material'
 import { GridVisibilityOffIcon } from '@mui/x-data-grid'
 
 interface User {
@@ -79,6 +79,7 @@ const FormValidationSchema = () => {
   const [majors, setMajorses] = useState<Major[]>([])
   const [clas, setClas] = useState<Class[]>([])
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false) // Add loading state
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const schoolId = getDataLocal?.school_id
@@ -146,7 +147,8 @@ const FormValidationSchema = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = (data: User) => {
+  const onSubmit = async (data: User) => {
+    setLoading(true) // Start loading
     const localDate = new Date(data.date_of_birth).toLocaleDateString('en-CA') //
     const formData = new FormData()
     formData.append('nisn', data.nisn)
@@ -166,23 +168,22 @@ const FormValidationSchema = () => {
     }
 
     const storedToken = window.localStorage.getItem('token')
-    axiosConfig
-      .post('/create-siswa', formData, {
+    try {
+      await axiosConfig.post('/create-siswa', formData, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${storedToken}`
         }
       })
-      .then(response => {
-        console.log(response)
 
-        toast.success('Successfully Added!')
-        router.push('/ms/siswa')
-      })
-      .catch(() => {
-        toast.error('Failed to add user')
-      })
+      toast.success('Successfully Added!')
+      router.push('/ms/siswa')
+    } catch (error) {
+      toast.error('Failed to add user')
+    } finally {
+      setLoading(false) // Stop loading
+    }
   }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -440,8 +441,8 @@ const FormValidationSchema = () => {
             </Grid>
 
             <Grid item xs={12}>
-              <Button type='submit' variant='contained'>
-                Submit
+              <Button type='submit' variant='contained' disabled={loading}>
+                {loading ? <CircularProgress size={24} /> : 'Submit'} {/* CircularProgress when loading */}
               </Button>
               <Box m={1} display='inline' />
               <Link href='/ms/siswa' passHref>

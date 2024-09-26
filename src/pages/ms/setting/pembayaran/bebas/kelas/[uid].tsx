@@ -26,6 +26,7 @@ import axiosConfig from '../../../../../../configs/axiosConfig'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { useRouter } from 'next/router'
 import CustomTextField from 'src/@core/components/mui/text-field'
+import { CircularProgress } from '@mui/material'
 
 interface State {
   password: string
@@ -51,6 +52,7 @@ const AddPaymentDetailByClass = () => {
   const [majors, setMajors] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
@@ -172,7 +174,7 @@ const AddPaymentDetailByClass = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-
+    setLoading(true)
     // Collect the form data
     const formData = {
       school_id: schoolId,
@@ -205,6 +207,8 @@ const AddPaymentDetailByClass = () => {
     } catch (error: any) {
       console.error('Error creating payment:', error)
       toast.error('Terjadi kesalahan saat menyimpan pembayaran: ' + (error.response?.data?.message || error.message))
+    } finally {
+      setLoading(false) // Set loading to false once the process is done
     }
   }
 
@@ -310,8 +314,14 @@ const AddPaymentDetailByClass = () => {
         </CardContent>
         <Divider sx={{ m: '0 !important' }} />
         <CardActions>
-          <Button size='large' type='submit' sx={{ mr: 2 }} variant='contained'>
-            Simpan
+          <Button
+            size='large'
+            type='submit'
+            variant='contained'
+            disabled={loading} // Disable button when loading
+            startIcon={loading ? <CircularProgress size={20} /> : null} // Show CircularProgress when loading
+          >
+            {loading ? 'Loading...' : 'Simpan'}
           </Button>
           <Button
             size='large'

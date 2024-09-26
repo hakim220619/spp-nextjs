@@ -56,11 +56,13 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
+  const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const { uuid } = router.query
   const handleDelete = async () => {
+    setIsDeleting(true)
     try {
       // Memanggil action untuk menghapus detail pembayaran dengan argumen yang benar
       await dispatch(
@@ -97,6 +99,8 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
 
       // Menutup modal atau dialog meskipun ada error
       setOpen(false)
+    } finally {
+      setIsDeleting(false) // Set isDeleting kembali false setelah proses selesai
     }
   }
 
@@ -125,8 +129,8 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
           <Button onClick={handleClose} color='primary'>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color='error'>
-            Delete
+          <Button onClick={handleDelete} color='error' disabled={isDeleting}>
+            {isDeleting ? <CircularProgress size={24} /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
