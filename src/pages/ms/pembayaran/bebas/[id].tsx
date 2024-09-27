@@ -15,10 +15,9 @@ import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import { fetchDataPaymentPayByMonth } from 'src/store/apps/pembayaran/bulanan/index'
+import { fetchDataPaymentPayByFree } from 'src/store/apps/pembayaran/bebas/index'
 import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
-import TableHeader from 'src/pages/ms/pembayaran/bulanan/TableHeader'
 import { useRouter } from 'next/router'
 import Typography from '@mui/material/Typography'
 import axiosConfig from '../../../../configs/axiosConfig'
@@ -53,8 +52,28 @@ const RowOptions = ({ data }: { uid: any; data: any }) => {
 }
 
 const columns: GridColDef[] = [
-  { field: 'month_number', headerName: 'No', width: 70 },
-  { field: 'month', headerName: 'Bulan', flex: 0.175, minWidth: 140 },
+  {
+    field: 'no',
+    headerName: 'No',
+    width: 70,
+    renderCell: (params: GridRenderCellParams) => {
+      return params.api.getRowIndexRelativeToVisibleRows(params.id) + 1 // Menghasilkan nomor urut otomatis dimulai dari 1
+    },
+    sortable: false // Menonaktifkan sorting untuk kolom ini
+  },
+  {
+    field: 'full_name',
+    headerName: 'Pembayaran ke',
+    flex: 0.175,
+    minWidth: 140,
+    renderCell: (params: GridRenderCellParams) => {
+      const sortedRowIds = params.api.getSortedRowIds() // Mendapatkan urutan ID setelah sorting
+      const rowIndex = sortedRowIds.indexOf(params.id) + 1 // Mencari index dari ID dan increment
+
+      return `Pembayaran ke ${rowIndex}`
+    },
+    sortable: false // Menonaktifkan sorting untuk kolom ini
+  },
   {
     field: 'amount',
     headerName: 'Jumlah',
@@ -67,7 +86,7 @@ const columns: GridColDef[] = [
         maximumFractionDigits: 0
       }).format(value)
   },
-  { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 140 },
+  { field: 'metode_pembayaran', headerName: 'Metode Pembayaran', flex: 0.175, minWidth: 140 },
   {
     field: 'status',
     headerName: 'Status',
@@ -89,6 +108,27 @@ const columns: GridColDef[] = [
     }
   },
   {
+    field: 'created_at',
+    headerName: 'Dibuat',
+    flex: 0.175,
+    minWidth: 140,
+    valueFormatter: params => {
+      const date = new Date(params.value)
+
+      // Format date
+      const day = String(date.getDate()).padStart(2, '0')
+      const month = String(date.getMonth() + 1).padStart(2, '0') // Month is 0-based, so add 1
+      const year = date.getFullYear()
+
+      // Format time
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      const seconds = String(date.getSeconds()).padStart(2, '0')
+
+      return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`
+    }
+  },
+  {
     flex: 0,
     minWidth: 200,
     sortable: false,
@@ -101,23 +141,50 @@ const columns: GridColDef[] = [
 const UserList: React.FC = () => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 15 })
   const [loading, setLoading] = useState<boolean>(true)
-  const [rowSelectionModel, setRowSelectionModel] = useState<number[]>([])
-  const [selectedRows, setSelectedRows] = useState<any[]>([])
-  const [spName, setSpName] = useState<any>('')
+  const [dataPayment, setDataPayment] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.PembayaranByMonth)
+  const store = useSelector((state: RootState) => state.PembayaranByFree)
   const router = useRouter()
   const { id } = router.query
   const storedToken = window.localStorage.getItem('token')
+  const fetchPaymentDetails = useCallback(
+    async (id: string) => {
+      try {
+        const storedToken = window.localStorage.getItem('token')
+
+        // Get additional data from local storage or another function as necessary
+        const school_id = getDataLocal.school_id
+        const user_id = getDataLocal.id
+
+        // Send all parameters as query parameters
+        const response = await axiosConfig.get('/list-payment-pay-byFree', {
+          params: {
+            uid: id,
+            id_payment: id,
+            school_id,
+            user_id
+          },
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        setDataPayment(response.data)
+      } catch (error) {
+        console.error('Error fetching payment details:', error)
+      }
+    },
+    [getDataLocal.school_id, getDataLocal.id] // You should include these dependencies instead of `id`
+  )
 
   useEffect(() => {
     setLoading(true)
     dispatch(
-      fetchDataPaymentPayByMonth({
+      fetchDataPaymentPayByFree({
         id_payment: id,
         school_id: getDataLocal.school_id,
         user_id: getDataLocal.id,
@@ -126,52 +193,40 @@ const UserList: React.FC = () => {
     ).finally(() => {
       setLoading(false)
     })
-  }, [dispatch, value, id, getDataLocal.school_id, getDataLocal.id])
 
-  useEffect(() => {
-    if (store.data && store.data.length > 0) {
-      const firstItem = store.data[0]
-      setSpName(firstItem)
-    }
-  }, [store.data])
+    fetchPaymentDetails(id as any)
+  }, [dispatch, value, id, getDataLocal.school_id, getDataLocal.id, fetchPaymentDetails])
 
-  const handleFilter = useCallback((val: string) => setValue(val), [])
   const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
-    if (spName && jumlah) {
+    if (dataPayment && jumlah) {
       try {
         const totalAmount = jumlah.replace(/[^\d]/g, '') // Hanya angka
-        const filteredRows = selectedRows.filter(row => row.status !== 'Verified')
-        const response = await fetch('/api/createMidtransTransaction', {
+        const response = await fetch('/api/createMidtransTransactionFree', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dataUsers: spName,
-            dataPayment: filteredRows,
-            total_amount: totalAmount,
-            user_id: getDataLocal.id
+            dataPayment: dataPayment,
+            total_amount: jumlah,
+            user_id: dataPayment.user_id
           })
         })
-
-        const { transactionToken, orderId, transactionUrl } = await response.json() // Hapus transactionUrl
+        const { transactionToken, orderId, transactionUrl } = await response.json()
 
         if (transactionToken) {
           ;(window as any).snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
-              // Hapus event listener ketika sukses
-              window.removeEventListener('beforeunload', handleBeforeUnload)
               toast.success('Pembayaran berhasil!')
               try {
                 // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
                 axiosConfig
                   .post(
-                    '/create-payment-success',
+                    '/create-payment-success-Free',
                     {
-                      dataUsers: spName,
-                      dataPayment: filteredRows,
+                      dataPayment: dataPayment,
                       order_id: orderId,
                       redirect_url: transactionUrl,
                       total_amount: totalAmount
@@ -187,7 +242,7 @@ const UserList: React.FC = () => {
                     if (response.status === 200) {
                       setLoading(true)
                       dispatch(
-                        fetchDataPaymentPayByMonth({
+                        fetchDataPaymentPayByFree({
                           id_payment: id,
                           school_id: getDataLocal.school_id,
                           user_id: getDataLocal.id,
@@ -198,39 +253,33 @@ const UserList: React.FC = () => {
                         setJumlah('0')
                       })
                     } else {
-                      window.removeEventListener('beforeunload', handleBeforeUnload)
-
                       toast.error('Gagal mengirim data pembayaran pending.')
                     }
                   })
                   .catch(error => {
-                    window.removeEventListener('beforeunload', handleBeforeUnload)
-
                     console.error('Error sending pending payment data:', error)
                     toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
                   })
               } catch (error) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
-
                 console.error('Error:', error)
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
+              window.removeEventListener('beforeunload', handleBeforeUnload)
             },
             onPending: function () {
               if (!toastShown) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
                 toast.success('Data pembayaran pending berhasil dikirim.')
-                setToastShown(true)
+                setToastShown(true) // Set state to true to prevent multiple toasts
               }
+
               try {
                 // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
                 axiosConfig
                   .post(
-                    '/create-payment-pending',
+                    '/create-payment-pending-Free',
                     {
-                      dataUsers: spName,
-                      dataPayment: filteredRows,
+                      dataPayment: dataPayment,
                       order_id: orderId,
                       redirect_url: transactionUrl,
                       total_amount: totalAmount
@@ -246,7 +295,7 @@ const UserList: React.FC = () => {
                     if (response.status === 200) {
                       setLoading(true)
                       dispatch(
-                        fetchDataPaymentPayByMonth({
+                        fetchDataPaymentPayByFree({
                           id_payment: id,
                           school_id: getDataLocal.school_id,
                           user_id: getDataLocal.id,
@@ -257,30 +306,21 @@ const UserList: React.FC = () => {
                         setJumlah('0')
                       })
                     } else {
-                      window.removeEventListener('beforeunload', handleBeforeUnload)
-
                       toast.error('Gagal mengirim data pembayaran pending.')
                     }
                   })
                   .catch(error => {
-                    window.removeEventListener('beforeunload', handleBeforeUnload)
-
                     console.error('Error sending pending payment data:', error)
                     toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
                   })
               } catch (error) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
-
                 console.error('Error:', error)
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
-              window.addEventListener('beforeunload', handleBeforeUnload)
-
-              // Logika lain untuk status pending
+              window.removeEventListener('beforeunload', handleBeforeUnload)
             },
             onError: function () {
-              // Hapus event listener ketika terjadi error
               window.removeEventListener('beforeunload', handleBeforeUnload)
               toast.error('Pembayaran gagal!')
             }
@@ -295,8 +335,6 @@ const UserList: React.FC = () => {
       toast.error('Data tidak lengkap. Pastikan semua informasi sudah diisi.')
     }
   }
-
-  // Fungsi event handler untuk mencegah redirect atau unload
   const handleBeforeUnload = function (e: any) {
     e.preventDefault()
     e.returnValue = '' // Mencegah default behavior redirect
@@ -305,9 +343,18 @@ const UserList: React.FC = () => {
   useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-    script.setAttribute('data-client-key', 'SB-Mid-client-a3XBeF6t11TJ5LWQ')
+    script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!)
     document.body.appendChild(script)
   }, [])
+  const formatRupiah = (value: any) => {
+    if (!value) return ''
+
+    return 'Rp ' + Number(value).toLocaleString('id-ID', { minimumFractionDigits: 0 })
+  }
+  const handleChange = (e: any) => {
+    const value = e.target.value.replace(/[^0-9]/g, '') // Hanya angka
+    setJumlah(value)
+  }
 
   return (
     <Grid container spacing={6.5}>
@@ -315,7 +362,6 @@ const UserList: React.FC = () => {
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
-          <TableHeader value={value} handleFilter={handleFilter} />
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
               <CircularProgress color='secondary' />
@@ -330,46 +376,6 @@ const UserList: React.FC = () => {
               pageSizeOptions={[20, 40, 60, 100]}
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
-              checkboxSelection
-              rowSelectionModel={rowSelectionModel}
-              isRowSelectable={params => params.row.status !== 'Verified' && params.row.status !== 'Paid'} // Disable selection for rows with "Verified" status
-              onRowSelectionModelChange={newSelectionModel => {
-                setRowSelectionModel(newSelectionModel as any)
-
-                const filteredData = newSelectionModel.map(id => {
-                  const selectedRow: any = store.data.find((row: any) => row.id === id)
-
-                  return {
-                    id: selectedRow.id,
-                    amount: selectedRow.amount,
-                    month: selectedRow.month,
-                    years: selectedRow.years,
-                    status: selectedRow.status
-                  }
-                })
-
-                setSelectedRows(filteredData)
-
-                const totalAmount = filteredData
-                  .filter(row => row.status !== 'Verified') // Filter rows where status is not "Verified"
-                  .reduce((sum, row) => sum + row.amount, 0)
-
-                const formattedTotalAmount = new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                  maximumFractionDigits: 0
-                }).format(totalAmount)
-
-                setJumlah(formattedTotalAmount)
-              }}
-              sx={{
-                '& .MuiDataGrid-checkboxInput': {
-                  ml: 0 // Align checkbox to the left
-                },
-                '& .Mui-checked.Mui-disabled': {
-                  color: 'rgba(0, 0, 0, 0.6)' // Keep checkbox with a "checked" and "disabled" state
-                }
-              }}
             />
           )}
         </Card>
@@ -387,7 +393,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
               <TextField
                 fullWidth
-                value={spName ? spName.sp_name : ''} // Menampilkan nama pembayaran
+                value={dataPayment ? dataPayment.sp_name : ''} // Menampilkan nama pembayaran
                 InputProps={{
                   readOnly: true
                 }}
@@ -398,7 +404,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
               <TextField
                 fullWidth
-                value={spName ? spName.type : ''} // Menampilkan tipe pembayaran
+                value={dataPayment ? dataPayment.type : ''} // Menampilkan tipe pembayaran
                 InputProps={{
                   readOnly: true
                 }}
@@ -406,14 +412,17 @@ const UserList: React.FC = () => {
             </Grid>
             <Box m={1} display='inline' />
             <Grid item xs={12} sm={12}>
-              <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
+              <InputLabel id='form-layouts-separator-select-label'>Total Pembayaran</InputLabel>
               <TextField
                 fullWidth
-                value={jumlah}
-                InputProps={{
-                  readOnly: true
-                }}
+                value={formatRupiah(
+                  dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
+                )}
               />
+            </Grid>
+            <Grid item xs={12} sm={12}>
+              <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
+              <TextField fullWidth value={formatRupiah(jumlah)} onChange={handleChange} />
             </Grid>
             <Box m={2} display='inline' />
             {/* Tombol Bayar dan Kembali */}
@@ -424,11 +433,14 @@ const UserList: React.FC = () => {
                 onClick={() => {
                   onsubmit()
                 }}
+                disabled={
+                  parseInt(jumlah.replace(/[^\d]/g, ''), 10) >
+                  dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
+                } // Disable jika jumlah melebihi total pembayaran
               >
                 Bayar
               </Button>
               <Box m={1} display='inline' />
-
               <Button
                 variant='outlined'
                 color='secondary'

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import Typography, { TypographyProps } from '@mui/material/Typography'
 import { LayoutProps } from 'src/@core/layouts/types'
 import Icon from 'src/@core/components/icon'
@@ -59,8 +59,6 @@ const VerticalNavHeader = (props: Props) => {
     menuUnlockedIcon: userMenuUnlockedIcon
   } = props
 
-  // ** Hooks & Vars
-  const theme = useTheme()
   const { navCollapsed } = settings
 
   const [logo, setLogo] = useState<string | null>(null) // State for the logo URL
@@ -81,10 +79,7 @@ const VerticalNavHeader = (props: Props) => {
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') as string)
-    // Fetch the logo from localStorage
     const storedLogo = userData.logo
-    console.log(urlImage + storedLogo)
-
     setLogo(urlImage + storedLogo)
   }, [])
 

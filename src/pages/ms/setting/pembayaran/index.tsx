@@ -25,12 +25,8 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/setting/pembayaran/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
 import CustomTextField from 'src/@core/components/mui/text-field'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -52,7 +48,7 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
   const [open, setOpen] = useState(false)
   const [loadingDelete, setLoadingDelete] = useState(false) // Track loading state for delete action
   const [school_id] = useState<number>(getDataLocal.school_id)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -124,6 +120,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.sp_type]
+
       return (
         <CustomChip
           rounded
@@ -143,6 +140,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.sp_status]
+
       return (
         <CustomChip
           rounded

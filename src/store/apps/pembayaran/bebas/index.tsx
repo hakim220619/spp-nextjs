@@ -3,11 +3,10 @@ import { Dispatch } from 'redux'
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
-  school_id: number
   q: string
-  year: string
-  sp_type: string
-  sp_status: string
+  school_id: string
+  user_id: string
+  id_payment: any
 }
 interface Redux {
   getState: any
@@ -15,8 +14,8 @@ interface Redux {
 }
 
 // ** Fetch Users
-export const fetchDataSettingPembayaran = createAsyncThunk(
-  'appSettingPembayaran/fetchDataSettingPembayaran',
+export const fetchDataPaymentPayByFree = createAsyncThunk(
+  'appPembayaranPayByFree/fetchDataPaymentPayByFree',
   async (params: DataParams) => {
     const storedToken = window.localStorage.getItem('token')
     const customConfig = {
@@ -26,14 +25,14 @@ export const fetchDataSettingPembayaran = createAsyncThunk(
         Authorization: 'Bearer ' + storedToken
       }
     }
-    const response = await axiosConfig.get('/list-setting-pembayaran', customConfig)
+    const response = await axiosConfig.get('/list-payment-pay-byFreeDetail', customConfig)
 
     return response.data
   }
 )
 
-export const deleteSettingPembayaran = createAsyncThunk(
-  'appSettingPembayaran/deleteSettingPembayaran',
+export const deleteSekolah = createAsyncThunk(
+  'appPembayaranPayByFree/deleteSekolah',
   async (uid: number | string, { getState, dispatch }: Redux) => {
     const storedToken = window.localStorage.getItem('token')
     const dataAll = {
@@ -45,17 +44,17 @@ export const deleteSettingPembayaran = createAsyncThunk(
         Authorization: 'Bearer ' + storedToken
       }
     }
-    const response = await axiosConfig.post('/delete-setting-pembayaran', dataAll, customConfig)
-    const { school_id, year, sp_type, sp_status, q } = getState().kelas
+    const response = await axiosConfig.post('/delete-sekolah', dataAll, customConfig)
+    const { school_id, id_payment, user_id, q } = getState().Sekolah
 
-    // Memanggil fetchDataSettingPembayaran untuk memperbarui data setelah penghapusan
-    dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q }))
+    // Memanggil fetchDataPaymentPayByFree untuk memperbarui data setelah penghapusan
+    dispatch(fetchDataPaymentPayByFree({ school_id, id_payment, user_id, q }))
 
     return response.data
   }
 )
-export const appSettingPembayaranSlice = createSlice({
-  name: 'appSettingPembayaran',
+export const appPembayaranPayByFreeSlice = createSlice({
+  name: 'appPembayaranPayByFree',
   initialState: {
     data: [],
     total: 1,
@@ -64,7 +63,7 @@ export const appSettingPembayaranSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(fetchDataSettingPembayaran.fulfilled, (state, action) => {
+    builder.addCase(fetchDataPaymentPayByFree.fulfilled, (state, action) => {
       state.data = action.payload
       state.total = action.payload.total
       state.params = action.payload.params
@@ -73,4 +72,4 @@ export const appSettingPembayaranSlice = createSlice({
   }
 })
 
-export default appSettingPembayaranSlice.reducer
+export default appPembayaranPayByFreeSlice.reducer

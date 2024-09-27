@@ -5,9 +5,8 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import Grid, { GridProps } from '@mui/material/Grid'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import { useEffect, useState } from 'react'
-import urlImage from 'src/configs/url_image'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)<GridProps>(({ theme }) => ({
@@ -32,18 +31,12 @@ const Img = styled('img')(({ theme }) => ({
 }))
 
 const AnalyticsCongratulations = () => {
-  // ** Hook
-  const theme = useTheme()
   const [fullName, setFullName] = useState<string | null>(null)
-  const [imageUsers, setImageProfile] = useState<string | null>(null)
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') as string)
-    // Fetch the logo from localStorage
     const full_name = userData.full_name
-    const image = userData.image
 
     setFullName(full_name)
-    setImageProfile(urlImage + image)
   }, [])
 
   return (

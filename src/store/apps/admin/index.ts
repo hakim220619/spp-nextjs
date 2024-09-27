@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {

@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
   q: string
   school_id: string
   user_id: string
+  setting_payment_uid: string
 }
 interface Redux {
   getState: any
@@ -26,6 +26,7 @@ export const ListPaymentDashboardByMonth = createAsyncThunk(
       }
     }
     const response = await axiosConfig.get('/dashboard-list-payment-month', customConfig)
+
     return response.data
   }
 )
@@ -44,10 +45,10 @@ export const deleteSekolah = createAsyncThunk(
       }
     }
     const response = await axiosConfig.post('/delete-sekolah', dataAll, customConfig)
-    const { school_id, user_id, q } = getState().Sekolah
+    const { school_id, user_id, setting_payment_uid, q } = getState().Sekolah
 
     // Memanggil ListPaymentDashboardByMonth untuk memperbarui data setelah penghapusan
-    dispatch(ListPaymentDashboardByMonth({ school_id, user_id, q }))
+    dispatch(ListPaymentDashboardByMonth({ school_id, user_id, setting_payment_uid, q }))
 
     return response.data
   }

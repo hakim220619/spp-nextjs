@@ -127,8 +127,7 @@ const FormValidationSchema = () => {
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
-    register
+    setValue
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
@@ -171,12 +170,7 @@ const FormValidationSchema = () => {
         toast.error('Failed to add user')
       })
   }
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null
-    setValue('image', file)
-  }
-
+  
   return (
     <Card>
       <CardHeader title='Add New User' />

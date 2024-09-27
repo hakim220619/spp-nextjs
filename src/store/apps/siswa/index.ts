@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -26,6 +25,7 @@ export const fetchDataSiswa = createAsyncThunk('appUsers/fetchDataSiswa', async 
     }
   }
   const response = await axiosConfig.get('/list-siswa', customConfig)
+
   return response.data
 })
 

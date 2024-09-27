@@ -6,7 +6,6 @@ import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import Skeleton from '@mui/material/Skeleton'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { SelectChangeEvent } from '@mui/material/Select'
 import Icon from 'src/@core/components/icon'
@@ -15,21 +14,13 @@ import CustomChip from 'src/@core/components/mui/chip'
 import CustomTextField from 'src/@core/components/mui/text-field'
 import { fetchData, deleteUser } from 'src/store/apps/admin'
 import { RootState, AppDispatch } from 'src/store'
-import { ThemeColor } from 'src/@core/layouts/types'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/admin/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import axiosConfig from '../../../configs/axiosConfig'
 import CircularProgress from '@mui/material/CircularProgress'
 import toast from 'react-hot-toast'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
-const MySwal = withReactContent(Swal)
-
-interface UserStatusType {
-  [key: string]: ThemeColor
-}
 
 interface CellType {
   row: UsersType
@@ -39,35 +30,19 @@ const statusObj: any = {
   OFF: { title: 'OFF', color: 'error' }
 }
 
-const userStatusObj: UserStatusType = {
-  Active: 'success',
-  Online: 'success',
-  pending: 'warning',
-  inactive: 'secondary',
-  Verification: 'warning',
-  Offline: 'warning',
-  Blocked: 'error'
-}
-
 const RowOptions = ({ uid }: { uid: any }) => {
-  const data = localStorage.getItem('userData') as string
-  const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
-  const [role, setRole] = useState<string>('')
-  const [value, setValue] = useState<string>('')
-  const [status, setStatus] = useState<string>('')
-  const [school, setSchool] = useState<string>('')
+  const [value] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowOptionsClick = () => {}
   const handleRowEditedClick = () => {
     router.push('/ms/admin/' + uid)
   }
   const handleDelete = async () => {
     try {
       await dispatch(deleteUser(uid)).unwrap() // Wait for deleteUser to complete
-      await dispatch(fetchData({ role, status, school, q: value })) // Refresh data
+      await dispatch(fetchData({ role: '', status: '', school: '', q: value })) // Refresh data
       toast.success('Successfully deleted!') // Show success toast
       setOpen(false) // Close the modal if everything is successful
     } catch (error) {
@@ -82,9 +57,6 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
   return (
     <>
-      <IconButton size='small' color='info' onClick={handleRowOptionsClick}>
-        <Icon icon='tabler:eye' />
-      </IconButton>
       <IconButton size='small' color='success' onClick={handleRowEditedClick}>
         <Icon icon='tabler:edit' />
       </IconButton>
@@ -131,6 +103,7 @@ const columns: GridColDef[] = [
       const day = String(date.getDate()).padStart(2, '0')
       const month = String(date.getMonth() + 1).padStart(2, '0') // Month is 0-based
       const year = date.getFullYear()
+
       return `${day}/${month}/${year}`
     }
   },
@@ -184,7 +157,7 @@ const UserList = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [statuses, setStatuses] = useState<any[]>([])
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.admin)
+  const store = useSelector((state: RootState) => state.Admin)
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem('token')
@@ -321,11 +294,16 @@ const UserList = () => {
           <TableHeader value={value} handleFilter={handleFilter} toggle={toggleAddUserDrawer} />
           {loading ? (
             <div>
-              {Array.from(new Array(1)).map((_, index) => (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                  <CircularProgress color='secondary' />
-                </div>
-              ))}
+              <div>
+                {Array.from(new Array(1)).map((_, index) => (
+                  <div
+                    key={index}
+                    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}
+                  >
+                    <CircularProgress color='secondary' />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <DataGrid
@@ -339,10 +317,10 @@ const UserList = () => {
               onPaginationModelChange={setPaginationModel}
               sx={{
                 '& .MuiDataGrid-cell': {
-                  fontSize: '0.75rem' // Mengatur ukuran font untuk sel
+                  fontSize: '0.75rem'
                 },
                 '& .MuiDataGrid-columnHeaderTitle': {
-                  fontSize: '0.75rem' // Mengatur ukuran font untuk judul kolom
+                  fontSize: '0.75rem'
                 }
               }}
             />

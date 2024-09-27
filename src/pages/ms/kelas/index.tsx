@@ -22,12 +22,7 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/kelas/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../configs/axiosConfig'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -43,7 +38,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -101,6 +96,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.class_status]
+
       return (
         <CustomChip
           rounded
@@ -130,7 +126,7 @@ const UserList = () => {
   const [value, setValue] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
-  const [status, setStatus] = useState<any>('')
+  const [status] = useState<any>('')
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.kelas)
 
@@ -139,7 +135,7 @@ const UserList = () => {
     dispatch(fetchDataKelas({ school_id, status, q: value })).finally(() => {
       setLoading(false)
     })
-  }, [dispatch, value])
+  }, [dispatch, school_id, status, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 

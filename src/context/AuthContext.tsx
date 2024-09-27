@@ -39,8 +39,6 @@ const AuthProvider = ({ children }: Props) => {
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       const storedToken = window.localStorage.getItem('token')!
-      // console.log(storedToken)
-
       if (storedToken) {
         setLoading(true)
         await axiosConfig

@@ -87,7 +87,7 @@ const FormValidationSchema = () => {
     }
   }, [schoolId, storedToken])
 
-  const onSubmit = (data: any) => {
+  const onSubmit = () => {
     // Create a new FormData instance
     const formDataToSend = new FormData()
 

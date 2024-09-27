@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect, FormEvent, ChangeEvent, forwardRef } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useState, useCallback, useEffect, ChangeEvent } from 'react'
+import { useForm } from 'react-hook-form'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -31,11 +31,7 @@ interface Class {
 }
 
 const FormValidationSchema = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
+  const { handleSubmit } = useForm()
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const [nisn, setNisn] = useState<string>('')
   const [fullName, setFullName] = useState<string>('')
@@ -43,7 +39,6 @@ const FormValidationSchema = () => {
   const [phone, setPhone] = useState<string>('')
   const [school, setSchool] = useState<string>('')
   const [status, setStatus] = useState<string>('ON')
-  const [role, setRole] = useState<string>('')
   const [address, setAddress] = useState<string>('')
   const [majors, setMajorses] = useState<Major[]>([])
   const [major, setMajor] = useState<number | string>('')
@@ -131,28 +126,35 @@ const FormValidationSchema = () => {
   const validateForm = () => {
     if (!fullName) {
       toast.error('Full Name is required')
+
       return false
     }
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       toast.error('Valid email is required')
+
       return false
     }
     if (!phone || !/^\d+$/.test(phone)) {
       toast.error('Valid phone number is required')
+
       return false
     }
     if (!address) {
       toast.error('Address is required')
+
       return false
     }
     if (!major) {
       toast.error('Major is required')
+
       return false
     }
     if (!clas) {
       toast.error('Class is required')
+
       return false
     }
+
     return true
   }
 

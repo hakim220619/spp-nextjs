@@ -1,18 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
   company: string
   q: string
 }
-interface Redux {
-  getState: any
-  dispatch: Dispatch<any>
-}
-
-// ** Fetch Anggota
 export const fetchDataVerification = createAsyncThunk(
   'appAnggotaVerification/fetchDataVerification',
   async (params: DataParams) => {
@@ -25,28 +17,26 @@ export const fetchDataVerification = createAsyncThunk(
       }
     }
     const response = await axiosConfig.get('/list-anggota-verification', customConfig)
-    return response.data
-  }
-)
-
-export const deleteUser = createAsyncThunk(
-  'appAnggotaVerification/deleteUser',
-  async (uid: number | string, { getState, dispatch }: Redux) => {
-    const storedToken = window.localStorage.getItem('token')
-    const dataAll = {
-      data: uid
-    }
-    const customConfig = {
-      headers: {
-        Accept: 'application/json',
-        Authorization: 'Bearer ' + storedToken
-      }
-    }
-    const response = await axiosConfig.post('/delete-anggota', dataAll, customConfig)
 
     return response.data
   }
 )
+
+export const deleteUser = createAsyncThunk('appAnggotaVerification/deleteUser', async (uid: number | string) => {
+  const storedToken = window.localStorage.getItem('token')
+  const dataAll = {
+    data: uid
+  }
+  const customConfig = {
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'Bearer ' + storedToken
+    }
+  }
+  const response = await axiosConfig.post('/delete-anggota', dataAll, customConfig)
+
+  return response.data
+})
 export const appAnggotaVerificationSlice = createSlice({
   name: 'appAnggotaVerification',
   initialState: {

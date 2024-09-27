@@ -1,33 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-  Card,
-  Grid,
-  Divider,
-  IconButton,
-  CardHeader,
-  CircularProgress,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle
-} from '@mui/material'
+import { Card, Grid, Divider, IconButton, CardHeader, CircularProgress } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import { fetchDataBulan, deleteBulan } from 'src/store/apps/bulan/index'
+import { fetchDataBulan } from 'src/store/apps/bulan/index'
 import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/bulan/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
-import toast from 'react-hot-toast'
-import axiosConfig from '../../../configs/axiosConfig'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -39,7 +20,6 @@ const statusObj: any = {
 }
 
 const RowOptions = ({ uid }: { uid: any }) => {
-  const data = localStorage.getItem('userData') as string
   const router = useRouter()
 
   const handleRowEditedClick = () => router.push('/ms/bulan/' + uid)
@@ -64,6 +44,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.month_status]
+
       return (
         <CustomChip
           rounded
@@ -101,7 +82,7 @@ const BulanList = () => {
     dispatch(fetchDataBulan({ school_id, q: value })).finally(() => {
       setLoading(false)
     })
-  }, [dispatch, value])
+  }, [dispatch, school_id, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 

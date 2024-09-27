@@ -14,14 +14,6 @@ const StyledCompanyName = styled(Link)(({ theme }) => ({
   color: `${theme.palette.primary.main} !important`
 }))
 
-const LinkStyled = styled(Link)(({ theme }) => ({
-  textDecoration: 'none',
-  color: `${theme.palette.text.secondary} !important`,
-  '&:hover': {
-    color: `${theme.palette.primary.main} !important`
-  }
-}))
-
 const FooterContent = () => {
   // ** Var
   const hidden = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))

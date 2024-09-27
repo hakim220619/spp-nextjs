@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -24,6 +23,7 @@ export const fetchDataJurusan = createAsyncThunk('appUsers/fetchDataJurusan', as
     }
   }
   const response = await axiosConfig.get('/list-jurusan', customConfig)
+
   return response.data
 })
 

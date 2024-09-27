@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -18,11 +18,7 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 import { Box } from '@mui/system'
 
 const FormValidationSchema = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
+  const { handleSubmit } = useForm()
 
   const router = useRouter()
   const { uid } = router.query
@@ -46,7 +42,6 @@ const FormValidationSchema = () => {
         )
         .then(response => {
           const { class_name, class_desc, class_status, school_id } = response.data
-          // Set default values
           setClassName(class_name)
           setClassDesc(class_desc)
           setStatus(class_status)

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -111,6 +111,7 @@ const SchoolFormComponent = () => {
         }
       })
       .then(response => {
+        console.log(response)
         toast.success('Successfully Added School!')
         router.push('/ms/sekolah')
       })

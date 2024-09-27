@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -9,7 +9,6 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import MenuItem from '@mui/material/MenuItem'
 import CircularProgress from '@mui/material/CircularProgress'
-import Backdrop from '@mui/material/Backdrop'
 import toast from 'react-hot-toast'
 
 // Axios Import
@@ -20,11 +19,7 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 import { Box } from '@mui/system'
 
 const FormValidationSchema = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
+  const { handleSubmit } = useForm()
   const router = useRouter()
   const { uid } = router.query
   const storedToken = window.localStorage.getItem('token')

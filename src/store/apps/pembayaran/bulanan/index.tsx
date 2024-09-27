@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -27,7 +26,7 @@ export const fetchDataPaymentPayByMonth = createAsyncThunk(
       }
     }
     const response = await axiosConfig.get('/list-payment-pay-byMonth', customConfig)
-    console.log(response.data)
+
     return response.data
   }
 )

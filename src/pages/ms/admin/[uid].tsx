@@ -1,6 +1,6 @@
 // ** React Imports
-import { useState, useCallback, useEffect, FormEvent, ChangeEvent, forwardRef } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useState, useCallback, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -13,17 +13,13 @@ import Box from '@mui/material/Box'
 
 // ** Custom Component Imports
 import CustomTextField from 'src/@core/components/mui/text-field'
-import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker' // Assuming this is a wrapper for styles
-
 import toast from 'react-hot-toast'
 
 // ** Axios Import
 import axiosConfig from '../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { DateType } from 'src/types/forms/reactDatepickerTypes'
 
 // ** Types
 interface Role {
@@ -36,22 +32,8 @@ interface School {
   school_name: string
 }
 
-interface CustomInputProps {
-  value: DateType
-  label: string
-  error: boolean
-  onChange: (event: ChangeEvent) => void
-}
-const CustomInput = forwardRef(({ ...props }: CustomInputProps, ref) => {
-  return <CustomTextField fullWidth inputRef={ref} {...props} sx={{ width: '100%' }} />
-})
-
 const FormValidationSchema = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
+  const { handleSubmit } = useForm()
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const [fullName, setFullName] = useState<string>('')
   const [email, setEmail] = useState<string>('')
@@ -60,10 +42,10 @@ const FormValidationSchema = () => {
   const [status, setStatus] = useState<string>('ON')
   const [role, setRole] = useState<string>('')
   const [address, setAddress] = useState<string>('')
-  const [image, setImage] = useState<File | null>(null)
+  const [image] = useState<File | null>(null)
   const [roles, setRoles] = useState<Role[]>([])
   const [schools, setSchools] = useState<School[]>([])
-  const [updated_by, setUpdatedBy] = useState<string>(userData.id)
+  const [updated_by] = useState<string>(userData.id)
   const [dateOfBirth, setDateOfBirth] = useState<string>('')
 
   const router = useRouter()
@@ -93,7 +75,6 @@ const FormValidationSchema = () => {
           Authorization: `Bearer ${storedToken}`
         }
       })
-      // Filter roles to exclude role with id 160
       const filteredRoles = response.data.filter((role: Role) => role.id !== '160')
       setRoles(filteredRoles)
     } catch (error) {
@@ -147,33 +128,40 @@ const FormValidationSchema = () => {
   const validateForm = () => {
     if (!fullName) {
       toast.error('Full Name is required')
+
       return false
     }
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       toast.error('Valid email is required')
+
       return false
     }
     if (!phone || !/^\d+$/.test(phone)) {
       toast.error('Valid phone number is required')
+
       return false
     }
 
     if (!address) {
       toast.error('Address is required')
+
       return false
     }
     if (!role) {
       toast.error('Role is required')
+
       return false
     }
     if (!school) {
       toast.error('School is required')
+
       return false
     }
+
     return true
   }
 
-  const onSubmit = (data: any) => {
+  const onSubmit = () => {
     if (!validateForm()) {
       return
     }
@@ -192,7 +180,6 @@ const FormValidationSchema = () => {
       updated_by,
       date_of_birth: dateOfBirth
     }
-    // console.log(formData)
 
     if (storedToken) {
       axiosConfig

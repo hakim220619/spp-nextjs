@@ -133,14 +133,13 @@ const FormValidationSchema = () => {
 
     fetchMajors()
     fetchClases()
-  }, [])
+  }, [schoolId])
 
   const {
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
-    register
+    setValue
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
@@ -184,11 +183,6 @@ const FormValidationSchema = () => {
     } finally {
       setLoading(false) // Stop loading
     }
-  }
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null
-    setValue('image', file)
   }
 
   return (

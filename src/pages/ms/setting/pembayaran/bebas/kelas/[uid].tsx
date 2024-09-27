@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, forwardRef, useCallback, useEffect, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -10,39 +10,17 @@ import MenuItem from '@mui/material/MenuItem'
 import TextField from '@mui/material/TextField'
 import CardHeader from '@mui/material/CardHeader'
 import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardActions from '@mui/material/CardActions'
 import FormControl from '@mui/material/FormControl'
 import toast from 'react-hot-toast'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
-
-// ** Third Party Imports
-import DatePicker from 'react-datepicker'
+import Select from '@mui/material/Select'
 import axiosConfig from '../../../../../../configs/axiosConfig'
-
-// ** Types
-import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { useRouter } from 'next/router'
-import CustomTextField from 'src/@core/components/mui/text-field'
 import { CircularProgress } from '@mui/material'
 
-interface State {
-  password: string
-  password2: string
-  showPassword: boolean
-  showPassword2: boolean
-}
-
-const CustomInput = forwardRef((props, ref) => {
-  return <TextField fullWidth {...props} inputRef={ref} label='Birth Date' autoComplete='off' />
-})
-
 const AddPaymentDetailByClass = () => {
-  // ** States
-  const [date, setDate] = useState<DateType>(null)
-  const [language, setLanguage] = useState<string[]>([])
   const [spName, setSpName] = useState<string>('')
   const [years, setYears] = useState<string>('')
   const [spType, setSpType] = useState<string>('')
@@ -76,26 +54,6 @@ const AddPaymentDetailByClass = () => {
     setAmount(formattedValue)
     setMonths(months.map(month => ({ ...month, payment: formattedValueAmount })))
   }
-  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const updatedMonths = [...months] // Create a copy of the months array
-    const inputValue = event.target.value
-
-    // Remove non-numeric characters from the input
-    const numericValue = inputValue.replace(/\D/g, '')
-
-    // Format the value into IDR currency format
-    const formattedValue = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(parseInt(numericValue || '0', 10))
-
-    // Update the specific month payment with the formatted value
-    updatedMonths[index].payment = formattedValue
-
-    // Update the state with the modified months array
-    setMonths(updatedMonths)
-  }
 
   useEffect(() => {
     if (storedToken) {
@@ -112,7 +70,6 @@ const AddPaymentDetailByClass = () => {
         )
         .then(response => {
           const { sp_name, years, sp_type } = response.data
-          // Set default values
           setSpName(sp_name)
           setYears(years)
           setSpType(sp_type)
@@ -163,7 +120,7 @@ const AddPaymentDetailByClass = () => {
     fetchMajors()
     fetchClases()
     fetchMonths()
-  }, [uid, storedToken])
+  }, [uid, schoolId, storedToken])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as any)
@@ -175,7 +132,6 @@ const AddPaymentDetailByClass = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
-    // Collect the form data
     const formData = {
       school_id: schoolId,
       sp_name: spName,

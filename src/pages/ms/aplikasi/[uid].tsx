@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 // MUI Imports
 import Card from '@mui/material/Card'
@@ -7,7 +7,6 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
-import MenuItem from '@mui/material/MenuItem'
 import toast from 'react-hot-toast'
 
 // Axios Import
@@ -18,11 +17,7 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 import { Box } from '@mui/system'
 
 const FormValidationSchema = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm()
+  const { handleSubmit } = useForm()
 
   const router = useRouter()
   const { uid } = router.query
@@ -60,7 +55,6 @@ const FormValidationSchema = () => {
         )
         .then(response => {
           const data = response.data
-          // Populate form data
           setFormData({
             school_name: data.school_name || '',
             owner: data.owner || '',

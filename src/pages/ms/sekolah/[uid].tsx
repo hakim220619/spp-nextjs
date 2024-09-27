@@ -65,6 +65,7 @@ const FormValidationSchema = () => {
     const fetchTypePaymentOptions = async () => {
       if (!storedToken) {
         toast.error('Authentication token not found.')
+        
         return
       }
 
@@ -75,7 +76,6 @@ const FormValidationSchema = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        // Ensure IDs are strings
         const options: TypePaymentOption[] = response.data.map((option: any) => ({
           id: String(option.id),
           tp_name: option.tp_name
@@ -148,6 +148,7 @@ const FormValidationSchema = () => {
 
     if (!storedToken) {
       toast.error('Authentication token not found.')
+
       return
     }
     console.log(formData)

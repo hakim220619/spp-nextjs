@@ -22,12 +22,7 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/jurusan/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../configs/axiosConfig'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -43,7 +38,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -100,6 +95,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.major_status]
+
       return (
         <CustomChip
           rounded
@@ -137,7 +133,7 @@ const JurusanList = () => {
     dispatch(fetchDataJurusan({ school_id, major_status: '', q: value })).finally(() => {
       setLoading(false)
     })
-  }, [dispatch, value])
+  }, [dispatch, school_id, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 

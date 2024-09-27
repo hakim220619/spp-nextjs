@@ -2,7 +2,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 
 // ** Reducers
-import admin from 'src/store/apps/admin/index'
+import Admin from 'src/store/apps/admin/index'
 import siswa from 'src/store/apps/siswa/index'
 import kelas from 'src/store/apps/kelas/index'
 import Jurusan from 'src/store/apps/jurusan/index'
@@ -11,12 +11,13 @@ import Sekolah from 'src/store/apps/sekolah/index'
 import Aplikasi from 'src/store/apps/aplikasi/index'
 import ListPaymentDashboardByMonth from 'src/store/apps/dashboard/listPayment/month/index'
 import PembayaranByMonth from 'src/store/apps/pembayaran/bulanan/index'
+import PembayaranByFree from 'src/store/apps/pembayaran/bebas/index'
 import SettingPembayaran from 'src/store/apps/setting/pembayaran/index'
 import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
 export const store = configureStore({
   reducer: {
-    admin,
+    Admin,
     siswa,
     kelas,
     Jurusan,
@@ -25,6 +26,7 @@ export const store = configureStore({
     Aplikasi,
     ListPaymentDashboardByMonth,
     PembayaranByMonth,
+    PembayaranByFree,
     SettingPembayaran,
     SettingPembayaranDetail
   },

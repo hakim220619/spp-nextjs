@@ -50,7 +50,6 @@ const UserDropdown = (props: Props) => {
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
-  // ** Hooks
   const router = useRouter()
   const { logout } = useAuth()
 

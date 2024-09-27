@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, forwardRef, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -12,26 +12,19 @@ import Typography from '@mui/material/Typography'
 import CardContent from '@mui/material/CardContent'
 import CardActions from '@mui/material/CardActions'
 import InputLabel from '@mui/material/InputLabel'
-
-// ** Third Party Imports
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../../../../configs/axiosConfig'
-
-// ** Types
-import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { useRouter } from 'next/router'
 import { CircularProgress } from '@mui/material'
 
 const AddPaymentDetailByClass = () => {
-  // ** States
-  const [date, setDate] = useState<DateType>(null)
   const [SpByUid, setSpByUid] = useState<string[]>([])
   const [spName, setSpName] = useState<string>('')
   const [years, setYears] = useState<string>('')
   const [spType, setSpType] = useState<string>('')
-  const [kelas, setKelas] = useState<string>('')
+  const [kelas] = useState<string>('')
   const [ClassName, setClassName] = useState<any[]>([])
-  const [major, setMajor] = useState<string>('')
+  const [major] = useState<string>('')
   const [MajorName, setMajorName] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
@@ -52,18 +45,6 @@ const AddPaymentDetailByClass = () => {
     }).format(parseInt(numericValue || '0', 10))
     setAmount(formattedValue)
     setMonths(months.map(month => ({ ...month, payment: formattedValue })))
-  }
-
-  const handleMonthChange = (event: ChangeEvent<HTMLInputElement>, index: number) => {
-    const updatedMonths = [...months]
-    const numericValue = event.target.value.replace(/\D/g, '')
-    const formattedValue = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(parseInt(numericValue || '0', 10))
-    updatedMonths[index].amount = formattedValue
-    setMonths(updatedMonths)
   }
 
   useEffect(() => {

@@ -7,17 +7,15 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Link from 'next/link'
 
 interface TableHeaderProps {
   value: string
-  toggle: () => void
   handleFilter: (val: string) => void
 }
 
 const TableHeader = (props: TableHeaderProps) => {
   // ** Props
-  const { handleFilter, toggle, value } = props
+  const { handleFilter, value } = props
 
   return (
     <Box
@@ -42,12 +40,6 @@ const TableHeader = (props: TableHeaderProps) => {
           placeholder='Search Full Name'
           onChange={e => handleFilter(e.target.value)}
         />
-        <Link href='/ms/anggota/AnggotaAddView' passHref>
-          <Button onClick={toggle} variant='contained' sx={{ '& svg': { mr: 2 } }}>
-            <Icon fontSize='1.125rem' icon='tabler:plus' />
-            Add New
-          </Button>
-        </Link>
       </Box>
     </Box>
   )

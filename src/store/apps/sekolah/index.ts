@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -22,6 +21,7 @@ export const fetchDataSekolah = createAsyncThunk('appSekolah/fetchDataSekolah', 
     }
   }
   const response = await axiosConfig.get('/list-sekolah', customConfig)
+
   return response.data
 })
 

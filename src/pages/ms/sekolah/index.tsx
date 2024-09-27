@@ -22,12 +22,7 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/sekolah/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
-import axiosConfig from '../../../configs/axiosConfig'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -39,10 +34,8 @@ const statusObj: any = {
 }
 
 const RowOptions = ({ uid }: { uid: any }) => {
-  const data = localStorage.getItem('userData') as string
-  const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -106,6 +99,7 @@ const columns: GridColDef[] = [
           maximumFractionDigits: 0 // No decimal places
         }).format(params.value)
       }
+
       return ''
     }
   },
@@ -119,6 +113,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
+
       return (
         <CustomChip
           rounded
@@ -142,9 +137,6 @@ const columns: GridColDef[] = [
 ]
 
 const SekolahList = () => {
-  const data = localStorage.getItem('userData') as string
-  const getDataLocal = JSON.parse(data)
-  const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)

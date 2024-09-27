@@ -1,6 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { Dispatch } from 'redux'
-// ** Axios Imports
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -10,12 +8,6 @@ interface DataParams {
   major: string
   setting_payment_uid: string
 }
-interface Redux {
-  getState: any
-  dispatch: Dispatch<any>
-}
-
-// ** Fetch Users
 export const fetchDataSettingPembayaranDetail = createAsyncThunk(
   'appSettingPembayaranDetail/fetchDataSettingPembayaranDetail',
   async (params: DataParams) => {
@@ -28,16 +20,22 @@ export const fetchDataSettingPembayaranDetail = createAsyncThunk(
       }
     }
     const response = await axiosConfig.get('/list-setting-pembayaran-detail', customConfig)
+
     return response.data
   }
 )
 
 export const deleteSettingPembayaranDetail = createAsyncThunk(
   'appSettingPembayaranDetail/deleteSettingPembayaranDetail',
-  async (
-    { uid, setting_payment_id, user_id }: { uid: string; setting_payment_id: any | string; user_id: any | string },
-    { getState, dispatch }: Redux
-  ) => {
+  async ({
+    uid,
+    setting_payment_id,
+    user_id
+  }: {
+    uid: string
+    setting_payment_id: any | string
+    user_id: any | string
+  }) => {
     const storedToken = window.localStorage.getItem('token')
 
     // Updated dataAll to include setting_payment_id and user_id
@@ -55,10 +53,7 @@ export const deleteSettingPembayaranDetail = createAsyncThunk(
     }
 
     const response = await axiosConfig.post('/delete-setting-pembayaran-detail', dataAll, customConfig)
-    const { school_id, year, status, setting_payment_uid, q } = getState().SettingPembayaranDetail
 
-    // Memanggil fetchDataSettingPembayaranDetail untuk memperbarui data setelah penghapusan
-    // dispatch(fetchDataSettingPembayaranDetail({ school_id, year, status, setting_payment_uid, q }))
     return response.data
   }
 )

@@ -26,12 +26,8 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/siswa/TableHeader'
 import { useRouter } from 'next/router'
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../configs/axiosConfig'
-
-const MySwal = withReactContent(Swal)
 
 interface CellType {
   row: UsersType
@@ -47,9 +43,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
   const [school_id] = useState<number>(getDataLocal.school_id)
-  const [value, setValue] = useState<string>('')
-  const [clas, setClas] = useState<string>('')
-  const [major, setMajor] = useState<string>('')
+  const [value] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false) // Tambahkan state isLoading
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
@@ -60,7 +54,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
     setIsLoading(true) // Set isLoading menjadi true saat mulai delete
     try {
       await dispatch(deleteUserSiswa(uid)).unwrap()
-      await dispatch(fetchDataSiswa({ school_id, major, clas, status: '', q: value }))
+      await dispatch(fetchDataSiswa({ school_id, major: '', clas: '', status: '', q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
@@ -119,10 +113,13 @@ const columns: GridColDef[] = [
       const day = String(date.getDate()).padStart(2, '0')
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const year = date.getFullYear()
+      
       return `${day}/${month}/${year}`
     }
   },
+
   { field: 'image', headerName: 'Gambar', flex: 0.175, minWidth: 260 },
+
   {
     field: 'status',
     headerName: 'Status',
@@ -130,6 +127,7 @@ const columns: GridColDef[] = [
     minWidth: 80,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
+
       return (
         <CustomChip
           rounded
@@ -168,7 +166,7 @@ const UserList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const [majors, setMajors] = useState<any[]>([])
-  const [statuses, setStatuses] = useState<any[]>(['ON', 'OFF'])
+  const [statuses] = useState<any[]>(['ON', 'OFF'])
   const [status, setStatus] = useState<any>('')
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.siswa)
@@ -212,7 +210,7 @@ const UserList = () => {
 
     fetchMajors()
     fetchClases()
-  }, [dispatch, major, clas, status, value])
+  }, [dispatch, major, clas, status, schoolId, school_id, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleMajorChange = useCallback((e: SelectChangeEvent<unknown>) => setMajor(e.target.value as string), [])
