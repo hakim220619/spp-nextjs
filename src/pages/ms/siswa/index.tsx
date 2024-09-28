@@ -28,6 +28,7 @@ import TableHeader from 'src/pages/ms/siswa/TableHeader'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../configs/axiosConfig'
+import urlImage from '../../../configs/url_image'
 
 interface CellType {
   row: UsersType
@@ -96,12 +97,12 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
-  { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 140 },
+  { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 100 },
   { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.25, minWidth: 180 },
-  { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 290 },
-  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 140 },
-  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 80 },
-  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 100 },
+  { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 200 },
+  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 100 },
+  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 180 },
+  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 180 },
   {
     field: 'date_of_birth',
     headerName: 'Tanggal Lahir',
@@ -113,12 +114,37 @@ const columns: GridColDef[] = [
       const day = String(date.getDate()).padStart(2, '0')
       const month = String(date.getMonth() + 1).padStart(2, '0')
       const year = date.getFullYear()
-      
+
       return `${day}/${month}/${year}`
     }
   },
-
-  { field: 'image', headerName: 'Gambar', flex: 0.175, minWidth: 260 },
+  {
+    field: 'image',
+    headerName: 'Gambar',
+    flex: 0.175,
+    minWidth: 70,
+    renderCell: params => (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center', // Center horizontally
+          alignItems: 'center', // Center vertically
+          height: '100%' // Ensure the cell height is utilized
+        }}
+      >
+        <img
+          src={`${urlImage}uploads/school/siswa/${params.row.school_id}/${params.value}`}
+          alt='image'
+          style={{
+            width: '45px', // Reduced width
+            height: '45px', // Reduced height for a circular shape
+            borderRadius: '50%', // Makes the image circular
+            objectFit: 'cover' // Ensures the image covers the area without stretching
+          }}
+        />
+      </div>
+    )
+  },
 
   {
     field: 'status',

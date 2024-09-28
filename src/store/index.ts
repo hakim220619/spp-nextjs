@@ -13,6 +13,7 @@ import Aplikasi from 'src/store/apps/aplikasi/index'
 import ListPaymentDashboardByMonth from 'src/store/apps/dashboard/listPayment/month/index'
 import PembayaranByMonth from 'src/store/apps/pembayaran/bulanan/index'
 import PembayaranByFree from 'src/store/apps/pembayaran/bebas/index'
+import Unit from 'src/store/apps/unit/index'
 import SettingPembayaran from 'src/store/apps/setting/pembayaran/index'
 import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
@@ -30,6 +31,7 @@ export const store = configureStore({
     PembayaranByMonth,
     PembayaranByFree,
     SettingPembayaran,
+    Unit,
     SettingPembayaranDetail
   },
   middleware: getDefaultMiddleware =>

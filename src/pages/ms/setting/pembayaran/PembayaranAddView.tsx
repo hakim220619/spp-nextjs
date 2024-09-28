@@ -31,6 +31,7 @@ interface PaymentForm {
   year: string
   sp_type: string
   sp_status: 'ON' | 'OFF'
+  unit_id: string // Added unit_id to form data
 }
 
 // ** Validation schema using Yup
@@ -39,12 +40,14 @@ const schema = yup.object().shape({
   sp_desc: yup.string().required('Deskripsi Pembayaran wajib diisi'),
   year: yup.string().required('Tahun wajib diisi'),
   sp_type: yup.string().required('Tipe Pembayaran wajib diisi'),
-  sp_status: yup.string().oneOf(['ON', 'OFF'], 'Status tidak valid').required('Status wajib diisi')
+  sp_status: yup.string().oneOf(['ON', 'OFF'], 'Status tidak valid').required('Status wajib diisi'),
+  unit_id: yup.string().required('Unit wajib dipilih') // Validation for unit_id
 })
 
 const SettingAddPembayaran = () => {
   const router = useRouter()
   const [years, setYears] = useState<string[]>([])
+  const [units, setUnits] = useState<{ id: string; name: string }[]>([]) // State for units
   const [isLoading, setIsLoading] = useState(false) // State for overlay loading
 
   const defaultValues: PaymentForm = {
@@ -52,7 +55,8 @@ const SettingAddPembayaran = () => {
     sp_desc: '',
     year: '',
     sp_type: '',
-    sp_status: 'ON'
+    sp_status: 'ON',
+    unit_id: '' // Initialize unit_id
   }
 
   const {
@@ -77,6 +81,22 @@ const SettingAddPembayaran = () => {
       generatedYears.push(`${i}/${i + 1}`)
     }
     setYears(generatedYears)
+
+    // Fetch units from API
+    const storedToken = window.localStorage.getItem('token')
+    axiosConfig
+      .get('/getUnit', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${storedToken}`
+        }
+      })
+      .then(response => {
+        setUnits(response.data) // Assuming the response contains an array of units
+      })
+      .catch(() => {
+        toast.error('Gagal memuat unit')
+      })
   }, [])
 
   const onSubmit = (formData: PaymentForm) => {
@@ -87,6 +107,7 @@ const SettingAddPembayaran = () => {
     data.append('years', formData.year)
     data.append('sp_type', formData.sp_type)
     data.append('sp_status', formData.sp_status)
+    data.append('unit_id', formData.unit_id) // Include unit_id in submission
 
     const storedToken = window.localStorage.getItem('token')
 
@@ -205,7 +226,31 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={6}>
+                <Controller
+                  name='unit_id'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomTextField
+                      select
+                      fullWidth
+                      value={value}
+                      label='Unit'
+                      onChange={onChange}
+                      error={Boolean(errors.unit_id)}
+                      helperText={errors.unit_id?.message}
+                    >
+                      {units.map((unit: any) => (
+                        <MenuItem key={unit.id} value={unit.id}>
+                          {unit.unit_name}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={6}>
                 <Controller
                   name='sp_desc'
                   control={control}

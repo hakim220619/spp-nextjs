@@ -23,6 +23,7 @@ export const fetchDataKelas = createAsyncThunk('appUsers/fetchDataKelas', async 
     }
   }
   const response = await axiosConfig.get('/list-kelas', customConfig)
+  console.log(response)
 
   return response.data
 })

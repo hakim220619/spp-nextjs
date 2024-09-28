@@ -10,6 +10,7 @@ import CardContent from '@mui/material/CardContent'
 import MenuItem from '@mui/material/MenuItem'
 import { Box } from '@mui/system'
 import Link from 'next/link'
+import { CircularProgress, IconButton, InputAdornment } from '@mui/material'
 
 // ** Custom Component Import
 import CustomTextField from 'src/@core/components/mui/text-field'
@@ -26,9 +27,9 @@ import { useRouter } from 'next/navigation'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
-import { CircularProgress, IconButton, InputAdornment } from '@mui/material'
-import { GridVisibilityOffIcon } from '@mui/x-data-grid'
+import Icon from 'src/@core/components/icon'
 
+// User Interface
 interface User {
   nisn: string
   full_name: string
@@ -38,54 +39,75 @@ interface User {
   major: string
   status: 'ON' | 'OFF'
   class: string
+  unit_id: string
   address: string
-  image: File | null
-  date_of_birth: '' // Add default value for date_of_birth
-  school_id: ''
+  gambar: File | null // Keep as is to handle file uploads
+  date_of_birth: string
+  school_id: string
 }
 
+// Major Interface
 interface Major {
   id: string
   major_name: string
+  unit_id: string
 }
 
+// Class Interface
 interface Class {
   id: any
   class_name: string
+  unit_id: string
 }
-interface CustomInputProps {
-  value: DateType
-  label: string
-  error: boolean
-  onChange: (event: ChangeEvent) => void
+
+// Unit Interface
+interface Unit {
+  id: string
+  unit_name: string
 }
-const CustomInput = forwardRef(({ ...props }: CustomInputProps, ref) => {
-  return <CustomTextField fullWidth inputRef={ref} {...props} sx={{ width: '100%' }} />
-})
+
+// Custom Input Component
+const CustomInput = forwardRef(
+  ({ ...props }: { value: DateType; label: string; error: boolean; onChange: (event: ChangeEvent) => void }, ref) => {
+    return <CustomTextField fullWidth inputRef={ref} {...props} sx={{ width: '100%' }} />
+  }
+)
+
+// Validation Schema
 const schema = yup.object().shape({
-  nisn: yup.string().required('Full name is required').min(3),
+  nisn: yup.string().required('NISN is required').min(3),
   full_name: yup.string().required('Full name is required').min(3),
   email: yup.string().email().required('Email is required'),
   phone: yup.string().required('Phone is required').min(10, 'Phone must be at least 10 digits'),
   password: yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
-  major: yup.string().required('Jurusan is required'),
+  major: yup.string().required('Major is required'),
   status: yup.string().oneOf(['ON', 'OFF'], 'Invalid status').required('Status is required'),
   class: yup.string().required('Class is required'),
+  unit_id: yup.string().required('Unit is required'),
   address: yup.string().required('Address is required')
 })
 
+// Main Component
 const FormValidationSchema = () => {
   const router = useRouter()
   const [majors, setMajorses] = useState<Major[]>([])
   const [clas, setClas] = useState<Class[]>([])
+  const [units, setUnits] = useState<Unit[]>([])
+  const [filteredMajors, setFilteredMajors] = useState<Major[]>([])
+  const [filteredClasses, setFilteredClasses] = useState<Class[]>([])
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false) // Add loading state
+  const [loading, setLoading] = useState(false)
+  const [gambar, setGambarValue] = useState<File>()
+  console.log(gambar)
+
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const schoolId = getDataLocal?.school_id
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword)
   }
+
   const defaultValues: any = {
     nisn: '1242324534',
     full_name: 'asdasd',
@@ -95,60 +117,90 @@ const FormValidationSchema = () => {
     major: '',
     status: 'ON',
     class: '',
+    unit_id: '',
     address: 'asdasd',
-    image: null,
+    gambar: null,
     date_of_birth: ''
   }
 
-  // Fetch Schools and Roles using useEffect
+  // Fetch Majors, Classes, and Units using useEffect
   useEffect(() => {
-    const storedToken = window.localStorage.getItem('token')
-    const fetchMajors = async () => {
+    const fetchMajorsAndClasses = async () => {
+      const storedToken = window.localStorage.getItem('token')
       try {
-        const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
+        const majorsResponse = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setMajorses(response.data)
-      } catch (error) {
-        console.error('Error fetching majors:', error)
-      }
-    }
+        setMajorses(majorsResponse.data)
 
-    const fetchClases = async () => {
-      try {
-        const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
+        const classesResponse = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setClas(response.data)
+        setClas(classesResponse.data)
       } catch (error) {
-        console.error('Error fetching roles:', error)
+        console.error('Error fetching majors or classes:', error)
       }
     }
 
-    fetchMajors()
-    fetchClases()
+    const fetchUnits = async () => {
+      const storedToken = window.localStorage.getItem('token')
+      try {
+        const response = await axiosConfig.get('/getUnit', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
+        setUnits(filteredUnits)
+      } catch (error) {
+        console.error('Failed to fetch units:', error)
+        toast.error('Failed to load units')
+      }
+    }
+
+    fetchMajorsAndClasses()
+    fetchUnits()
   }, [schoolId])
 
+  // Update majors and classes when unit_id changes
   const {
     control,
     handleSubmit,
     formState: { errors },
-    setValue
+    setValue,
+    watch
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
 
+  useEffect(() => {
+    const selectedUnitId = watch('unit_id')
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: Major) => major.unit_id === selectedUnitId) : []
+
+    const newFilteredClasses = selectedUnitId ? clas.filter((cls: Class) => cls.unit_id === selectedUnitId) : []
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
+
+    // Reset major and class fields when unit_id changes
+    if (!selectedUnitId) {
+      setValue('major', '')
+      setValue('class', '')
+    }
+  }, [watch('unit_id'), majors, clas])
+
   const onSubmit = async (data: User) => {
-    setLoading(true) // Start loading
-    const localDate = new Date(data.date_of_birth).toLocaleDateString('en-CA') //
+    setLoading(true)
+    const localDate = new Date(data.date_of_birth).toLocaleDateString('en-CA')
     const formData = new FormData()
     formData.append('nisn', data.nisn)
     formData.append('full_name', data.full_name)
@@ -158,13 +210,16 @@ const FormValidationSchema = () => {
     formData.append('major_id', data.major)
     formData.append('status', data.status)
     formData.append('class_id', data.class)
+    formData.append('unit_id', data.unit_id)
     formData.append('address', data.address)
     formData.append('school_id', schoolId)
     formData.append('date_of_birth', localDate)
+    console.log(data)
 
-    if (data.image) {
-      formData.append('image', data.image)
+    if (gambar) {
+      formData.append('gambar', gambar)
     }
+    // console.log(formData)
 
     const storedToken = window.localStorage.getItem('token')
     try {
@@ -181,7 +236,7 @@ const FormValidationSchema = () => {
     } catch (error) {
       toast.error('Failed to add user')
     } finally {
-      setLoading(false) // Stop loading
+      setLoading(false)
     }
   }
 
@@ -193,15 +248,42 @@ const FormValidationSchema = () => {
           <Grid container spacing={5}>
             <Grid item xs={6}>
               <Controller
+                name='unit_id'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <CustomTextField
+                    select
+                    fullWidth
+                    value={value}
+                    label='Unit'
+                    onChange={e => {
+                      onChange(e)
+                      setValue('major', '')
+                      setValue('class', '')
+                    }}
+                    error={Boolean(errors.unit_id)}
+                    helperText={errors.unit_id?.message}
+                  >
+                    {units.map(data => (
+                      <MenuItem key={data.id} value={data.id}>
+                        {data.unit_name}
+                      </MenuItem>
+                    ))}
+                  </CustomTextField>
+                )}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <Controller
                 name='nisn'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
                     value={value}
-                    label='Nisn'
+                    label='NISN'
                     onChange={onChange}
-                    placeholder='Leonard'
+                    placeholder='1242324534'
                     error={Boolean(errors.nisn)}
                     helperText={errors.nisn?.message}
                   />
@@ -253,7 +335,7 @@ const FormValidationSchema = () => {
                   <CustomTextField
                     fullWidth
                     value={value}
-                    label='No. Wa'
+                    label='No. WA'
                     onChange={onChange}
                     placeholder='628123456789'
                     error={Boolean(errors.phone)}
@@ -284,7 +366,7 @@ const FormValidationSchema = () => {
                             onClick={handleClickShowPassword}
                             edge='end'
                           >
-                            {showPassword ? <GridVisibilityOffIcon /> : <GridVisibilityOffIcon />}
+                            <Icon fontSize='1.25rem' icon={showPassword ? 'tabler:eye' : 'tabler:eye-off'} />
                           </IconButton>
                         </InputAdornment>
                       )
@@ -294,53 +376,59 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
-              <Controller
-                name='major'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <CustomTextField
-                    select
-                    fullWidth
-                    value={value}
-                    label='Jurusan'
-                    onChange={onChange}
-                    error={Boolean(errors.major)}
-                    helperText={errors.major?.message}
-                  >
-                    {majors.map(data => (
-                      <MenuItem key={data.id} value={data.id}>
-                        {data.major_name}
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
-                )}
-              />
-            </Grid>
+            {/* Conditionally Render Class Dropdown */}
+            {watch('unit_id') && (
+              <Grid item xs={6}>
+                <Controller
+                  name='class'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomTextField
+                      select
+                      fullWidth
+                      value={value}
+                      label='Kelas'
+                      onChange={onChange}
+                      error={Boolean(errors.class)}
+                      helperText={errors.class?.message}
+                    >
+                      {filteredClasses.map(data => (
+                        <MenuItem key={data.id} value={data.id}>
+                          {data.class_name}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  )}
+                />
+              </Grid>
+            )}
 
-            <Grid item xs={6}>
-              <Controller
-                name='class'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <CustomTextField
-                    select
-                    fullWidth
-                    value={value}
-                    label='Kelas'
-                    onChange={onChange}
-                    error={Boolean(errors.class)}
-                    helperText={errors.class?.message}
-                  >
-                    {clas.map(data => (
-                      <MenuItem key={data.id} value={data.id}>
-                        {data.class_name}
-                      </MenuItem>
-                    ))}
-                  </CustomTextField>
-                )}
-              />
-            </Grid>
+            {/* Conditionally Render Major Dropdown */}
+            {watch('unit_id') && (
+              <Grid item xs={6}>
+                <Controller
+                  name='major'
+                  control={control}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomTextField
+                      select
+                      fullWidth
+                      value={value}
+                      label='Jurusan'
+                      onChange={onChange}
+                      error={Boolean(errors.major)}
+                      helperText={errors.major?.message}
+                    >
+                      {filteredMajors.map(data => (
+                        <MenuItem key={data.id} value={data.id}>
+                          {data.major_name}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  )}
+                />
+              </Grid>
+            )}
 
             <Grid item xs={6}>
               <Controller
@@ -365,26 +453,29 @@ const FormValidationSchema = () => {
 
             <Grid item xs={6}>
               <Controller
-                name='image'
+                name='gambar'
                 control={control}
                 render={({ field: { onChange } }) => (
                   <CustomTextField
                     fullWidth
+                    name='gambar'
                     type='file'
-                    label='Upload Image'
+                    label='Upload Gambar'
                     InputLabelProps={{
-                      shrink: true // Agar label tetap muncul meskipun input type file
+                      shrink: true
                     }}
                     inputProps={{
                       accept: 'image/*'
                     }}
                     onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      const file = event.target.files?.[0] || null
-                      setValue('image', file)
-                      onChange(event) // Triggers form update
+                      const file = event.target.files?.[0]
+                      // console.log(file)
+
+                      setGambarValue(file)
+                      onChange(event)
                     }}
-                    error={Boolean(errors.image)}
-                    helperText={errors.image?.message}
+                    error={Boolean(errors.gambar)}
+                    helperText={errors.gambar?.message}
                   />
                 )}
               />
@@ -397,13 +488,13 @@ const FormValidationSchema = () => {
                 render={({ field: { value, onChange } }) => (
                   <DatePickerWrapper>
                     <DatePicker
-                      selected={value ? new Date(value) : null} // Ensure it's a Date object
-                      onChange={(date: Date | null) => onChange(date)} // Pass the date to the form state
+                      selected={value ? new Date(value) : null}
+                      onChange={(date: Date | null) => onChange(date)}
                       placeholderText='MM/DD/YYYY'
-                      dateFormat='MM/dd/yyyy' // Optional: format the date display
+                      dateFormat='MM/dd/yyyy'
                       customInput={
                         <CustomInput
-                          value={(value as any) ? (new Date(value).toLocaleDateString('en-US') as any) : ''} // Display formatted date
+                          value={(value as any) ? (new Date(value).toLocaleDateString('en-US') as any) : ''}
                           onChange={onChange}
                           label='Tanggal Lahir'
                           error={Boolean(errors.date_of_birth)}
@@ -416,7 +507,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={6}>
               <Controller
                 name='address'
                 control={control}
@@ -436,7 +527,7 @@ const FormValidationSchema = () => {
 
             <Grid item xs={12}>
               <Button type='submit' variant='contained' disabled={loading}>
-                {loading ? <CircularProgress size={24} /> : 'Submit'} {/* CircularProgress when loading */}
+                {loading ? <CircularProgress size={24} /> : 'Submit'}
               </Button>
               <Box m={1} display='inline' />
               <Link href='/ms/siswa' passHref>

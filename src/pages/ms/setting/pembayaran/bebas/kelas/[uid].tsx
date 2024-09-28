@@ -31,28 +31,23 @@ const AddPaymentDetailByClass = () => {
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
+  const [units, setUnits] = useState<any[]>([]) // State for units
+  const [unitId, setUnitId] = useState<string>('') // State for selected unit_id
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
   const router = useRouter()
   const { uid } = router.query
+
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = event.target.value
-    const value = event.target.value
-    const numericValue = value.replace(/\D/g, '') // Remove non-numeric characters
+    const numericValue = newAmount.replace(/\D/g, '') // Remove non-numeric characters
     const formattedValue = new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0
-    }).format(parseInt(numericValue || '0', 10)) // Ensure the value is converted to an integer
-    const numericValueAmount = newAmount.replace(/\D/g, '') // Remove non-numeric characters
-    const formattedValueAmount = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(parseInt(numericValueAmount || '0', 10)) // Ensure the value is converted to an integer
+    }).format(parseInt(numericValue || '0', 10)) // Format as currency
     setAmount(formattedValue)
-    setMonths(months.map(month => ({ ...month, payment: formattedValueAmount })))
   }
 
   useEffect(() => {
@@ -78,6 +73,21 @@ const AddPaymentDetailByClass = () => {
           console.error('Error fetching class details:', error)
         })
     }
+
+    const fetchUnits = async () => {
+      try {
+        const response = await axiosConfig.get(`/getUnits/?schoolId=${schoolId}`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        setUnits(response.data) // Assuming response.data contains unit information
+      } catch (error) {
+        console.error('Error fetching units:', error)
+      }
+    }
+
     const fetchClases = async () => {
       try {
         const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
@@ -91,6 +101,7 @@ const AddPaymentDetailByClass = () => {
         console.error('Error fetching classes:', error)
       }
     }
+
     const fetchMajors = async () => {
       try {
         const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
@@ -104,6 +115,7 @@ const AddPaymentDetailByClass = () => {
         console.error('Error fetching majors:', error)
       }
     }
+
     const fetchMonths = async () => {
       try {
         const response = await axiosConfig.get(`/getMonths/?schoolId=${schoolId}`, {
@@ -114,24 +126,32 @@ const AddPaymentDetailByClass = () => {
         })
         setMonths(response.data)
       } catch (error) {
-        console.error('Error fetching majors:', error)
+        console.error('Error fetching months:', error)
       }
     }
+
+    fetchUnits() // Fetch units
     fetchMajors()
     fetchClases()
     fetchMonths()
   }, [uid, schoolId, storedToken])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
-    setKelas(e.target.value as any)
+    setKelas(e.target.value as string)
   }, [])
+
   const handleMajorChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
-    setMajor(e.target.value as any)
+    setMajor(e.target.value as string)
+  }, [])
+
+  const handleUnitChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
+    setUnitId(e.target.value as string) // Handle unit change
   }, [])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoading(true)
+
     const formData = {
       school_id: schoolId,
       sp_name: spName,
@@ -139,6 +159,7 @@ const AddPaymentDetailByClass = () => {
       sp_type: spType,
       class_id: kelas,
       major_id: major,
+      unit_id: unitId, // Include unit_id
       amount: amount.replace(/\D/g, ''),
       uid: uid // Add uid from router.query
     }
@@ -256,6 +277,27 @@ const AddPaymentDetailByClass = () => {
                 </Select>
               </FormControl>
             </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <InputLabel id='form-layouts-separator-select-label'>Unit</InputLabel>
+              <FormControl fullWidth>
+                <Select
+                  label='Unit'
+                  defaultValue=''
+                  id='form-layouts-separator-select'
+                  labelId='form-layouts-separator-select-label'
+                  value={unitId}
+                  onChange={handleUnitChange as any} // Handle unit change
+                >
+                  {units.map(data => (
+                    <MenuItem key={data.id} value={data.id}>
+                      {data.unit_name} {/* Assuming unit_name is the field for display */}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah Pembayaran Rp.</InputLabel>
               <TextField

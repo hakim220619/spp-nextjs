@@ -87,6 +87,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
+  { field: 'unit_name', headerName: 'Nama Unit', flex: 0.175, minWidth: 140 },
   { field: 'class_name', headerName: 'Nama Kelas', flex: 0.175, minWidth: 140 },
   { field: 'class_desc', headerName: 'Deskripsi', flex: 0.25, minWidth: 180 },
   {

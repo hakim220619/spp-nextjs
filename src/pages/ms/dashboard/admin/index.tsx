@@ -67,7 +67,7 @@ const EcommerceDashboard = () => {
         setTotalPembayaranBebas(response.data.amount)
       } catch (error) {
         console.error('Error fetching total pembayaran:', error)
-        
+
         // toast.error('Failed to fetch data. Please try again later.') // Use toast.error here
       } finally {
         setLoading(false)
@@ -84,7 +84,6 @@ const EcommerceDashboard = () => {
             school_id: getDataLocal.school_id // Send the school_id as a query parameter
           }
         })
-        console.log(response)
 
         setTotalTunggakanBulanan(response.data.amount)
       } catch (error) {

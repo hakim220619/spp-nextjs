@@ -39,7 +39,7 @@ const TableHeader = (props: TableHeaderProps) => {
         <CustomTextField
           value={value}
           sx={{ mr: 4 }}
-          placeholder='Search Full Name'
+          placeholder='Search Name'
           onChange={e => handleFilter(e.target.value)}
         />
         <Link href='/ms/admin/AdminAddView' passHref>
