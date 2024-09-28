@@ -11,12 +11,8 @@ import List from '@mui/material/List'
 import MuiDialog from '@mui/material/Dialog'
 import ListItem from '@mui/material/ListItem'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
-
-// ** Third Party Imports
-import axios from 'axios'
 
 // ** Types Imports
 
@@ -24,9 +20,6 @@ import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
-
-
 
 interface Props {
   hidden: boolean
@@ -36,8 +29,6 @@ interface Props {
 interface DefaultSuggestionsProps {
   setOpenDialog: (val: boolean) => void
 }
-
-
 
 interface DefaultSuggestionsType {
   category: string
@@ -151,10 +142,7 @@ const defaultSuggestionsData: DefaultSuggestionsType[] = [
   }
 ]
 
-
-
 // ** Styled Autocomplete component
-
 
 // ** Styled Dialog component
 const Dialog = styled(MuiDialog)({
@@ -169,8 +157,6 @@ const Dialog = styled(MuiDialog)({
     }
   }
 })
-
-
 
 const DefaultSuggestions = ({ setOpenDialog }: DefaultSuggestionsProps) => {
   return (
@@ -208,38 +194,16 @@ const DefaultSuggestions = ({ setOpenDialog }: DefaultSuggestionsProps) => {
   )
 }
 
-const AutocompleteComponent = ({ hidden, settings }: Props) => {
+const AutocompleteComponent = ({}: Props) => {
   // ** States
   const [isMounted, setIsMounted] = useState<boolean>(false)
-  const [searchValue, setSearchValue] = useState<string>('')
+  const [searchValue] = useState<string>('')
   const [openDialog, setOpenDialog] = useState<boolean>(false)
 
   // ** Hooks & Vars
   const theme = useTheme()
-  const { layout } = settings
   const wrapper = useRef<HTMLDivElement>(null)
   const fullScreenDialog = useMediaQuery(theme.breakpoints.down('sm'))
-
-  // Get all data using API
-  useEffect(() => {
-    axios
-      .get('', {
-        params: { q: searchValue }
-      })
-      .then(response => {
-        if (response.data && response.data.length) {
-          // setOptions(response.data)
-        } else {
-          // setOptions([])
-        }
-      })
-  }, [searchValue])
-
-  useEffect(() => {
-    if (!openDialog) {
-      setSearchValue('')
-    }
-  }, [openDialog])
 
   useEffect(() => {
     setIsMounted(true)
@@ -297,17 +261,9 @@ const AutocompleteComponent = ({ hidden, settings }: Props) => {
         onClick={() => !openDialog && setOpenDialog(true)}
         sx={{ display: 'flex', cursor: 'pointer', alignItems: 'center' }}
       >
-        <IconButton color='inherit' sx={!hidden && layout === 'vertical' ? { mr: 0.5, ml: -2.75 } : {}}>
-          <Icon fontSize='1.625rem' icon='tabler:search' />
-        </IconButton>
-        {!hidden && layout === 'vertical' ? (
-          <Typography sx={{ userSelect: 'none', color: 'text.disabled' }}>Search (Ctrl+/)</Typography>
-        ) : null}
         {openDialog && (
           <Dialog fullWidth open={openDialog} fullScreen={fullScreenDialog} onClose={() => setOpenDialog(false)}>
-            <Box sx={{ top: 0, width: '100%', position: 'sticky' }}>
-              
-            </Box>
+            <Box sx={{ top: 0, width: '100%', position: 'sticky' }}></Box>
             {searchValue.length === 0 ? (
               <Box
                 sx={{

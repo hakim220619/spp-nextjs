@@ -7,6 +7,7 @@ import CardContent from '@mui/material/CardContent'
 import Grid, { GridProps } from '@mui/material/Grid'
 import { styled } from '@mui/material/styles'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 // Styled Grid component
 const StyledGrid = styled(Grid)<GridProps>(({ theme }) => ({
@@ -19,9 +20,9 @@ const StyledGrid = styled(Grid)<GridProps>(({ theme }) => ({
 
 // Styled component for the image
 const Img = styled('img')(({ theme }) => ({
-  right: 0,
-  bottom: 0,
-  width: '15%',
+  right: 90,
+  bottom: -50,
+  width: '30%',
   position: 'absolute',
   [theme.breakpoints.down('sm')]: {
     width: '100%',
@@ -29,14 +30,33 @@ const Img = styled('img')(({ theme }) => ({
     position: 'static'
   }
 }))
+const SuccessText = styled('span')(({ theme }) => ({
+  color: theme.palette.success.main // Use the success color from the theme
+}))
 
 const AnalyticsCongratulations = () => {
   const [fullName, setFullName] = useState<string | null>(null)
+  const [roleName, setRoleName] = useState<string | null>(null)
+  const [time, setTime] = useState<string | null>(null)
+
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') as string)
     const full_name = userData.full_name
+    const roleName = userData.role_name
 
     setFullName(full_name)
+    setRoleName(roleName)
+
+    // Update time every second
+    const updateTime = () => {
+      const now = new Date()
+      setTime(now.toLocaleTimeString())
+    }
+
+    const timeInterval = setInterval(updateTime, 1000)
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(timeInterval)
   }, [])
 
   return (
@@ -52,20 +72,38 @@ const AnalyticsCongratulations = () => {
               ! 🎉
             </Typography>
             <Typography variant='body2'>
-              You have done{' '}
-              <Box component='span' sx={{ fontWeight: 600 }}>
-                68%
-              </Box>{' '}
-              😎 more sales today.
+              Halo, <SuccessText>{roleName}</SuccessText> Senang melihat Anda kembali. Mari kita ciptakan perubahan
+              hebat hari ini!
             </Typography>
-            <Typography sx={{ mb: 4.5 }} variant='body2'>
-              Check your new badge in your profile.
-            </Typography>
-            <Button variant='contained'>View Profile</Button>
+            <br />
+            <Link href='/ms/siswa' style={{ textDecoration: 'none' }}>
+              <Button variant='contained'>View Data Siswa</Button>
+            </Link>
           </Grid>
-          <StyledGrid item xs={12} sm={6}>
-            <Img alt='Congratulations John' src={`/images/cards/congratulations-john.png`} />
-          </StyledGrid>
+          <Grid
+            item
+            xs={12}
+            sm={6}
+            sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', position: 'relative' }}
+          >
+            <StyledGrid item xs={12} sm={6}>
+              <Box>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    mt: 2,
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    color: theme => theme.palette.info.main // Set the text color to info
+                  }}
+                >
+                  {time} <br />
+                </Typography>
+              </Box>
+              <Img alt='Congratulations John' src={`/images/cards/congratulations-john.png`} />
+            </StyledGrid>
+          </Grid>
         </Grid>
       </CardContent>
     </Card>

@@ -56,7 +56,7 @@ const columns: GridColDef[] = [
   { field: 'month_number', headerName: 'No', width: 70 },
   { field: 'month', headerName: 'Bulan', flex: 0.175, minWidth: 140 },
   {
-    field: 'amount',
+    field: 'total_payment',
     headerName: 'Jumlah',
     flex: 0.175,
     minWidth: 140,
@@ -139,9 +139,14 @@ const UserList: React.FC = () => {
   const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
     if (spName && jumlah) {
-      try {
+      try { 
         const totalAmount = jumlah.replace(/[^\d]/g, '') // Hanya angka
+        console.log(totalAmount)
+
         const filteredRows = selectedRows.filter(row => row.status !== 'Verified')
+        console.log(filteredRows)
+        console.log(spName)
+
         const response = await fetch('/api/createMidtransTransaction', {
           method: 'POST',
           headers: {
@@ -341,7 +346,7 @@ const UserList: React.FC = () => {
 
                   return {
                     id: selectedRow.id,
-                    amount: selectedRow.amount,
+                    total_payment: selectedRow.total_payment,
                     month: selectedRow.month,
                     years: selectedRow.years,
                     status: selectedRow.status
@@ -352,7 +357,7 @@ const UserList: React.FC = () => {
 
                 const totalAmount = filteredData
                   .filter(row => row.status !== 'Verified') // Filter rows where status is not "Verified"
-                  .reduce((sum, row) => sum + row.amount, 0)
+                  .reduce((sum, row) => sum + row.total_payment, 0)
 
                 const formattedTotalAmount = new Intl.NumberFormat('id-ID', {
                   style: 'currency',

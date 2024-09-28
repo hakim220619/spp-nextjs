@@ -32,6 +32,10 @@ const navigation = (): VerticalNavItemsType => {
           {
             title: 'Aplikasi',
             path: '/ms/aplikasi'
+          },
+          {
+            title: 'Affiliate',
+            path: '/ms/affiliate'
           }
         ]
       },

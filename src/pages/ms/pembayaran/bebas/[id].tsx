@@ -79,6 +79,7 @@ const columns: GridColDef[] = [
     headerName: 'Jumlah',
     flex: 0.175,
     minWidth: 140,
+    valueGetter: ({ row }) => row.amount + row.affiliate, // Summing amount and affiliate
     valueFormatter: ({ value }) =>
       new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -201,7 +202,11 @@ const UserList: React.FC = () => {
   const onsubmit = async () => {
     if (dataPayment && jumlah) {
       try {
-        const totalAmount = jumlah.replace(/[^\d]/g, '') // Hanya angka
+        const totalAmount = parseInt(jumlah.replace(/[^\d]/g, ''), 10) || 0
+
+        // Ensure affiliate is an integer (it should already be, but just in case)
+        const affiliateAmount = dataPayment.affiliate || 0
+        const total_amount = totalAmount + affiliateAmount
         const response = await fetch('/api/createMidtransTransactionFree', {
           method: 'POST',
           headers: {
@@ -209,7 +214,7 @@ const UserList: React.FC = () => {
           },
           body: JSON.stringify({
             dataPayment: dataPayment,
-            total_amount: jumlah,
+            total_amount: total_amount,
             user_id: dataPayment.user_id
           })
         })

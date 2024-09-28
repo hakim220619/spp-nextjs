@@ -165,7 +165,6 @@ const SettingPembayaran = () => {
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const schoolId = userData.school_id
   const user_id = userData.id
-  console.log(store)
 
   useEffect(() => {
     const fetchData = async () => {

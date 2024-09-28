@@ -21,6 +21,8 @@ import Icon from 'src/@core/components/icon'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 interface SwiperData {
+  header: string
+  onetitle: string
   img: string
   title: string
   details: { [key: string]: string }
@@ -28,7 +30,9 @@ interface SwiperData {
 
 const data: SwiperData[] = [
   {
-    title: 'Fashion',
+    header: 'Total Siswa per Kelas',
+    onetitle: ' Siswa Tahun Ini',
+    title: 'Jumlah Siswa & Kelas',
     img: '/images/cards/apple-watch-green-lg.png',
     details: {
       'T-shirts': '16',
@@ -38,7 +42,9 @@ const data: SwiperData[] = [
     }
   },
   {
-    title: 'Mobiles & Computers',
+    header: 'Total Siswa per Jurusan',
+    onetitle: ' Siswa Tahun Ini',
+    title: 'Jumlah Siswa & Jurusan',
     img: '/images/cards/apple-iphone-x-lg.png',
     details: {
       Mobiles: '24',
@@ -48,7 +54,9 @@ const data: SwiperData[] = [
     }
   },
   {
-    title: 'Appliances & Electronics',
+    header: 'Total Seluruh Siswa',
+    onetitle: ' Siswa Tahun Ini',
+    title: 'Seluruh Siswa',
     img: '/images/cards/ps4-joystick-lg.png',
     details: {
       "TV's": '16',
@@ -66,11 +74,11 @@ const Slides = () => {
         return (
           <Box key={index} className='keen-slider__slide'>
             <Typography variant='h6' sx={{ color: 'common.white' }}>
-              Weekly Sales
+              {slide.header}
             </Typography>
             <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
               <Typography variant='caption' sx={{ mr: 1.5, color: 'common.white' }}>
-                Total $23.5k Earning
+                {slide.onetitle}
               </Typography>
               <Typography variant='subtitle2' sx={{ color: 'success.main' }}>
                 +62%

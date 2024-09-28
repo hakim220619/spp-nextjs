@@ -11,6 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { total_amount, dataUsers, dataPayment } = req.body
 
+
   const snap = new midtransClient.Snap({
     isProduction: false, // Set to true for production
     serverKey: 'SB-Mid-server-z5T9WhivZDuXrJxC7w-civ_k'
@@ -18,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const orderId = 'ORDER-' + Math.floor(100000 + Math.random() * 900000)
   const itemDetails = dataPayment.map((payment: any) => ({
     id: `ITEM-${payment.id}`, // Membuat ID item unik berdasarkan id payment
-    price: payment.amount, // Menggunakan amount sebagai harga item
+    price: payment.total_payment, // Menggunakan amount sebagai harga item
     quantity: 1, // Karena setiap item adalah untuk satu bulan, quantity adalah 1
     name: `Bulan ${payment.month} ${payment.years}` // Nama item sesuai dengan bulan dan tahun pembayaran
   }))

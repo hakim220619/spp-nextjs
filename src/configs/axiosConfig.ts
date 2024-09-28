@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const axiosCons = axios.create({
-  baseURL: `http://localhost:4000/api`
+const axiosConfig = axios.create({
+  // baseURL: `http://localhost:3000/api`
+
+  baseURL: `https://express-spp-api.sppapp.com/api`
 })
-export default axiosCons
+export default axiosConfig

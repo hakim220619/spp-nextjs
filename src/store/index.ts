@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit'
 
 // ** Reducers
 import Admin from 'src/store/apps/admin/index'
+import Affiliate from 'src/store/apps/affiliate/index'
 import siswa from 'src/store/apps/siswa/index'
 import kelas from 'src/store/apps/kelas/index'
 import Jurusan from 'src/store/apps/jurusan/index'
@@ -18,6 +19,7 @@ import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/in
 export const store = configureStore({
   reducer: {
     Admin,
+    Affiliate,
     siswa,
     kelas,
     Jurusan,

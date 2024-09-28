@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react'
+import CircularProgress from '@mui/material/CircularProgress' // Import CircularProgress
+
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
 
@@ -10,18 +13,134 @@ import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
 import AnalyticsCongratulations from 'src/views/dashboards/analytics/AnalyticsCongratulations'
-import EcommerceTable from 'src/views/dashboards/ecommerce/EcommerceTable'
 import EcommerceTotalVisits from 'src/views/dashboards/ecommerce/EcommerceTotalVisits'
 import EcommerceVisitsByDay from 'src/views/dashboards/ecommerce/EcommerceVisitsByDay'
-import EcommerceLiveVisitors from 'src/views/dashboards/ecommerce/EcommerceLiveVisitors'
 import EcommerceWeeklySalesBg from 'src/views/dashboards/ecommerce/EcommerceWeeklySalesBg'
 import EcommerceSalesThisMonth from 'src/views/dashboards/ecommerce/EcommerceSalesThisMonth'
-import EcommerceMarketingSales from 'src/views/dashboards/ecommerce/EcommerceMarketingSales'
 import EcommerceActivityTimeline from 'src/views/dashboards/ecommerce/EcommerceActivityTimeline'
-import EcommerceImpressionsOrders from 'src/views/dashboards/ecommerce/EcommerceImpressionsOrders'
-import EcommerceSalesOverviewWithTabs from 'src/views/dashboards/ecommerce/EcommerceSalesOverviewWithTabs'
+import axiosConfig from 'src/configs/axiosConfig'
 
 const EcommerceDashboard = () => {
+  const [totalPembayaranBulanan, setTotalPembayaranBulanan] = useState(null)
+  const [totalPembayaranBebas, setTotalPembayaranBebas] = useState(null)
+  const [totalTunggakanBulanan, setTotalTunggakanBulanan] = useState(null)
+  const [totalTunggakanBebas, setTotalTunggakanBebas] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const data = localStorage.getItem('userData') as any
+    const getDataLocal = JSON.parse(data)
+    const storedToken = window.localStorage.getItem('token')
+    const fetchTotalPembayaranBulanan = async () => {
+      try {
+        const response = await axiosConfig.get('/get-total-pembayaran-bulanan', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          },
+          params: {
+            school_id: getDataLocal.school_id // Send the school_id as a query parameter
+          }
+        })
+
+        setTotalPembayaranBulanan(response.data.amount)
+      } catch (error) {
+        console.error('Error fetching total pembayaran:', error)
+
+        // toast.error('Failed to fetch data. Please try again later.') // Use toast.error here
+      } finally {
+        setLoading(false)
+      }
+    }
+    const fetchTotalPembayaranBebas = async () => {
+      try {
+        const response = await axiosConfig.get('/get-total-pembayaran-bebas', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          },
+          params: {
+            school_id: getDataLocal.school_id // Send the school_id as a query parameter
+          }
+        })
+
+        setTotalPembayaranBebas(response.data.amount)
+      } catch (error) {
+        console.error('Error fetching total pembayaran:', error)
+        
+        // toast.error('Failed to fetch data. Please try again later.') // Use toast.error here
+      } finally {
+        setLoading(false)
+      }
+    }
+    const fetchTotalTunggakanBulanan = async () => {
+      try {
+        const response = await axiosConfig.get('/get-total-tunggakan-bulanan', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          },
+          params: {
+            school_id: getDataLocal.school_id // Send the school_id as a query parameter
+          }
+        })
+        console.log(response)
+
+        setTotalTunggakanBulanan(response.data.amount)
+      } catch (error) {
+        console.error('Error fetching total pembayaran:', error)
+
+        // toast.error('Failed to fetch data. Please try again later.') // Use toast.error here
+      } finally {
+        setLoading(false)
+      }
+    }
+    const fetchTotalTunggakanBebas = async () => {
+      try {
+        const response = await axiosConfig.get('/get-total-tunggakan-bebas', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          },
+          params: {
+            school_id: getDataLocal.school_id // Send the school_id as a query parameter
+          }
+        })
+
+        setTotalTunggakanBebas(response.data.amount)
+      } catch (error) {
+        console.error('Error fetching total pembayaran:', error)
+
+        // toast.error('Failed to fetch data. Please try again later.') // Use toast.error here
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTotalPembayaranBulanan()
+    fetchTotalPembayaranBebas()
+    fetchTotalTunggakanBulanan()
+    fetchTotalTunggakanBebas()
+  }, [])
+
+  // Function to format number to Rupiah without decimal
+  const formatRupiah = (amount: any) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0, // No decimal places
+      maximumFractionDigits: 0 // No decimal places
+    }).format(amount)
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <CircularProgress color='secondary' />
+      </div>
+    ) // Centered loading state with CircularProgress
+  }
+
   return (
     <ApexChartWrapper>
       <KeenSliderWrapper>
@@ -29,14 +148,17 @@ const EcommerceDashboard = () => {
           <Grid item xs={12} md={6}>
             <AnalyticsCongratulations />
           </Grid>
+          <Grid item xs={12} md={6}>
+            <EcommerceWeeklySalesBg />
+          </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <CardStatisticsCharacter
               data={{
-                stats: '8.14k',
-                title: 'Ratings',
-                chipColor: 'primary',
-                trendNumber: '+15.6%',
-                chipText: 'Year of 2022',
+                stats: formatRupiah(totalPembayaranBulanan),
+                title: 'Total Pembayaran Bulanan',
+                chipColor: 'success',
+                trendNumber: '+ 10%',
+                chipText: 'Year of 2024',
                 src: '/images/cards/card-stats-img-1.png'
               }}
             />
@@ -44,19 +166,43 @@ const EcommerceDashboard = () => {
           <Grid item xs={12} sm={6} md={3}>
             <CardStatisticsCharacter
               data={{
-                stats: '12.2k',
-                trend: 'negative',
-                title: 'Sessions',
+                stats: formatRupiah(totalPembayaranBebas),
+                trend: 'positive',
+                title: 'Total Pembayaran Bebas',
                 chipColor: 'success',
-                trendNumber: '-25.5%',
-                chipText: 'Last Month',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
                 src: '/images/cards/card-stats-img-2.png'
               }}
             />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <EcommerceWeeklySalesBg />
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBulanan),
+                trend: 'positive',
+                title: 'Total Tunggakan Bulanan',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/cards/card-stats-img-2.png'
+              }}
+            />
           </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBebas),
+                trend: 'positive',
+                title: 'Total Tunggakan Bebas',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/cards/card-stats-img-2.png'
+              }}
+            />
+          </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <EcommerceTotalVisits />
           </Grid>
@@ -66,22 +212,7 @@ const EcommerceDashboard = () => {
           <Grid item xs={12} md={6}>
             <EcommerceActivityTimeline />
           </Grid>
-          <Grid item xs={12} md={6}>
-            <EcommerceSalesOverviewWithTabs />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <EcommerceImpressionsOrders />
-          </Grid>
-          <Grid item xs={12} md={5} sx={{ order: [2, 2, 1] }}>
-            <EcommerceMarketingSales />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4} sx={{ order: [1, 1, 2] }}>
-            <EcommerceLiveVisitors />
-          </Grid>
-          <Grid item xs={12} md={8} sx={{ order: 3 }}>
-            <EcommerceTable />
-          </Grid>
-          <Grid item xs={12} md={4} sx={{ order: 3 }}>
+          <Grid item xs={12} md={6} sx={{ order: 3 }}>
             <EcommerceVisitsByDay />
           </Grid>
         </Grid>

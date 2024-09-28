@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { total_amount, dataPayment } = req.body
-  
+  console.log(req.body)
   const snap = new midtransClient.Snap({
     isProduction: false, // Set to true for production
     serverKey: 'SB-Mid-server-z5T9WhivZDuXrJxC7w-civ_k'

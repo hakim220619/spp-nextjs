@@ -26,6 +26,8 @@ import { useRouter } from 'next/navigation'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
+import { IconButton, InputAdornment } from '@mui/material'
+import { GridVisibilityOffIcon } from '@mui/x-data-grid'
 
 interface User {
   full_name: string
@@ -73,6 +75,11 @@ const FormValidationSchema = () => {
   const router = useRouter()
   const [schools, setSchools] = useState<School[]>([])
   const [roles, setRoles] = useState<Role[]>([])
+  const [showPassword, setShowPassword] = useState(false)
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword)
+  }
 
   const defaultValues: any = {
     full_name: 'asdasd',
@@ -170,7 +177,7 @@ const FormValidationSchema = () => {
         toast.error('Failed to add user')
       })
   }
-  
+
   return (
     <Card>
       <CardHeader title='Add New User' />
@@ -242,9 +249,18 @@ const FormValidationSchema = () => {
                     value={value}
                     label='Password'
                     onChange={onChange}
-                    type='password'
+                    type={showPassword ? 'text' : 'password'}
                     error={Boolean(errors.password)}
                     helperText={errors.password?.message}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <IconButton onClick={handleClickShowPassword} edge='end'>
+                            {showPassword ? <GridVisibilityOffIcon /> : <GridVisibilityOffIcon />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }}
                   />
                 )}
               />
