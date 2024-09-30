@@ -34,15 +34,12 @@ const TableHeader = (props: TableHeaderProps) => {
         Export
       </Button>
       <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button
-          variant='contained'
-          color='warning'
-          onClick={() => {
-            
-          }}
-        >
-          Cek Transaksi
-        </Button>
+        <CustomTextField
+          value={value}
+          sx={{ mr: 4 }}
+          placeholder='Search Name'
+          onChange={e => handleFilter(e.target.value)}
+        />
       </Box>
     </Box>
   )

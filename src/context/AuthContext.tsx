@@ -69,13 +69,13 @@ const AuthProvider = ({ children }: Props) => {
 
     const handleAuthError = async (error: any) => {
       localStorage.removeItem('userData')
-      localStorage.removeItem('refreshToken')
-      localStorage.removeItem('accessToken')
       setUser(null)
 
       if (error.response) {
-        if (error.response.data.message === 'Invalid token') {
-          // Attempt to refresh token
+        const errorMessage = error.response.data.message
+
+        if (errorMessage === 'Invalid token') {
+          // Attempt to refresh token if "Invalid token"
           await refreshAccessToken()
         } else {
           // Handle other errors
@@ -83,22 +83,25 @@ const AuthProvider = ({ children }: Props) => {
             router.replace('/login')
           }
         }
+      } else {
+        console.error('Authentication error:', error) // Log unknown errors
+        router.replace('/login') // Redirect to login for other errors
       }
     }
 
     const refreshAccessToken = async (): Promise<void> => {
-      const refreshToken = localStorage.getItem('refreshToken') // Change from 'token' to 'refreshToken'
+      const refreshToken = localStorage.getItem('refreshToken')
       if (!refreshToken) {
         router.replace('/login')
         return
       }
 
       try {
-        const storedToken = localStorage.getItem('token') // Get the access token for headers
+        const storedToken = localStorage.getItem('token')
         const response = await axiosConfig.get('/refresh-token', {
           headers: {
             Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}` // Use the access token for authorization
+            Authorization: `Bearer ${storedToken}`
           }
         })
 
@@ -110,7 +113,7 @@ const AuthProvider = ({ children }: Props) => {
         window.localStorage.setItem('userData', JSON.stringify(userData))
         setUser({ ...userData })
       } catch (error) {
-        // If refreshing fails, log the user out
+        console.error('Failed to refresh token:', error) // Log refresh token errors
         handleLogout()
       }
     }
@@ -125,7 +128,7 @@ const AuthProvider = ({ children }: Props) => {
       .then(async response => {
         if (params.rememberMe) {
           window.localStorage.setItem('token', response.data.accessToken)
-          window.localStorage.setItem('refreshToken', response.data.accessToken) // Store refresh token
+          window.localStorage.setItem('refreshToken', response.data.accessToken) // Ensure to store refresh token
           window.localStorage.setItem('userData', JSON.stringify(response.data.userData))
         }
 
@@ -144,7 +147,7 @@ const AuthProvider = ({ children }: Props) => {
     setUser(null)
     window.localStorage.removeItem('userData')
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
-    window.localStorage.removeItem('refreshToken') // Remove refresh token on logout
+    window.localStorage.removeItem('refreshToken')
     router.push('/login')
   }
 

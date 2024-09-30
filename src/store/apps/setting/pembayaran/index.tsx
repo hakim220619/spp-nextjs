@@ -7,7 +7,7 @@ interface DataParams {
   q: string
   year: string
   sp_type: string
-  sp_status: string
+  unit_id: string
 }
 interface Redux {
   getState: any
@@ -46,10 +46,10 @@ export const deleteSettingPembayaran = createAsyncThunk(
       }
     }
     const response = await axiosConfig.post('/delete-setting-pembayaran', dataAll, customConfig)
-    const { school_id, year, sp_type, sp_status, q } = getState().kelas
+    const { school_id, year, sp_type, unit_id, q } = getState().kelas
 
     // Memanggil fetchDataSettingPembayaran untuk memperbarui data setelah penghapusan
-    dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q }))
+    dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, unit_id, q }))
 
     return response.data
   }

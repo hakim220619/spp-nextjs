@@ -7,7 +7,7 @@ interface DataParams {
   q: string
   major: string
   clas: string
-  status: string
+  unit_id: string
 }
 interface Redux {
   getState: any
@@ -43,10 +43,10 @@ export const deleteUserSiswa = createAsyncThunk(
       }
     }
     const response = await axiosConfig.post('/delete-siswa', dataAll, customConfig)
-    const { school_id, major, clas, status, q } = getState().siswa
+    const { school_id, major, clas, unit_id, q } = getState().siswa
 
     // Memanggil fetchDataSiswa untuk memperbarui data setelah penghapusan
-    dispatch(fetchDataSiswa({ school_id, major, clas, status, q }))
+    dispatch(fetchDataSiswa({ school_id, major, clas, unit_id, q }))
 
     return response.data
   }

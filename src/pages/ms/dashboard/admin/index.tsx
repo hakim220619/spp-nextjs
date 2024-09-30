@@ -211,9 +211,6 @@ const EcommerceDashboard = () => {
           <Grid item xs={12} md={6}>
             <EcommerceActivityTimeline />
           </Grid>
-          <Grid item xs={12} md={6} sx={{ order: 3 }}>
-            <EcommerceVisitsByDay />
-          </Grid>
         </Grid>
       </KeenSliderWrapper>
     </ApexChartWrapper>

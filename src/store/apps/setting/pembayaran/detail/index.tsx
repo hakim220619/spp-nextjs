@@ -7,6 +7,7 @@ interface DataParams {
   clas: string
   major: string
   setting_payment_uid: string
+  unit_id: string
 }
 export const fetchDataSettingPembayaranDetail = createAsyncThunk(
   'appSettingPembayaranDetail/fetchDataSettingPembayaranDetail',

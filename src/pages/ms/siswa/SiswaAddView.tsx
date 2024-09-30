@@ -98,7 +98,6 @@ const FormValidationSchema = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [gambar, setGambarValue] = useState<File>()
-  console.log(gambar)
 
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
@@ -214,12 +213,10 @@ const FormValidationSchema = () => {
     formData.append('address', data.address)
     formData.append('school_id', schoolId)
     formData.append('date_of_birth', localDate)
-    console.log(data)
 
     if (gambar) {
       formData.append('gambar', gambar)
     }
-    // console.log(formData)
 
     const storedToken = window.localStorage.getItem('token')
     try {
@@ -233,8 +230,18 @@ const FormValidationSchema = () => {
 
       toast.success('Successfully Added!')
       router.push('/ms/siswa')
-    } catch (error) {
-      toast.error('Failed to add user')
+    } catch (error: any) {
+      if (error.response) {
+        if (error.response.data.message.includes('users.users_email_unique')) {
+          toast.error('Duplicate entry: Email already exists.')
+        } else if (error.response.data.message.includes('users.nisn')) {
+          toast.error('Duplicate entry: Nisn already exists.')
+        } else {
+          toast.error('Failed to add user')
+        }
+      } else {
+        toast.error('Failed to add user')
+      }
     } finally {
       setLoading(false)
     }

@@ -9,7 +9,12 @@ import {
   Button,
   InputLabel,
   TextField,
-  CardContent
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -20,7 +25,7 @@ import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
 import { useRouter } from 'next/router'
 import Typography from '@mui/material/Typography'
-import axiosConfig from '../../../../configs/axiosConfig'
+import axiosConfig from '../../../../../configs/axiosConfig'
 import { Box } from '@mui/system'
 import toast from 'react-hot-toast'
 
@@ -30,8 +35,8 @@ interface CellType {
 
 const statusObj: any = {
   Pending: { title: 'Pending', color: 'error' },
-  Paid: { title: 'Paid', color: 'success' },
-  Verified: { title: 'Verified', color: 'warning' }
+  Paid: { title: 'Lunas', color: 'success' },
+  Verified: { title: 'Proses Pembayaran', color: 'warning' }
 }
 
 const RowOptions = ({ data }: { uid: any; data: any }) => {
@@ -147,10 +152,12 @@ const UserList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [dataPayment, setDataPayment] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false) // State for overlay loading
+
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.PembayaranByFree)
   const router = useRouter()
-  const { id } = router.query
+  const { id, school_id, user_id } = router.query
   const storedToken = window.localStorage.getItem('token')
   const fetchPaymentDetails = useCallback(
     async (id: string) => {
@@ -158,8 +165,6 @@ const UserList: React.FC = () => {
         const storedToken = window.localStorage.getItem('token')
 
         // Get additional data from local storage or another function as necessary
-        const school_id = getDataLocal.school_id
-        const user_id = getDataLocal.id
 
         // Send all parameters as query parameters
         const response = await axiosConfig.get('/list-payment-pay-byFree', {
@@ -174,12 +179,14 @@ const UserList: React.FC = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
+        console.log(response.data)
+
         setDataPayment(response.data)
       } catch (error) {
         console.error('Error fetching payment details:', error)
       }
     },
-    [getDataLocal.school_id, getDataLocal.id] // You should include these dependencies instead of `id`
+    [school_id, user_id] // You should include these dependencies instead of `id`
   )
 
   useEffect(() => {
@@ -187,8 +194,8 @@ const UserList: React.FC = () => {
     dispatch(
       fetchDataPaymentPayByFree({
         id_payment: id,
-        school_id: getDataLocal.school_id,
-        user_id: getDataLocal.id,
+        school_id: school_id as any,
+        user_id: user_id as any,
         q: value
       })
     ).finally(() => {
@@ -196,162 +203,57 @@ const UserList: React.FC = () => {
     })
 
     fetchPaymentDetails(id as any)
-  }, [dispatch, value, id, getDataLocal.school_id, getDataLocal.id, fetchPaymentDetails])
+  }, [dispatch, value, id, school_id, user_id, fetchPaymentDetails])
 
   const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
+    setIsLoading(true)
     if (dataPayment && jumlah) {
       try {
         const totalAmount = parseInt(jumlah.replace(/[^\d]/g, ''), 10) || 0
-
-        // Ensure affiliate is an integer (it should already be, but just in case)
-        const affiliateAmount = dataPayment.affiliate || 0
-        const total_amount = totalAmount + affiliateAmount
-        const response = await fetch('/api/createMidtransTransactionFree', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        const response = await axiosConfig.post(
+          '/create-payment-pending-byAdmin-free',
+          {
             dataPayment: dataPayment,
-            total_amount: total_amount,
-            user_id: dataPayment.user_id
-          })
-        })
-        const { transactionToken, orderId, transactionUrl } = await response.json()
-
-        if (transactionToken) {
-          var snap: any
-          snap.pay(transactionToken, {
-            // autoRedirect: false, // Disable auto redirect for all statuses
-            onSuccess: function () {
-              toast.success('Pembayaran berhasil!')
-              try {
-                // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
-                axiosConfig
-                  .post(
-                    '/create-payment-success-Free',
-                    {
-                      dataPayment: dataPayment,
-                      order_id: orderId,
-                      redirect_url: transactionUrl,
-                      total_amount: totalAmount
-                    },
-                    {
-                      headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${storedToken}`
-                      }
-                    }
-                  )
-                  .then(response => {
-                    if (response.status === 200) {
-                      setLoading(true)
-                      dispatch(
-                        fetchDataPaymentPayByFree({
-                          id_payment: id,
-                          school_id: getDataLocal.school_id,
-                          user_id: getDataLocal.id,
-                          q: value
-                        })
-                      ).finally(() => {
-                        setLoading(false)
-                        setJumlah('0')
-                      })
-                    } else {
-                      toast.error('Gagal mengirim data pembayaran pending.')
-                    }
-                  })
-                  .catch(error => {
-                    console.error('Error sending pending payment data:', error)
-                    toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
-                  })
-              } catch (error) {
-                console.error('Error:', error)
-
-                // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
-              }
-              window.removeEventListener('beforeunload', handleBeforeUnload)
-            },
-            onPending: function () {
-              if (!toastShown) {
-                toast.success('Data pembayaran pending berhasil dikirim.')
-                setToastShown(true) // Set state to true to prevent multiple toasts
-              }
-
-              try {
-                // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
-                axiosConfig
-                  .post(
-                    '/create-payment-pending-Free',
-                    {
-                      dataPayment: dataPayment,
-                      order_id: orderId,
-                      redirect_url: transactionUrl,
-                      total_amount: totalAmount
-                    },
-                    {
-                      headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${storedToken}`
-                      }
-                    }
-                  )
-                  .then(response => {
-                    if (response.status === 200) {
-                      setLoading(true)
-                      dispatch(
-                        fetchDataPaymentPayByFree({
-                          id_payment: id,
-                          school_id: getDataLocal.school_id,
-                          user_id: getDataLocal.id,
-                          q: value
-                        })
-                      ).finally(() => {
-                        setLoading(false)
-                        setJumlah('0')
-                      })
-                    } else {
-                      toast.error('Gagal mengirim data pembayaran pending.')
-                    }
-                  })
-                  .catch(error => {
-                    console.error('Error sending pending payment data:', error)
-                    toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
-                  })
-              } catch (error) {
-                console.error('Error:', error)
-
-                // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
-              }
-              window.removeEventListener('beforeunload', handleBeforeUnload)
-            },
-            onError: function () {
-              window.removeEventListener('beforeunload', handleBeforeUnload)
-              toast.error('Pembayaran gagal!')
+            total_amount: totalAmount,
+            user_id: dataPayment.user_id,
+            total_affiliate: dataPayment.affiliate
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${storedToken}` // Add the token here
             }
+          }
+        )
+
+        if (response.status == 200) {
+          setLoading(true)
+          dispatch(
+            fetchDataPaymentPayByFree({
+              id_payment: id,
+              school_id: school_id as any,
+              user_id: user_id as any,
+              q: value
+            })
+          ).finally(() => {
+            setLoading(false)
+            setJumlah('0')
+            setOpenDialog(false)
+            setIsLoading(false)
           })
-        } else {
-          toast.error('Gagal mendapatkan token pembayaran dari Midtrans.')
         }
+        toast.success('Pembayaran Berhasil!')
+        // Handle success (you may want to add more logic here)
       } catch (error) {
+        setIsLoading(false)
         toast.error('Terjadi kesalahan saat memproses pembayaran.')
       }
     } else {
+      setIsLoading(false)
       toast.error('Data tidak lengkap. Pastikan semua informasi sudah diisi.')
     }
   }
-  const handleBeforeUnload = function (e: any) {
-    e.preventDefault()
-    e.returnValue = '' // Mencegah default behavior redirect
-  }
-
-  useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-    script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!)
-    document.body.appendChild(script)
-  }, [])
   const formatRupiah = (value: any) => {
     if (!value) return ''
 
@@ -362,41 +264,19 @@ const UserList: React.FC = () => {
     setJumlah(value)
   }
 
-  const cekTransaksiById = () => {
-    // Mengambil token yang disimpan (misalnya, dari local storage)
-    const token = localStorage.getItem('token')
+  const [openDialog, setOpenDialog] = useState(false)
 
-    // Memanggil API menggunakan axios dengan query parameter user_id
-    axiosConfig
-      .get('/cekTransaksiSuccesMidtransByUserIdFree', {
-        headers: {
-          Authorization: `Bearer ${token}` // Menambahkan token di header
-        },
-        params: {
-          user_id: getDataLocal.id // Menambahkan user_id sebagai query parameter
-        }
-      })
-      .then(response => {
-        console.log(response)
+  const handleDialogOpen = () => {
+    setOpenDialog(true)
+  }
 
-        if (response.data.success == true) {
-          setLoading(true)
-          dispatch(
-            fetchDataPaymentPayByFree({
-              id_payment: id,
-              school_id: getDataLocal.school_id,
-              user_id: getDataLocal.id,
-              q: value
-            })
-          ).finally(() => {
-            setLoading(false)
-          })
-        }
-      })
-      .catch(error => {
-        // Menangani error jika terjadi
-        console.error('Error fetching transaction:', error)
-      })
+  const handleDialogClose = () => {
+    setOpenDialog(false)
+  }
+
+  const handleSubmit = async () => {
+    await onsubmit()
+    handleDialogClose() // Close dialog after submission
   }
 
   return (
@@ -405,31 +285,6 @@ const UserList: React.FC = () => {
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
-          <Box
-            sx={{
-              py: 4,
-              px: 6,
-              rowGap: 2,
-              columnGap: 4,
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <i></i>
-            <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-              <Button
-                variant='contained'
-                color='warning'
-                onClick={() => {
-                  cekTransaksiById()
-                }}
-              >
-                Cek Transaksi
-              </Button>
-            </Box>
-          </Box>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
               <CircularProgress color='secondary' />
@@ -488,6 +343,7 @@ const UserList: React.FC = () => {
                 )}
               />
             </Grid>
+
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
               <TextField fullWidth value={formatRupiah(jumlah)} onChange={handleChange} />
@@ -498,16 +354,17 @@ const UserList: React.FC = () => {
               <Button
                 variant='contained'
                 color='primary'
-                onClick={() => {
-                  onsubmit()
-                }}
+                onClick={handleDialogOpen} // Open dialog instead of submitting
                 disabled={
+                  !jumlah || // Disable if jumlah is null or empty
+                  parseInt(jumlah.replace(/[^\d]/g, ''), 10) === 0 || // Disable if jumlah is 0
                   parseInt(jumlah.replace(/[^\d]/g, ''), 10) >
-                  dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
-                } // Disable jika jumlah melebihi total pembayaran
+                    dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
+                } // Disable if amount exceeds total payment
               >
                 Bayar
               </Button>
+
               <Box m={1} display='inline' />
               <Button
                 variant='outlined'
@@ -522,6 +379,151 @@ const UserList: React.FC = () => {
             </Grid>
           </CardContent>
         </Card>
+        {/* Dialog Confirmation */}
+        <Dialog open={openDialog} onClose={handleDialogClose}>
+          <DialogTitle textAlign={'center'}>Konfirmasi Pembayaran</DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ mb: 2 }}>Apakah Anda yakin ingin melanjutkan pembayaran ini?</DialogContentText>
+            <Box mt={2}>
+              <Typography
+                sx={{
+                  mt: 2,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Nama Pembayaran:</strong>
+                </span>
+                <span>{dataPayment.sp_name}</span> {/* Assuming full_name is part of dataPayment */}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Sekolah :</strong>
+                </span>
+                <span>{dataPayment.school_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Nama Lengkap :</strong>
+                </span>
+                <span>{dataPayment.full_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Kelas :</strong>
+                </span>
+                <span>{dataPayment.class_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Jurusan :</strong>
+                </span>
+                <span>{dataPayment.major_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+              </Typography>
+              <Typography
+                sx={{
+                  mt: 2,
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  backgroundColor: theme => (theme.palette.mode === 'dark' ? '#424242' : '#f9f9f9'),
+                  color: theme => (theme.palette.mode === 'dark' ? '#fff' : '#000'),
+                  boxShadow: 1
+                }}
+              >
+                <span>
+                  <strong>Total Pembayaran:</strong>
+                </span>
+                <span>{formatRupiah(Number(jumlah) + Number(dataPayment.affiliate || 0))}</span>
+              </Typography>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={() => handleDialogClose()}
+              variant='contained'
+              color='error'
+              sx={{ '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' } }}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={() => {
+                setIsLoading(true) // Start loading
+                onsubmit()
+              }}
+              variant='contained'
+              color='primary'
+              disabled={isLoading} // Disable button if loading
+            >
+              {isLoading ? (
+                <Box display='flex' alignItems='center'>
+                  <CircularProgress size={24} sx={{ marginRight: 1 }} />
+                  <Typography variant='body2'>Loading...</Typography>
+                </Box>
+              ) : (
+                'Ya, Lanjutkan'
+              )}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Grid>
     </Grid>
   )

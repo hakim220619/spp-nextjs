@@ -139,7 +139,7 @@ const UserList: React.FC = () => {
   const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
     if (spName && jumlah) {
-      try { 
+      try {
         const totalAmount = jumlah.replace(/[^\d]/g, '') // Hanya angka
         console.log(totalAmount)
 
@@ -163,17 +163,20 @@ const UserList: React.FC = () => {
         const { transactionToken, orderId, transactionUrl } = await response.json() // Hapus transactionUrl
 
         if (transactionToken) {
-          ;(window as any).snap.pay(transactionToken, {
+          var snap: any
+          snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
-              // Hapus event listener ketika sukses
-              window.removeEventListener('beforeunload', handleBeforeUnload)
-              toast.success('Pembayaran berhasil!')
+              if (!toastShown) {
+                window.removeEventListener('beforeunload', handleBeforeUnload)
+                toast.success('Data pembayaran pending berhasil dikirim.')
+                setToastShown(true)
+              }
               try {
                 // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
                 axiosConfig
                   .post(
-                    '/create-payment-success',
+                    '/create-payment-pending',
                     {
                       dataUsers: spName,
                       dataPayment: filteredRows,
@@ -221,6 +224,7 @@ const UserList: React.FC = () => {
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
+              window.addEventListener('beforeunload', handleBeforeUnload)
             },
             onPending: function () {
               if (!toastShown) {
@@ -314,13 +318,74 @@ const UserList: React.FC = () => {
     document.body.appendChild(script)
   }, [])
 
+  const cekTransaksiById = () => {
+    // Mengambil token yang disimpan (misalnya, dari local storage)
+    const token = localStorage.getItem('token')
+
+    // Memanggil API menggunakan axios dengan query parameter user_id
+    axiosConfig
+      .get('/cekTransaksiSuccesMidtransByUserIdByMonth', {
+        headers: {
+          Authorization: `Bearer ${token}` // Menambahkan token di header
+        },
+        params: {
+          user_id: getDataLocal.id // Menambahkan user_id sebagai query parameter
+        }
+      })
+      .then(response => {
+        console.log(response)
+
+        if (response.data.success == true) {
+          setLoading(true)
+          dispatch(
+            fetchDataPaymentPayByMonth({
+              id_payment: id,
+              school_id: getDataLocal.school_id,
+              user_id: getDataLocal.id,
+              q: value
+            })
+          ).finally(() => {
+            setLoading(false)
+          })
+        }
+      })
+      .catch(error => {
+        // Menangani error jika terjadi
+        console.error('Error fetching transaction:', error)
+      })
+  }
+
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={9}>
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
-          <TableHeader value={value} handleFilter={handleFilter} />
+          <Box
+            sx={{
+              py: 4,
+              px: 6,
+              rowGap: 2,
+              columnGap: 4,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <i></i>
+            <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Button
+                variant='contained'
+                color='warning'
+                onClick={() => {
+                  cekTransaksiById()
+                }}
+              >
+                Cek Transaksi
+              </Button>
+            </Box>
+          </Box>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
               <CircularProgress color='secondary' />

@@ -34,6 +34,10 @@ const FormLayoutsSeparator = () => {
   const [loading, setLoading] = useState(false)
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [filteredUsers, setFilteredUsers] = useState<any[]>([])
+  const [unit, setUnit] = useState<string>('')
+  const [units, setUnits] = useState<any[]>([])
+  const [filteredMajors, setFilteredMajors] = useState<any[]>([])
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([])
 
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
@@ -78,7 +82,21 @@ const FormLayoutsSeparator = () => {
     // Update the state with the modified months array
     setMonths(updatedMonths)
   }
-
+  const fetchUnits = async () => {
+    try {
+      const response = await axiosConfig.get('/getUnit', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${storedToken}`
+        }
+      })
+      const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
+      setUnits(filteredUnits)
+    } catch (error) {
+      console.error('Failed to fetch units:', error)
+      toast.error('Failed to load units')
+    }
+  }
   useEffect(() => {
     if (storedToken) {
       axiosConfig
@@ -158,11 +176,27 @@ const FormLayoutsSeparator = () => {
     fetchMajors()
     fetchClases()
     fetchMonths()
+    fetchUnits()
   }, [uid, schoolId, storedToken])
   useEffect(() => {
-    const filtered = users.filter(user => user.class_id === kelas && user.major_id === major)
-    setFilteredUsers(filtered)
-  }, [users, kelas, major])
+    // Filter majors and classes based on the selected unit
+    const selectedUnitId = unit
+    const newFilteredMajors = selectedUnitId ? majors.filter(major => major.unit_id === selectedUnitId) : majors
+    const newFilteredClasses = selectedUnitId ? kelases.filter(cls => cls.unit_id === selectedUnitId) : kelases
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
+
+    // Reset major and kelas if no unit is selected
+    if (!selectedUnitId) {
+      setMajor('')
+      setKelas('')
+    }
+
+    // Filter users based on selected kelas and major
+    const filteredUsers = users.filter(user => user.class_id === kelas && user.major_id === major)
+    setFilteredUsers(filteredUsers)
+  }, [unit, majors, kelases, users, kelas, major])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as any)
@@ -175,6 +209,7 @@ const FormLayoutsSeparator = () => {
     event.preventDefault()
     setLoading(true)
     const formData = {
+      unit_id: unit,
       user_id: selectedUser,
       school_id: schoolId,
       sp_name: spName,
@@ -202,6 +237,7 @@ const FormLayoutsSeparator = () => {
           Authorization: `Bearer ${storedToken}`
         }
       })
+      // console.log(response.status)
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
@@ -267,44 +303,62 @@ const FormLayoutsSeparator = () => {
                 }}
               />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <InputLabel id='form-layouts-separator-select-label'>Kelas</InputLabel>
+            <Grid item xs={12} sm={4}>
+              <InputLabel id='form-layouts-separator-select-label'>Unit</InputLabel>
               <FormControl fullWidth>
                 <Select
-                  label='Kelas'
+                  label='Unit'
                   defaultValue=''
                   id='form-layouts-separator-select'
                   labelId='form-layouts-separator-select-label'
-                  value={kelas}
-                  onChange={handleClassChange as any}
+                  value={unit}
+                  onChange={e => setUnit(e.target.value as string)} // Handle unit change
                 >
-                  {kelases.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.class_name}
+                  {units.map(unit => (
+                    <MenuItem key={unit.id} value={unit.id}>
+                      {unit.unit_name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <InputLabel id='form-layouts-separator-select-label'>Jurusan</InputLabel>
+            <Grid item xs={12} sm={4}>
+              <InputLabel>Jurusan</InputLabel>
               <FormControl fullWidth>
-                <Select
-                  label='Jurusan'
-                  defaultValue=''
-                  id='form-layouts-separator-select'
-                  labelId='form-layouts-separator-select-label'
-                  value={major}
-                  onChange={handleMajorChange as any}
-                >
-                  {majors.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.major_name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                {unit ? (
+                  <Select value={major} onChange={handleMajorChange as any}>
+                    {filteredMajors.map(major => (
+                      <MenuItem key={major.id} value={major.id}>
+                        {major.major_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Jurusan</MenuItem>
+                  </Select>
+                )}
+              </FormControl>
+            </Grid>
+
+            {/* Filtered Class Selection */}
+            <Grid item xs={12} sm={4}>
+              <InputLabel>Kelas</InputLabel>
+              <FormControl fullWidth>
+                {unit ? (
+                  <Select value={kelas} onChange={handleClassChange as any}>
+                    {filteredClasses.map(kelas => (
+                      <MenuItem key={kelas.id} value={kelas.id}>
+                        {kelas.class_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Kelas</MenuItem>
+                  </Select>
+                )}
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>

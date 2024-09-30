@@ -30,19 +30,14 @@ const TableHeader = (props: TableHeaderProps) => {
         justifyContent: 'space-between'
       }}
     >
-      <Button color='secondary' variant='tonal' startIcon={<Icon icon='tabler:upload' />}>
-        Export
-      </Button>
+      <p></p>
       <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button
-          variant='contained'
-          color='warning'
-          onClick={() => {
-            
-          }}
-        >
-          Cek Transaksi
-        </Button>
+        <CustomTextField
+          value={value}
+          sx={{ mr: 4 }}
+          placeholder='Search Name'
+          onChange={e => handleFilter(e.target.value)}
+        />
       </Box>
     </Box>
   )

@@ -27,6 +27,7 @@ import TableHeader from 'src/pages/ms/setting/pembayaran/TableHeader'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import CustomTextField from 'src/@core/components/mui/text-field'
+import axiosConfig from 'src/configs/axiosConfig'
 
 interface CellType {
   row: UsersType
@@ -62,7 +63,7 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
     setLoadingDelete(true) // Activate loading state
     try {
       await dispatch(deleteSettingPembayaran(uid)).unwrap()
-      await dispatch(fetchDataSettingPembayaran({ school_id, year: '', sp_type: '', sp_status: '', q: value }))
+      await dispatch(fetchDataSettingPembayaran({ school_id, year: '', sp_type: '', unit_id: '', q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
@@ -110,6 +111,7 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
+  { field: 'unit_name', headerName: 'Nama Unit', flex: 0.175, minWidth: 140 },
   { field: 'sp_name', headerName: 'Nama Pembayaran', flex: 0.175, minWidth: 140 },
   { field: 'sp_desc', headerName: 'Deskripsi', flex: 0.175, minWidth: 140 },
   { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 140 },
@@ -173,26 +175,44 @@ const SettingPembayaran = () => {
   const [sp_type, setSpType] = useState<string>('')
   const [sp_types] = useState<any[]>(['BULANAN', 'BEBAS'])
   const [sp_status, setSpStatus] = useState<string>('')
-  const [statuses] = useState<any[]>(['ON', 'OFF'])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.SettingPembayaran)
+  const [units, setUnits] = useState<any[]>([])
+  const [unit, setUnit] = useState<string>('')
+  const storedToken = window.localStorage.getItem('token')
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        await dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, sp_status, q: value }))
+        await dispatch(fetchDataSettingPembayaran({ school_id, year, sp_type, unit_id: unit, q: value }))
       } catch (error) {
         toast.error('Failed to fetch data. Please try again.')
       } finally {
         setLoading(false)
       }
     }
+    const fetchUnits = async () => {
+      try {
+        const response = await axiosConfig.get('/getUnit', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredUnits = response.data.filter((unit: any) => unit.school_id === school_id)
 
+        setUnits(filteredUnits)
+      } catch (error) {
+        console.error('Failed to fetch units:', error)
+        toast.error('Failed to load units')
+      }
+    }
     fetchData()
-  }, [dispatch, school_id, year, sp_type, sp_status, value])
+    fetchUnits()
+  }, [dispatch, school_id, year, sp_type, unit, value])
 
   useEffect(() => {
     const currentYear = new Date().getFullYear()
@@ -207,7 +227,7 @@ const SettingPembayaran = () => {
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleYearChange = useCallback((e: any) => setYear(e.target.value as string), [])
   const handleTypeChange = useCallback((e: any) => setSpType(e.target.value as string), [])
-  const handleStatusChange = useCallback((e: any) => setSpStatus(e.target.value as string), [])
+  const handleUnitChange = useCallback((e: any) => setUnit(e.target.value as string), [])
 
   return (
     <Grid container spacing={6.5}>
@@ -216,6 +236,25 @@ const SettingPembayaran = () => {
           <CardHeader title='Pengaturan Pembayaran' />
           <CardContent>
             <Grid container spacing={12}>
+              <Grid item sm={4} xs={12}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  defaultValue='Pilih Unit'
+                  SelectProps={{
+                    value: unit,
+                    displayEmpty: true,
+                    onChange: handleUnitChange // Perbaiki ini dengan benar mengikat handleUnitChange
+                  }}
+                >
+                  <MenuItem value=''>Pilih Unit</MenuItem>
+                  {units.map(data => (
+                    <MenuItem key={data.id} value={data.id}>
+                      {data.unit_name}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
               <Grid item sm={4} xs={12}>
                 <CustomTextField
                   select
@@ -248,25 +287,6 @@ const SettingPembayaran = () => {
                 >
                   <MenuItem value=''>Pilih Tipe</MenuItem>
                   {sp_types.map(data => (
-                    <MenuItem key={data} value={data}>
-                      {data}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  defaultValue='Select Status'
-                  SelectProps={{
-                    value: sp_status,
-                    displayEmpty: true,
-                    onChange: handleStatusChange
-                  }}
-                >
-                  <MenuItem value=''>Select Status</MenuItem>
-                  {statuses.map(data => (
                     <MenuItem key={data} value={data}>
                       {data}
                     </MenuItem>

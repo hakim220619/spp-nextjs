@@ -11,10 +11,13 @@ import Bulan from 'src/store/apps/bulan/index'
 import Sekolah from 'src/store/apps/sekolah/index'
 import Aplikasi from 'src/store/apps/aplikasi/index'
 import ListPaymentDashboardByMonth from 'src/store/apps/dashboard/listPayment/month/index'
+import ListPaymentDashboardByMonthAdmin from 'src/store/apps/pembayaran/admin/listPayment/index'
 import PembayaranByMonth from 'src/store/apps/pembayaran/bulanan/index'
 import PembayaranByFree from 'src/store/apps/pembayaran/bebas/index'
 import Unit from 'src/store/apps/unit/index'
 import SettingPembayaran from 'src/store/apps/setting/pembayaran/index'
+import ListPaymentReportAdmin from 'src/store/apps/laporan/index'
+import ListPaymentReportAdminFree from 'src/store/apps/laporan/free'
 import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
 export const store = configureStore({
@@ -32,7 +35,10 @@ export const store = configureStore({
     PembayaranByFree,
     SettingPembayaran,
     Unit,
-    SettingPembayaranDetail
+    SettingPembayaranDetail,
+    ListPaymentReportAdmin,
+    ListPaymentReportAdminFree,
+    ListPaymentDashboardByMonthAdmin
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

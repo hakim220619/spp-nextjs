@@ -4,10 +4,9 @@ import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import { ListPaymentDashboardByMonth } from 'src/store/apps/dashboard/listPayment/month/index'
+import { ListPaymentDashboardByMonthAdmin } from 'src/store/apps/pembayaran/admin/listPayment/index'
 import { RootState, AppDispatch } from 'src/store'
 import TableHeader from 'src/pages/ms/setting/pembayaran/TabelHeaderDetail'
-import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
@@ -21,18 +20,24 @@ const typeObj: any = {
   BEBAS: { title: 'BEBAS', color: 'warning' }
 }
 
-const RowOptions = ({ uid, type }: { uid: any; type: any }) => {
+const RowOptions = ({ uid, type, dataAll }: { uid: any; type: any; dataAll: any }) => {
   return (
     <>
       {type === 'BULANAN' ? (
-        <Link href={`/ms/pembayaran/bulanan/${uid}`} passHref>
+        <Link
+          href={`/ms/pembayaran/admin/bulanan/${uid}?school_id=${dataAll.school_id}&user_id=${dataAll.user_id}`}
+          passHref
+        >
           <Button variant='contained' sx={{ '& svg': { mr: 2 } }}>
             <Icon fontSize='1.125rem' icon='' />
             BAYAR
           </Button>
         </Link>
       ) : type === 'BEBAS' ? (
-        <Link href={`/ms/pembayaran/bebas/${uid}`} passHref>
+        <Link
+          href={`/ms/pembayaran/admin/bebas/${uid}?school_id=${dataAll.school_id}&user_id=${dataAll.user_id}`}
+          passHref
+        >
           <Button variant='contained' sx={{ '& svg': { mr: 2 } }}>
             <Icon fontSize='1.125rem' icon='' />
             BAYAR
@@ -75,15 +80,13 @@ const columns: GridColDef[] = [
     minWidth: 140,
     valueGetter: params => {
       const { row } = params
-
-      // Fallback to just pending if either verified or paid is null
       return row.pending - (row.detail_verified + row.detail_paid)
     },
     valueFormatter: ({ value }) => {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        maximumFractionDigits: 0 // Menghilangkan bagian desimal
+        maximumFractionDigits: 0
       }).format(value)
     }
   },
@@ -93,14 +96,13 @@ const columns: GridColDef[] = [
     flex: 0.175,
     minWidth: 140,
     valueGetter: params => {
-      // Check if the type is BULANAN or BEBAS
       return params.row.type === 'BULANAN' ? params.row.verified : params.row.detail_verified
     },
     valueFormatter: ({ value }) => {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        maximumFractionDigits: 0 // Menghilangkan bagian desimal
+        maximumFractionDigits: 0
       }).format(value)
     }
   },
@@ -110,19 +112,17 @@ const columns: GridColDef[] = [
     flex: 0.175,
     minWidth: 140,
     valueGetter: params => {
-      // Check if the type is BULANAN or BEBAS
       return params.row.type === 'BULANAN' ? params.row.paid : params.row.detail_paid
     },
     valueFormatter: ({ value }) => {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        maximumFractionDigits: 0 // Menghilangkan bagian desimal
+        maximumFractionDigits: 0
       }).format(value)
     }
   },
   { field: 'years', headerName: 'Tahun', flex: 0.175, maxWidth: 120 },
-
   {
     field: 'status_lunas',
     headerName: 'Status',
@@ -150,31 +150,29 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: any) => <RowOptions uid={row.uid} type={row.type} />
+    renderCell: ({ row }: any) => <RowOptions uid={row.uid} type={row.type} dataAll={row} />
   }
 ]
 
-const SettingPembayaran = () => {
-  const router = useRouter()
-  const { uid } = router.query
+interface TabelPaymentMonthProps {
+  school_id: string
+  unit_id: string
+  uid: string
+}
+
+const TabelPaymentMonth = ({ school_id, unit_id, uid }: TabelPaymentMonthProps) => {
   const [value, setValue] = useState<string>('')
-  const [setting_payment_uid] = useState<any>(uid)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.ListPaymentDashboardByMonth)
-  const userData = JSON.parse(localStorage.getItem('userData') as string)
-  const schoolId = userData.school_id
-  const user_id = userData.id
+  const store = useSelector((state: RootState) => state.ListPaymentDashboardByMonthAdmin)
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         await new Promise(resolve => setTimeout(resolve, 1000))
-        await dispatch(
-          ListPaymentDashboardByMonth({ school_id: schoolId, user_id: user_id, setting_payment_uid, q: value })
-        )
+        await dispatch(ListPaymentDashboardByMonthAdmin({ school_id, unit_id, user_id: uid, q: value }))
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
@@ -184,7 +182,7 @@ const SettingPembayaran = () => {
     }
 
     fetchData()
-  }, [dispatch, schoolId, setting_payment_uid, user_id, value])
+  }, [dispatch, school_id, unit_id, uid, value])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 
@@ -221,4 +219,4 @@ const SettingPembayaran = () => {
   )
 }
 
-export default SettingPembayaran
+export default TabelPaymentMonth

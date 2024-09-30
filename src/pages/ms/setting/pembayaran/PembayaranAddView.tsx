@@ -49,6 +49,7 @@ const SettingAddPembayaran = () => {
   const [years, setYears] = useState<string[]>([])
   const [units, setUnits] = useState<{ id: string; name: string }[]>([]) // State for units
   const [isLoading, setIsLoading] = useState(false) // State for overlay loading
+  const [selectedSchoolId, setSelectedSchoolId] = useState(null)
 
   const defaultValues: PaymentForm = {
     sp_name: '',
@@ -131,6 +132,13 @@ const SettingAddPembayaran = () => {
         setIsLoading(false) // Hide loading overlay
       })
   }
+
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem('userData') as any)
+    if (userData && userData.school_id) {
+      setSelectedSchoolId(userData.school_id)
+    }
+  }, [])
 
   return (
     <>
@@ -240,11 +248,13 @@ const SettingAddPembayaran = () => {
                       error={Boolean(errors.unit_id)}
                       helperText={errors.unit_id?.message}
                     >
-                      {units.map((unit: any) => (
-                        <MenuItem key={unit.id} value={unit.id}>
-                          {unit.unit_name}
-                        </MenuItem>
-                      ))}
+                      {units
+                        .filter((unit: any) => unit.school_id === selectedSchoolId) // Adjust this line
+                        .map((unit: any) => (
+                          <MenuItem key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </MenuItem>
+                        ))}
                     </CustomTextField>
                   )}
                 />

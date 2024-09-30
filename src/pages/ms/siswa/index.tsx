@@ -55,7 +55,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
     setIsLoading(true) // Set isLoading menjadi true saat mulai delete
     try {
       await dispatch(deleteUserSiswa(uid)).unwrap()
-      await dispatch(fetchDataSiswa({ school_id, major: '', clas: '', status: '', q: value }))
+      await dispatch(fetchDataSiswa({ school_id, major: '', clas: '', unit_id: '', q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
@@ -97,10 +97,11 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
+  { field: 'unit_name', headerName: 'Unit', flex: 0.175, minWidth: 160 },
   { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 100 },
   { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.25, minWidth: 180 },
   { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 200 },
-  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 100 },
+  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 130 },
   { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 180 },
   { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 180 },
   {
@@ -136,8 +137,9 @@ const columns: GridColDef[] = [
           src={`${urlImage}uploads/school/siswa/${params.row.school_id}/${params.value}`}
           alt='image'
           style={{
-            width: '45px', // Reduced width
-            height: '45px', // Reduced height for a circular shape
+            padding: 2,
+            width: '40px', // Reduced width
+            height: '40px', // Reduced height for a circular shape
             borderRadius: '50%', // Makes the image circular
             objectFit: 'cover' // Ensures the image covers the area without stretching
           }}
@@ -176,9 +178,18 @@ const columns: GridColDef[] = [
   }
 ]
 
+interface Major {
+  id: string
+  major_name: string
+  unit_id: string // Assuming each major has an associated unit_id
+}
 interface Clases {
   id: any
   class_name: string
+}
+interface Unit {
+  id: string
+  unit_name: string
 }
 
 const UserList = () => {
@@ -187,13 +198,18 @@ const UserList = () => {
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [clases, setClases] = useState<Clases[]>([])
   const [clas, setClas] = useState<string>('')
+  const [filteredClasses, setFilteredClasses] = useState<Clases[]>([]) // New state for filtered classes
   const [value, setValue] = useState<string>('')
   const [major, setMajor] = useState<string>('')
+  const [filteredMajors, setFilteredMajors] = useState<Major[]>([]) // New state for filtered majors
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const [majors, setMajors] = useState<any[]>([])
   const [statuses] = useState<any[]>(['ON', 'OFF'])
   const [status, setStatus] = useState<any>('')
+  const [units, setUnits] = useState<Unit[]>([])
+  const [unit, setUnit] = useState<string>('')
+
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.siswa)
   const schoolId = getDataLocal.school_id
@@ -202,7 +218,7 @@ const UserList = () => {
     const storedToken = window.localStorage.getItem('token')
 
     setLoading(true)
-    dispatch(fetchDataSiswa({ school_id, major, clas, status, q: value })).finally(() => {
+    dispatch(fetchDataSiswa({ school_id, major, clas, unit_id: unit, q: value })).finally(() => {
       setLoading(false)
     })
 
@@ -233,15 +249,47 @@ const UserList = () => {
         console.error('Error fetching classes:', error)
       }
     }
+    const fetchUnits = async () => {
+      try {
+        const response = await axiosConfig.get('/getUnit', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
+        setUnits(filteredUnits)
+      } catch (error) {
+        console.error('Failed to fetch units:', error)
+        toast.error('Failed to load units')
+      }
+    }
 
     fetchMajors()
     fetchClases()
-  }, [dispatch, major, clas, status, schoolId, school_id, value])
+    fetchUnits()
+  }, [dispatch, major, clas, unit, schoolId, school_id, value])
+
+  useEffect(() => {
+    const selectedUnitId = unit // Mengambil unit yang dipilih dari state
+    const newFilteredMajors = selectedUnitId
+      ? majors.filter((major: Major) => major.unit_id === selectedUnitId)
+      : majors
+    const newFilteredClasses = selectedUnitId ? clases.filter((cls: any) => cls.unit_id === selectedUnitId) : clases
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
+
+    // Reset major dan class jika unit berubah
+    if (!selectedUnitId) {
+      setMajor('')
+      setClas('')
+    }
+  }, [unit, majors, clases])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleMajorChange = useCallback((e: SelectChangeEvent<unknown>) => setMajor(e.target.value as string), [])
   const handleClasChange = useCallback((e: SelectChangeEvent<unknown>) => setClas(e.target.value as string), [])
-  const handleStatusChange = useCallback((e: SelectChangeEvent<unknown>) => setStatus(e.target.value as string), [])
 
   return (
     <Grid container spacing={6.5}>
@@ -251,11 +299,31 @@ const UserList = () => {
           <CardHeader title='Data Siswa' />
           <CardContent>
             <Grid container spacing={12}>
+              <Grid item sm={4} xs={4}>
+                <CustomTextField
+                  select
+                  fullWidth
+                  value={unit}
+                  label='Pilih Unit'
+                  onChange={e => {
+                    setUnit(e.target.value)
+                    setMajor('') // Reset major ketika unit berubah
+                    setClas('') // Reset class ketika unit berubah
+                  }}
+                >
+                  <MenuItem value=''>Pilih Unit</MenuItem>
+                  {units.map(data => (
+                    <MenuItem key={data.id} value={data.id}>
+                      {data.unit_name}
+                    </MenuItem>
+                  ))}
+                </CustomTextField>
+              </Grid>
               <Grid item sm={4} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Jurusan'
+                  label='Pilih Jurusan'
                   SelectProps={{
                     value: major,
                     displayEmpty: true,
@@ -263,18 +331,19 @@ const UserList = () => {
                   }}
                 >
                   <MenuItem value=''>Pilih Jurusan</MenuItem>
-                  {majors.map(data => (
+                  {filteredMajors.map(data => (
                     <MenuItem key={data.id} value={data.id}>
                       {data.major_name}
                     </MenuItem>
                   ))}
                 </CustomTextField>
               </Grid>
+
               <Grid item sm={4} xs={12}>
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Kelas'
+                  label='Pilih Kelas'
                   SelectProps={{
                     value: clas,
                     displayEmpty: true,
@@ -282,28 +351,9 @@ const UserList = () => {
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>
-                  {clases.map(data => (
+                  {filteredClasses.map(data => (
                     <MenuItem key={data.id} value={data.id}>
                       {data.class_name}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-              </Grid>
-              <Grid item sm={4} xs={12}>
-                <CustomTextField
-                  select
-                  fullWidth
-                  defaultValue='Select Status'
-                  SelectProps={{
-                    value: status,
-                    displayEmpty: true,
-                    onChange: handleStatusChange
-                  }}
-                >
-                  <MenuItem value=''>Select Status</MenuItem>
-                  {statuses.map(data => (
-                    <MenuItem key={data} value={data}>
-                      {data}
                     </MenuItem>
                   ))}
                 </CustomTextField>

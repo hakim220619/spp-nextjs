@@ -13,7 +13,10 @@ import {
   DialogContentText,
   DialogTitle,
   CardContent,
-  MenuItem
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Select
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -62,6 +65,7 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
       // Mengambil ulang data setelah penghapusan berhasil
       await dispatch(
         fetchDataSettingPembayaranDetail({
+          unit_id: '',
           school_id,
           clas: '',
           major: '',
@@ -126,6 +130,7 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
+  { field: 'unit_name', headerName: 'Nama Unit', flex: 0.175, minWidth: 140 },
   { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 140 },
   { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 140 },
   { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 140 },
@@ -210,6 +215,10 @@ const SettingPembayaran = () => {
   const [setting_payment_uid] = useState<any>(uid)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
+  const [units, setUnits] = useState<any[]>([])
+  const [unit, setUnit] = useState<string>('')
+  const [filteredMajors, setFilteredMajors] = useState<any[]>([])
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([])
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.SettingPembayaranDetail)
   const userData = JSON.parse(localStorage.getItem('userData') as string)
@@ -220,7 +229,9 @@ const SettingPembayaran = () => {
       setLoading(true)
       try {
         await new Promise(resolve => setTimeout(resolve, 1000))
-        await dispatch(fetchDataSettingPembayaranDetail({ school_id, clas, major, setting_payment_uid, q: value }))
+        await dispatch(
+          fetchDataSettingPembayaranDetail({ unit_id: unit, school_id, clas, major, setting_payment_uid, q: value })
+        )
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
@@ -254,11 +265,41 @@ const SettingPembayaran = () => {
         console.error('Error fetching majors:', error)
       }
     }
+    const fetchUnits = async () => {
+      try {
+        const response = await axiosConfig.get('/getUnit', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredUnits = response.data.filter((unit: any) => unit.school_id === school_id)
+
+        setUnits(filteredUnits)
+      } catch (error) {
+        console.error('Failed to fetch units:', error)
+        toast.error('Failed to load units')
+      }
+    }
+    fetchUnits()
     fetchClases()
     fetchMajors()
     fetchData()
-  }, [dispatch, school_id, clas, major, setting_payment_uid, schoolId, storedToken, value])
+  }, [dispatch, unit, school_id, clas, major, setting_payment_uid, schoolId, storedToken, value])
 
+  useEffect(() => {
+    const selectedUnitId = unit
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
+    const newFilteredClasses = selectedUnitId ? classes.filter((cls: any) => cls.unit_id === selectedUnitId) : classes
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
+
+    if (!selectedUnitId) {
+      setMajor('')
+      setClas('')
+    }
+  }, [unit, majors, clas])
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setClas(e.target.value as any)
@@ -275,6 +316,9 @@ const SettingPembayaran = () => {
   const handleNavigateBack = () => {
     router.push(`/ms/setting/pembayaran`)
   }
+  const handleUnitChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
+    setUnit(e.target.value as any)
+  }, [])
 
   return (
     <Grid container spacing={6.5}>
@@ -317,42 +361,68 @@ const SettingPembayaran = () => {
                   Kembali
                 </Button>
               </Grid>
-              <Grid item sm={6} xs={12}>
+              <Grid item sm={4} xs={12}>
+                <InputLabel>Unit</InputLabel>
                 <CustomTextField
                   select
                   fullWidth
-                  value={major} // Bind the selected value to the state
-                  onChange={handleMajorChange} // Attach the event handler
-                  defaultValue=''
+                  defaultValue='Pilih Unit'
                   SelectProps={{
-                    displayEmpty: true
+                    value: unit,
+                    displayEmpty: true,
+                    onChange: handleUnitChange as any // Perbaiki ini dengan benar mengikat handleUnitChange
                   }}
                 >
-                  <MenuItem value=''>Pilih Jurusan</MenuItem>
-                  {majors.map(data => (
+                  <MenuItem value=''>Pilih Unit</MenuItem>
+                  {units.map(data => (
                     <MenuItem key={data.id} value={data.id}>
-                      {data.major_name}
+                      {data.unit_name}
                     </MenuItem>
                   ))}
                 </CustomTextField>
               </Grid>
-              <Grid item sm={6} xs={12}>
+              <Grid item xs={12} sm={4}>
+                <InputLabel>Jurusan</InputLabel>
                 <CustomTextField
                   select
                   fullWidth
-                  value={clas} // Bind the selected value to the state
-                  onChange={handleClassChange} // Attach the event handler
-                  defaultValue=''
+                  value={major}
                   SelectProps={{
-                    displayEmpty: true
+                    displayEmpty: true,
+                    onChange: handleMajorChange as any, // Perbaiki ini dengan benar mengikat handleMajorChange
+                    disabled: !unit // Disable if unit is not selected
+                  }}
+                >
+                  <MenuItem value=''>Pilih Jurusan</MenuItem>
+                  {unit &&
+                    filteredMajors.map(major => (
+                      <MenuItem key={major.id} value={major.id}>
+                        {major.major_name}
+                      </MenuItem>
+                    ))}
+                </CustomTextField>
+              </Grid>
+
+              {/* Filtered Class Selection */}
+              <Grid item xs={12} sm={4}>
+                <InputLabel>Kelas</InputLabel>
+                <CustomTextField
+                  select
+                  fullWidth
+                  value={clas}
+                  SelectProps={{
+                    displayEmpty: true,
+                    onChange: handleClassChange as any, // Perbaiki ini dengan benar mengikat handleClassChange
+                    disabled: !unit // Disable if unit is not selected
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>
-                  {classes.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.class_name}
-                    </MenuItem>
-                  ))}
+                  {unit &&
+                    filteredClasses.map(kelas => (
+                      <MenuItem key={kelas.id} value={kelas.id}>
+                        {kelas.class_name}
+                      </MenuItem>
+                    ))}
                 </CustomTextField>
               </Grid>
             </Grid>

@@ -1,24 +1,23 @@
-// ** React Imports
 import { ChangeEvent, useCallback, useEffect, useState } from 'react'
-
-// ** MUI Imports
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
-import CardHeader from '@mui/material/CardHeader'
-import InputLabel from '@mui/material/InputLabel'
-import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
-import CardActions from '@mui/material/CardActions'
-import FormControl from '@mui/material/FormControl'
+import {
+  Card,
+  Grid,
+  Button,
+  Divider,
+  MenuItem,
+  TextField,
+  CardHeader,
+  InputLabel,
+  Typography,
+  CardContent,
+  CardActions,
+  FormControl,
+  CircularProgress,
+  Select
+} from '@mui/material'
 import toast from 'react-hot-toast'
-import Select from '@mui/material/Select'
 import axiosConfig from '../../../../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
-import { CircularProgress } from '@mui/material'
 
 const AddPaymentDetailByClass = () => {
   const [spName, setSpName] = useState<string>('')
@@ -30,49 +29,64 @@ const AddPaymentDetailByClass = () => {
   const [majors, setMajors] = useState<any[]>([])
   const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false) // State to handle loading
+  const [loading, setLoading] = useState<boolean>(false)
+  const [unit, setUnit] = useState<string>('')
+  const [units, setUnits] = useState<any[]>([])
+  const [filteredMajors, setFilteredMajors] = useState<any[]>([])
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([])
+
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
   const router = useRouter()
   const { uid } = router.query
+
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = event.target.value
     const value = event.target.value
-    const numericValue = value.replace(/\D/g, '') // Remove non-numeric characters
-    const formattedValue = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(parseInt(numericValue || '0', 10)) // Ensure the value is converted to an integer
-    const numericValueAmount = newAmount.replace(/\D/g, '') // Remove non-numeric characters
-    const formattedValueAmount = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(parseInt(numericValueAmount || '0', 10)) // Ensure the value is converted to an integer
-    setAmount(formattedValue)
-    setMonths(months.map(month => ({ ...month, payment: formattedValueAmount })))
-  }
-  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const updatedMonths = [...months] // Create a copy of the months array
-    const inputValue = event.target.value
-
-    // Remove non-numeric characters from the input
-    const numericValue = inputValue.replace(/\D/g, '')
-
-    // Format the value into IDR currency format
+    const numericValue = value.replace(/\D/g, '')
     const formattedValue = new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0
     }).format(parseInt(numericValue || '0', 10))
+    const numericValueAmount = newAmount.replace(/\D/g, '')
+    const formattedValueAmount = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(parseInt(numericValueAmount || '0', 10))
+    setAmount(formattedValue)
+    setMonths(months.map(month => ({ ...month, payment: formattedValueAmount })))
+  }
 
-    // Update the specific month payment with the formatted value
+  const handleMonthChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const updatedMonths = [...months]
+    const inputValue = event.target.value
+    const numericValue = inputValue.replace(/\D/g, '')
+    const formattedValue = new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(parseInt(numericValue || '0', 10))
     updatedMonths[index].payment = formattedValue
-
-    // Update the state with the modified months array
     setMonths(updatedMonths)
+  }
+
+  const fetchUnits = async () => {
+    try {
+      const response = await axiosConfig.get('/getUnit', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${storedToken}`
+        }
+      })
+      const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
+      setUnits(filteredUnits)
+    } catch (error) {
+      console.error('Failed to fetch units:', error)
+      toast.error('Failed to load units')
+    }
   }
 
   useEffect(() => {
@@ -94,66 +108,89 @@ const AddPaymentDetailByClass = () => {
           setYears(years)
           setSpType(sp_type)
         })
-        .catch(error => {
-          console.error('Error fetching class details:', error)
-        })
-    }
-    const fetchClases = async () => {
-      try {
-        const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setKelases(response.data)
-      } catch (error) {
-        console.error('Error fetching classes:', error)
+        .catch(error => console.error('Error fetching class details:', error))
+
+      const fetchClases = async () => {
+        try {
+          const response = await axiosConfig.get(`/getClass/?schoolId=${schoolId}`, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+          setKelases(response.data)
+        } catch (error) {
+          console.error('Error fetching classes:', error)
+        }
       }
-    }
-    const fetchMajors = async () => {
-      try {
-        const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setMajors(response.data)
-      } catch (error) {
-        console.error('Error fetching majors:', error)
+
+      const fetchMajors = async () => {
+        try {
+          const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+          setMajors(response.data)
+        } catch (error) {
+          console.error('Error fetching majors:', error)
+        }
       }
-    }
-    const fetchMonths = async () => {
-      try {
-        const response = await axiosConfig.get(`/getMonths/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setMonths(response.data)
-      } catch (error) {
-        console.error('Error fetching majors:', error)
+
+      const fetchMonths = async () => {
+        try {
+          const response = await axiosConfig.get(`/getMonths/?schoolId=${schoolId}`, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+          setMonths(response.data)
+        } catch (error) {
+          console.error('Error fetching months:', error)
+        }
       }
+
+      fetchMajors()
+      fetchClases()
+      fetchMonths()
+      fetchUnits()
     }
-    fetchMajors()
-    fetchClases()
-    fetchMonths()
   }, [uid, schoolId, storedToken])
 
+  useEffect(() => {
+    const selectedUnitId = unit
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
+    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id === selectedUnitId) : kelases
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
+
+    if (!selectedUnitId) {
+      setMajor('')
+      setKelas('')
+    }
+  }, [unit, majors, kelases])
+
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
-    setKelas(e.target.value as any)
+    setKelas(e.target.value as string)
   }, [])
+
   const handleMajorChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
-    setMajor(e.target.value as any)
+    setMajor(e.target.value as string)
   }, [])
+
+  const handleUnitChange = (event: ChangeEvent<{ value: unknown }>) => {
+    setUnit(event.target.value as string)
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setLoading(true) // Set loading to true when the form is submitted
+    setLoading(true)
 
     const formData = {
+      unit_id: unit,
       school_id: schoolId,
       sp_name: spName,
       years: years,
@@ -164,7 +201,6 @@ const AddPaymentDetailByClass = () => {
       uid: uid,
       months: months.map(month => {
         const cleanedPayment = month.payment.replace(/[Rp.\s]/g, '')
-
         return {
           month: month.month,
           payment: cleanedPayment,
@@ -172,6 +208,7 @@ const AddPaymentDetailByClass = () => {
         }
       })
     }
+
     try {
       const response = await axiosConfig.post('/create-payment-byMonth', formData, {
         headers: {
@@ -192,17 +229,20 @@ const AddPaymentDetailByClass = () => {
       console.error('Error creating payment:', error)
       toast.error('Terjadi kesalahan saat menyimpan pembayaran: ' + (error.response?.data?.message || error.message))
     } finally {
-      setLoading(false) // Set loading to false once the process is done
+      setLoading(false)
     }
   }
 
   return (
     <Card>
       <CardHeader title='Tambah Pembayaran Baru' />
-      <Divider sx={{ m: '0 !important' }} />
+      <Divider />
       <form onSubmit={handleSubmit}>
         <CardContent>
           <Grid container spacing={5}>
+            {/* Other form fields */}
+            {/* Filtered Major Selection */}
+
             <Grid item xs={12}>
               <Typography variant='body2' sx={{ fontWeight: 600 }}>
                 Pembayaran Details
@@ -246,19 +286,19 @@ const AddPaymentDetailByClass = () => {
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InputLabel id='form-layouts-separator-select-label'>Kelas</InputLabel>
+              <InputLabel id='form-layouts-separator-select-label'>Unit</InputLabel>
               <FormControl fullWidth>
                 <Select
-                  label='Kelas'
+                  label='Unit'
                   defaultValue=''
                   id='form-layouts-separator-select'
                   labelId='form-layouts-separator-select-label'
-                  value={kelas}
-                  onChange={handleClassChange as any}
+                  value={unit}
+                  onChange={handleUnitChange as any}
                 >
-                  {kelases.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.class_name}
+                  {units.map(unit => (
+                    <MenuItem key={unit.id} value={unit.id}>
+                      {unit.unit_name}
                     </MenuItem>
                   ))}
                 </Select>
@@ -266,25 +306,45 @@ const AddPaymentDetailByClass = () => {
             </Grid>
 
             <Grid item xs={12} sm={4}>
-              <InputLabel id='form-layouts-separator-select-label'>Jurusan</InputLabel>
+              <InputLabel>Jurusan</InputLabel>
               <FormControl fullWidth>
-                <Select
-                  label='Jurusan'
-                  defaultValue=''
-                  id='form-layouts-separator-select'
-                  labelId='form-layouts-separator-select-label'
-                  value={major}
-                  onChange={handleMajorChange as any}
-                >
-                  {majors.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.major_name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                {unit ? (
+                  <Select value={major} onChange={handleMajorChange as any}>
+                    {filteredMajors.map(major => (
+                      <MenuItem key={major.id} value={major.id}>
+                        {major.major_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Jurusan</MenuItem>
+                  </Select>
+                )}
               </FormControl>
             </Grid>
+
+            {/* Filtered Class Selection */}
             <Grid item xs={12} sm={4}>
+              <InputLabel>Kelas</InputLabel>
+              <FormControl fullWidth>
+                {unit ? (
+                  <Select value={kelas} onChange={handleClassChange as any}>
+                    {filteredClasses.map(kelas => (
+                      <MenuItem key={kelas.id} value={kelas.id}>
+                        {kelas.class_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Kelas</MenuItem>
+                  </Select>
+                )}
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah Pembayaran Rp.</InputLabel>
               <TextField
                 fullWidth
@@ -324,26 +384,14 @@ const AddPaymentDetailByClass = () => {
                 />
               </Grid>
             ))}
+
+            {/* Other fields and form submission button */}
           </Grid>
         </CardContent>
-        <Divider sx={{ m: '0 !important' }} />
+        <Divider />
         <CardActions>
-          <Button
-            size='large'
-            type='submit'
-            variant='contained'
-            disabled={loading} // Disable button when loading
-            startIcon={loading ? <CircularProgress size={20} /> : null} // Show CircularProgress when loading
-          >
-            {loading ? 'Loading...' : 'Simpan'}
-          </Button>
-          <Button
-            size='large'
-            color='secondary'
-            variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/bulanan/${uid}`)} // Navigate to the route when clicked
-          >
-            Kembali
+          <Button type='submit' variant='contained' disabled={loading}>
+            {loading ? <CircularProgress size={24} /> : 'Simpan'}
           </Button>
         </CardActions>
       </form>

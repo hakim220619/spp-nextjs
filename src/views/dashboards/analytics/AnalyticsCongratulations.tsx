@@ -38,14 +38,17 @@ const AnalyticsCongratulations = () => {
   const [fullName, setFullName] = useState<string | null>(null)
   const [roleName, setRoleName] = useState<string | null>(null)
   const [time, setTime] = useState<string | null>(null)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') as string)
     const full_name = userData.full_name
     const roleName = userData.role_name
+    const role = userData.role
 
     setFullName(full_name)
     setRoleName(roleName)
+    setRole(role)
 
     // Update time every second
     const updateTime = () => {
@@ -76,9 +79,13 @@ const AnalyticsCongratulations = () => {
               hebat hari ini!
             </Typography>
             <br />
-            <Link href='/ms/siswa' style={{ textDecoration: 'none' }}>
-              <Button variant='contained'>View Data Siswa</Button>
-            </Link>
+            {role === '170' && ( // Tampilkan link dan button jika role == 170
+              <Grid item xs={12} sm={12} md={12}>
+                <Link href='/ms/siswa' style={{ textDecoration: 'none' }}>
+                  <Button variant='contained'>View Data Siswa</Button>
+                </Link>
+              </Grid>
+            )}
           </Grid>
           <Grid
             item

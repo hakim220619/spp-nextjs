@@ -35,6 +35,10 @@ const FormLayoutsSeparator = () => {
 
   const [selectedUser, setSelectedUser] = useState<string>('')
   const [filteredUsers, setFilteredUsers] = useState<any[]>([])
+  const [unit, setUnit] = useState<string>('')
+  const [units, setUnits] = useState<any[]>([])
+  const [filteredMajors, setFilteredMajors] = useState<any[]>([])
+  const [filteredClasses, setFilteredClasses] = useState<any[]>([])
 
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const storedToken = window.localStorage.getItem('token')
@@ -135,21 +139,56 @@ const FormLayoutsSeparator = () => {
         console.error('Error fetching users:', error)
       }
     }
+    const fetchUnits = async () => {
+      try {
+        const response = await axiosConfig.get(`/getUnit`, {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
+        setUnits(filteredUnits) // Assuming response.data contains unit information
+      } catch (error) {
+        console.error('Error fetching units:', error)
+      }
+    }
+    fetchUnits()
     fetchUsers()
     fetchMajors()
     fetchClases()
     fetchMonths()
   }, [uid, schoolId, storedToken])
   useEffect(() => {
-    const filtered = users.filter(user => user.class_id === kelas && user.major_id === major)
+    const selectedUnitId = unit
+
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
+
+    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id === selectedUnitId) : kelases
+
+    // Filter users based on unit_id, major_id, and class_id
+    const filtered = users.filter(
+      user => user.unit_id === selectedUnitId && user.class_id === kelas && user.major_id === major
+    )
+
+    setFilteredMajors(newFilteredMajors)
+    setFilteredClasses(newFilteredClasses)
     setFilteredUsers(filtered)
-  }, [users, kelas, major])
+
+    if (!selectedUnitId) {
+      setMajor('')
+      setKelas('')
+    }
+  }, [unit, majors, kelases, users, major, kelas])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as any)
   }, [])
   const handleMajorChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setMajor(e.target.value as any)
+  }, [])
+  const handleUnitChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
+    setUnit(e.target.value as string) // Handle unit change
   }, [])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -238,47 +277,65 @@ const FormLayoutsSeparator = () => {
                 }}
               />
             </Grid>
-
             <Grid item xs={12} sm={4}>
-              <InputLabel id='form-layouts-separator-select-label'>Kelas</InputLabel>
+              <InputLabel id='form-layouts-separator-select-label'>Unit</InputLabel>
               <FormControl fullWidth>
                 <Select
-                  label='Kelas'
+                  label='Unit'
                   defaultValue=''
                   id='form-layouts-separator-select'
                   labelId='form-layouts-separator-select-label'
-                  value={kelas}
-                  onChange={handleClassChange as any}
+                  value={unit}
+                  onChange={handleUnitChange as any} // Handle unit change
                 >
-                  {kelases.map(data => (
+                  {units.map(data => (
                     <MenuItem key={data.id} value={data.id}>
-                      {data.class_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={4}>
-              <InputLabel id='form-layouts-separator-select-label'>Jurusan</InputLabel>
-              <FormControl fullWidth>
-                <Select
-                  label='Jurusan'
-                  defaultValue=''
-                  id='form-layouts-separator-select'
-                  labelId='form-layouts-separator-select-label'
-                  value={major}
-                  onChange={handleMajorChange as any}
-                >
-                  {majors.map(data => (
-                    <MenuItem key={data.id} value={data.id}>
-                      {data.major_name}
+                      {data.unit_name} {/* Assuming unit_name is the field for display */}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={4}>
+              <InputLabel>Jurusan</InputLabel>
+              <FormControl fullWidth>
+                {unit ? (
+                  <Select value={major} onChange={handleMajorChange as any}>
+                    {filteredMajors.map(major => (
+                      <MenuItem key={major.id} value={major.id}>
+                        {major.major_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Jurusan</MenuItem>
+                  </Select>
+                )}
+              </FormControl>
+            </Grid>
+
+            {/* Filtered Class Selection */}
+            <Grid item xs={12} sm={4}>
+              <InputLabel>Kelas</InputLabel>
+              <FormControl fullWidth>
+                {unit ? (
+                  <Select value={kelas} onChange={handleClassChange as any}>
+                    {filteredClasses.map(kelas => (
+                      <MenuItem key={kelas.id} value={kelas.id}>
+                        {kelas.class_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                ) : (
+                  <Select disabled>
+                    <MenuItem value=''>Pilih Kelas</MenuItem>
+                  </Select>
+                )}
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
               <InputLabel id='form-layouts-separator-select-label'>Siswa</InputLabel>
               <FormControl fullWidth>
                 <Select
@@ -298,7 +355,7 @@ const FormLayoutsSeparator = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={12}>
+            <Grid item xs={12} sm={6}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah Pembayaran Rp.</InputLabel>
               <TextField
                 fullWidth
