@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -19,55 +19,17 @@ import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import axiosConfig from 'src/configs/axiosConfig'
 
 interface SwiperData {
   header: string
   onetitle: string
   img: string
   title: string
-  details: { [key: string]: string }
+  details: any
 }
 
-const data: SwiperData[] = [
-  {
-    header: 'Total Siswa per Kelas',
-    onetitle: ' Siswa Tahun Ini',
-    title: 'Jumlah Siswa & Kelas',
-    img: '/images/cards/apple-watch-green-lg.png',
-    details: {
-      'T-shirts': '16',
-      Shoes: '43',
-      Watches: '29',
-      SunGlasses: '7'
-    }
-  },
-  {
-    header: 'Total Siswa per Jurusan',
-    onetitle: ' Siswa Tahun Ini',
-    title: 'Jumlah Siswa & Jurusan',
-    img: '/images/cards/apple-iphone-x-lg.png',
-    details: {
-      Mobiles: '24',
-      Accessories: '50',
-      Tablets: '12',
-      Computers: '38'
-    }
-  },
-  {
-    header: 'Total Seluruh Siswa',
-    onetitle: ' Siswa Tahun Ini',
-    title: 'Seluruh Siswa',
-    img: '/images/cards/ps4-joystick-lg.png',
-    details: {
-      "TV's": '16',
-      Cameras: '9',
-      Speakers: '40',
-      Consoles: '18'
-    }
-  }
-]
-
-const Slides = () => {
+const Slides = ({ data }: { data: SwiperData[] }) => {
   return (
     <>
       {data.map((slide: SwiperData, index: number) => {
@@ -85,14 +47,24 @@ const Slides = () => {
               </Typography>
               <Icon icon='mdi:chevron-up' fontSize={20} />
             </Box>
+
             <Grid container>
-              <Grid item xs={12} sm={6} lg={8} sx={{ order: [2, 1] }}>
+              <Grid item xs={12} sm={6} lg={12} sx={{ order: [2, 1] }}>
                 <Typography sx={{ mb: 4.5, color: 'common.white' }}>{slide.title}</Typography>
-                <Grid container spacing={4}>
-                  {Object.keys(slide.details).map((key: string, index: number) => {
+
+                <Grid container spacing={3} sx={{ flexWrap: 'wrap', overflow: 'hidden' }}>
+                  {Object.entries(JSON.parse(slide.details)).map(([key, value], index: number) => {
                     return (
-                      <Grid item key={index} xs={6}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Grid
+                        item
+                        key={index}
+                        xs={12} // Full width on extra small screens (mobile)
+                        sm={6} // Half width on small screens (tablets)
+                        md={4} // Third width on medium screens (desktop)
+                        lg={5} // Quarter width on large screens (large desktops)
+                        sx={{ maxWidth: '100%' }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                           <CustomAvatar
                             color='primary'
                             variant='rounded'
@@ -105,10 +77,13 @@ const Slides = () => {
                               backgroundColor: 'primary.dark'
                             }}
                           >
-                            {slide.details[key]}
+                            {value as any} {/* Display the value */}
                           </CustomAvatar>
-                          <Typography variant='caption' sx={{ color: 'common.white' }}>
-                            {key}
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'common.white', wordWrap: 'break-word', flexShrink: 2 }}
+                          >
+                            {key} {/* Display the key */}
                           </Typography>
                         </Box>
                       </Grid>
@@ -116,6 +91,7 @@ const Slides = () => {
                   })}
                 </Grid>
               </Grid>
+
               <Grid
                 item
                 xs={12}
@@ -128,8 +104,9 @@ const Slides = () => {
                     top: 0,
                     right: 0,
                     height: '200px !important',
-                    maxWidth: 'none !important',
-                    position: ['static', 'absolute']
+                    maxWidth: '100% !important',
+                    position: ['static', 'absolute'],
+                    objectFit: 'contain' // Ensure the image doesn't stretch
                   }
                 }}
               >
@@ -147,6 +124,35 @@ const EcommerceWeeklySalesBg = () => {
   // ** States
   const [loaded, setLoaded] = useState<boolean>(false)
   const [currentSlide, setCurrentSlide] = useState<number>(0)
+  const [data, setData] = useState<SwiperData[]>([]) // Initialize the state for data
+
+  useEffect(() => {
+    // Fetch the data from the API
+    const fetchData = async () => {
+      try {
+        // Retrieve token and school_id from localStorage
+        const token = localStorage.getItem('token')
+        const userData = JSON.parse(localStorage.getItem('userData') as any) // Assuming userData is stored as a JSON string in localStorage
+        const school_id = userData.school_id
+
+        // Configure axios request with headers and query parameter
+        const response = await axiosConfig.get('/getDetailClassMajorUsers', {
+          headers: {
+            Authorization: `Bearer ${token}` // Attach the token as a Bearer token in the Authorization header
+          },
+          params: {
+            school_id: school_id // Add school_id as a query parameter
+          }
+        })
+
+        setData(response.data) // Assuming the API returns an array of SwiperData
+      } catch (error) {
+        console.error('Error fetching the data', error)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   // ** Hook
   const theme = useTheme()
@@ -171,11 +177,19 @@ const EcommerceWeeklySalesBg = () => {
         }
         const nextTimeout = () => {
           clearTimeout(timeout as number)
+
           if (mouseOver) return
-          timeout = setTimeout(() => {
-            slider.next()
-          }, 4000)
+
+          // Add a safety check for the slider instance
+          if (slider && slider.track && slider.track.details) {
+            timeout = setTimeout(() => {
+              slider.next() // Only proceed if track details exist
+            }, 4000)
+          } else {
+            console.error('Slider is not fully initialized')
+          }
         }
+
         slider.on('created', () => {
           slider.container.addEventListener('mouseover', () => {
             mouseOver = true
@@ -199,7 +213,7 @@ const EcommerceWeeklySalesBg = () => {
       <CardContent>
         {loaded && instanceRef.current && (
           <Box className='swiper-dots' sx={{ top: 7, right: 13, position: 'absolute' }}>
-            {[...Array(instanceRef.current.track.details.slides.length).keys()].map(idx => {
+            {[...Array(3).keys()].map(idx => {
               return (
                 <Badge
                   key={idx}
@@ -230,7 +244,7 @@ const EcommerceWeeklySalesBg = () => {
           </Box>
         )}
         <Box ref={sliderRef} className='keen-slider'>
-          <Slides />
+          <Slides data={data} />
         </Box>
       </CardContent>
     </Card>
