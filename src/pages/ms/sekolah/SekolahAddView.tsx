@@ -133,7 +133,7 @@ const SchoolFormComponent = () => {
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
-                    value={value}
+                    value={value.toUpperCase()}
                     label='Nama Sekolah'
                     onChange={onChange}
                     placeholder='e.g. ABC School'

@@ -1,5 +1,6 @@
 // ** React Imports
 import { createContext, useEffect, useState, ReactNode } from 'react'
+import Cookies from 'js-cookie' // Import js-cookie
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -9,7 +10,6 @@ import authConfig from 'src/configs/auth'
 
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
-
 import axiosConfig from 'src/configs/axiosConfig'
 
 // ** Defaults
@@ -41,7 +41,6 @@ const AuthProvider = ({ children }: Props) => {
       const storedToken = window.localStorage.getItem('token')
       if (storedToken) {
         setLoading(true)
-        // Check login with the stored token
         await checkLogin(storedToken)
       } else {
         setLoading(false)
@@ -93,6 +92,7 @@ const AuthProvider = ({ children }: Props) => {
       const refreshToken = localStorage.getItem('refreshToken')
       if (!refreshToken) {
         router.replace('/login')
+        
         return
       }
 
@@ -111,6 +111,11 @@ const AuthProvider = ({ children }: Props) => {
         // Update local storage
         window.localStorage.setItem('token', newAccessToken)
         window.localStorage.setItem('userData', JSON.stringify(userData))
+
+        // Set cookies for token and userData
+        Cookies.set('token', newAccessToken, { expires: 7 }) // Set cookie for 7 days
+        Cookies.set('userData', JSON.stringify(userData), { expires: 7 }) // Set cookie for 7 days
+
         setUser({ ...userData })
       } catch (error) {
         console.error('Failed to refresh token:', error) // Log refresh token errors
@@ -128,8 +133,12 @@ const AuthProvider = ({ children }: Props) => {
       .then(async response => {
         if (params.rememberMe) {
           window.localStorage.setItem('token', response.data.accessToken)
-          window.localStorage.setItem('refreshToken', response.data.accessToken) // Ensure to store refresh token
+          window.localStorage.setItem('refreshToken', response.data.refreshToken) // Ensure to store refresh token
           window.localStorage.setItem('userData', JSON.stringify(response.data.userData))
+
+          // Set cookies for token and userData
+          Cookies.set('token', response.data.accessToken, { expires: 7 }) // Set cookie for 7 days
+          Cookies.set('userData', JSON.stringify(response.data.userData), { expires: 7 }) // Set cookie for 7 days
         }
 
         const returnUrl = router.query.returnUrl
@@ -146,8 +155,13 @@ const AuthProvider = ({ children }: Props) => {
   const handleLogout = () => {
     setUser(null)
     window.localStorage.removeItem('userData')
-    window.localStorage.removeItem(authConfig.storageTokenKeyName)
+    window.localStorage.removeItem('token')
     window.localStorage.removeItem('refreshToken')
+
+    // Remove cookies
+    Cookies.remove('token')
+    Cookies.remove('userData')
+
     router.push('/login')
   }
 

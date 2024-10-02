@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Card, Grid, CircularProgress, Button, IconButton } from '@mui/material'
+import { Card, Grid, CircularProgress, IconButton } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -18,12 +18,11 @@ const typeObj: any = {
   BULANAN: { title: 'BULANAN', color: 'info' },
   BEBAS: { title: 'BEBAS', color: 'warning' }
 }
-const handleRowEditedClick = () => {}
 
-const RowOptions = ({ uid, type, dataAll }: { uid: any; type: any; dataAll: any }) => {
+const RowOptions = () => {
   return (
     <>
-      <IconButton size='small' color='error' onClick={handleRowEditedClick}>
+      <IconButton size='small' color='error'>
         <Icon icon='tabler:file-type-pdf' />
       </IconButton>
     </>
@@ -98,7 +97,7 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: any) => <RowOptions uid={row.uid} type={row.type} dataAll={row} />
+    renderCell: () => <RowOptions />
   }
 ]
 
@@ -144,7 +143,7 @@ const TabelReportPaymentMonth = ({
     }
 
     fetchData()
-  }, [dispatch, school_id, unit_id, user_id, value, refresh])
+  }, [dispatch,setting_payment_uid, type, year, school_id, unit_id, user_id, value, refresh])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 

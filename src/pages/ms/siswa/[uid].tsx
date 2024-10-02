@@ -9,7 +9,6 @@ import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import MenuItem from '@mui/material/MenuItem'
 import Box from '@mui/material/Box'
-import Input from '@mui/material/Input'
 import CustomTextField from 'src/@core/components/mui/text-field'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../configs/axiosConfig'
@@ -35,7 +34,7 @@ interface Unit {
 }
 
 const FormValidationSchema = () => {
-  const { handleSubmit, watch, setValue } = useForm()
+  const { handleSubmit, setValue } = useForm()
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const [nisn, setNisn] = useState<string>('')
   const [fullName, setFullName] = useState<string>('')
@@ -186,26 +185,32 @@ const FormValidationSchema = () => {
   const validateForm = () => {
     if (!fullName) {
       toast.error('Full Name is required')
+
       return false
     }
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       toast.error('Valid email is required')
+
       return false
     }
     if (!phone || !/^\d+$/.test(phone)) {
       toast.error('Valid phone number is required')
+
       return false
     }
     if (!address) {
       toast.error('Address is required')
+
       return false
     }
     if (!major) {
       toast.error('Major is required')
+
       return false
     }
     if (!clas) {
       toast.error('Class is required')
+
       return false
     }
 

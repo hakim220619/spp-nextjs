@@ -25,6 +25,7 @@ const defineRulesFor = (role: any, subject: string) => {
     can(['read', 'manage'], 'all')
   } else if (role === 170) {
     can('manage', 'all')
+    can(['read', 'manage'], 'all')
   } else if (role === 200) {
     can(['read', 'manage'], 'all')
   } else {
@@ -44,7 +45,7 @@ export const buildAbilityFor = (role: string, subject: string): AppAbility => {
 
 export const defaultACLObj: ACLObj = {
   action: 'manage',
-  subject: 'all'
+  subject: 'ms-ds-admin'
 }
 
 export default defineRulesFor

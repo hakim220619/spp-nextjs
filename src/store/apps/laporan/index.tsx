@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { Dispatch } from 'redux'
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -11,10 +10,7 @@ interface DataParams {
   type: string
   setting_payment_uid: any
 }
-interface Redux {
-  getState: any
-  dispatch: Dispatch<any>
-}
+
 
 // ** Fetch Users
 export const ListPaymentReportAdmin = createAsyncThunk('appData/ListPaymentReportAdmin', async (params: DataParams) => {

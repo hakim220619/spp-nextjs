@@ -18,7 +18,7 @@ import toast from 'react-hot-toast'
 import Select from '@mui/material/Select'
 import axiosConfig from '../../../../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
-import { CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 
 const FormLayoutsSeparator = () => {
   const [spName, setSpName] = useState<string>('')
@@ -44,7 +44,7 @@ const FormLayoutsSeparator = () => {
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
   const router = useRouter()
-  const { uid } = router.query
+  const { uid, unit_id } = router.query
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = event.target.value
     const value = event.target.value
@@ -113,19 +113,6 @@ const FormLayoutsSeparator = () => {
         console.error('Error fetching majors:', error)
       }
     }
-    const fetchMonths = async () => {
-      try {
-        const response = await axiosConfig.get(`/getMonths/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setMonths(response.data)
-      } catch (error) {
-        console.error('Error fetching majors:', error)
-      }
-    }
     const fetchUsers = async () => {
       try {
         const response = await axiosConfig.get(`/list-siswa/?schoolId=${schoolId}`, {
@@ -157,29 +144,24 @@ const FormLayoutsSeparator = () => {
     fetchUsers()
     fetchMajors()
     fetchClases()
-    fetchMonths()
   }, [uid, schoolId, storedToken])
   useEffect(() => {
-    const selectedUnitId = unit
+    const selectedUnitId = unit_id
 
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id == unit_id) : majors
 
-    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id === selectedUnitId) : kelases
+    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id == unit_id) : kelases
 
     // Filter users based on unit_id, major_id, and class_id
     const filtered = users.filter(
-      user => user.unit_id === selectedUnitId && user.class_id === kelas && user.major_id === major
+      user => user.unit_id == selectedUnitId && user.class_id == kelas && user.major_id == major
     )
 
     setFilteredMajors(newFilteredMajors)
     setFilteredClasses(newFilteredClasses)
     setFilteredUsers(filtered)
-
-    if (!selectedUnitId) {
-      setMajor('')
-      setKelas('')
-    }
-  }, [unit, majors, kelases, users, major, kelas])
+    setUnit(unit_id as any)
+  }, [unit, unit_id, majors, kelases, users, major, kelas])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as any)
@@ -195,6 +177,7 @@ const FormLayoutsSeparator = () => {
     event.preventDefault()
     setLoading(true)
     const formData = {
+      unit_id: unit_id,
       user_id: selectedUser,
       school_id: schoolId,
       sp_name: spName,
@@ -205,6 +188,7 @@ const FormLayoutsSeparator = () => {
       amount: amount.replace(/\D/g, ''),
       uid: uid // Add uid from router.query
     }
+
     try {
       const response = await axiosConfig.post('/create-payment-byFreeStudent', formData, {
         headers: {
@@ -215,7 +199,7 @@ const FormLayoutsSeparator = () => {
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/bebas/${uid}`)
+        window.history.back()
       } else if (response.status === 404) {
         toast.error('Users Not found')
       } else {
@@ -287,6 +271,7 @@ const FormLayoutsSeparator = () => {
                   labelId='form-layouts-separator-select-label'
                   value={unit}
                   onChange={handleUnitChange as any} // Handle unit change
+                  disabled
                 >
                   {units.map(data => (
                     <MenuItem key={data.id} value={data.id}>
@@ -378,11 +363,15 @@ const FormLayoutsSeparator = () => {
           >
             {loading ? 'Loading...' : 'Simpan'}
           </Button>
+          <Box m={1} display='inline' />
+
           <Button
-            size='large'
-            color='secondary'
             variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/bebas/${uid}`)} // Navigate to the route when clicked
+            color='secondary'
+            onClick={() => {
+              // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
+              window.history.back() // Kembali ke halaman sebelumnya
+            }}
           >
             Kembali
           </Button>

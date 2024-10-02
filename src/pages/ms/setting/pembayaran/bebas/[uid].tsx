@@ -14,9 +14,7 @@ import {
   DialogTitle,
   CardContent,
   MenuItem,
-  InputLabel,
-  FormControl,
-  Select
+  InputLabel
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -41,7 +39,17 @@ const typeObj: any = {
   BEBAS: { title: 'BEBAS', color: 'warning' }
 }
 
-const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_payment_id: any; user_id: any }) => {
+const RowOptions = ({
+  uid,
+  setting_payment_id,
+  user_id,
+  dataAll
+}: {
+  uid: any
+  setting_payment_id: any
+  user_id: any
+  dataAll: any
+}) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
@@ -103,13 +111,18 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
 
   return (
     <>
-      <IconButton size='large' color='success' onClick={handleRowEditedClick}>
-        <Icon icon='tabler:edit' />
-      </IconButton>
+      {dataAll.jml_paydetail === null && (
+        <>
+          <IconButton size='large' color='success' onClick={handleRowEditedClick}>
+            <Icon icon='tabler:edit' />
+          </IconButton>
 
-      <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
-        <Icon icon='tabler:trash' />
-      </IconButton>
+          <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
+            <Icon icon='tabler:trash' />
+          </IconButton>
+        </>
+      )}
+
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{'Are you sure you want to delete this user?'}</DialogTitle>
         <DialogContent>
@@ -196,14 +209,14 @@ const columns: GridColDef[] = [
     field: 'actions',
     headerName: 'Actions',
     renderCell: ({ row }: any) => (
-      <RowOptions uid={row.uid} setting_payment_id={row.setting_payment_uid} user_id={row.user_id} />
+      <RowOptions uid={row.uid} setting_payment_id={row.setting_payment_uid} user_id={row.user_id} dataAll={row} />
     )
   }
 ]
 
 const SettingPembayaran = () => {
   const router = useRouter()
-  const { uid } = router.query
+  const { uid, unit_id } = router.query
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [school_id] = useState<number>(getDataLocal.school_id)
@@ -289,17 +302,13 @@ const SettingPembayaran = () => {
 
   useEffect(() => {
     const selectedUnitId = unit
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
-    const newFilteredClasses = selectedUnitId ? classes.filter((cls: any) => cls.unit_id === selectedUnitId) : classes
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id == unit_id) : majors
+    const newFilteredClasses = selectedUnitId ? classes.filter((cls: any) => cls.unit_id == unit_id) : classes
 
     setFilteredMajors(newFilteredMajors)
     setFilteredClasses(newFilteredClasses)
-
-    if (!selectedUnitId) {
-      setMajor('')
-      setClas('')
-    }
-  }, [unit, majors, clas])
+    setUnit(unit_id as string)
+  }, [unit, unit_id, majors, classes, clas])
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setClas(e.target.value as any)
@@ -308,10 +317,10 @@ const SettingPembayaran = () => {
     setMajor(e.target.value as any)
   }, [])
   const handleNavigate = () => {
-    router.push(`/ms/setting/pembayaran/bebas/kelas/${uid}`)
+    router.push(`/ms/setting/pembayaran/bebas/kelas/${uid}?unit_id=${unit_id}`)
   }
   const handleNavigateSiswa = () => {
-    router.push(`/ms/setting/pembayaran/bebas/siswa/${uid}`)
+    router.push(`/ms/setting/pembayaran/bebas/siswa/${uid}?unit_id=${unit_id}`)
   }
   const handleNavigateBack = () => {
     router.push(`/ms/setting/pembayaran`)
@@ -370,7 +379,8 @@ const SettingPembayaran = () => {
                   SelectProps={{
                     value: unit,
                     displayEmpty: true,
-                    onChange: handleUnitChange as any // Perbaiki ini dengan benar mengikat handleUnitChange
+                    onChange: handleUnitChange as any, // Perbaiki ini dengan benar mengikat handleUnitChange
+                    disabled: true
                   }}
                 >
                   <MenuItem value=''>Pilih Unit</MenuItem>
@@ -389,8 +399,7 @@ const SettingPembayaran = () => {
                   value={major}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleMajorChange as any, // Perbaiki ini dengan benar mengikat handleMajorChange
-                    disabled: !unit // Disable if unit is not selected
+                    onChange: handleMajorChange as any // Perbaiki ini dengan benar mengikat handleMajorChange
                   }}
                 >
                   <MenuItem value=''>Pilih Jurusan</MenuItem>
@@ -412,8 +421,7 @@ const SettingPembayaran = () => {
                   value={clas}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleClassChange as any, // Perbaiki ini dengan benar mengikat handleClassChange
-                    disabled: !unit // Disable if unit is not selected
+                    onChange: handleClassChange as any // Perbaiki ini dengan benar mengikat handleClassChange
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>

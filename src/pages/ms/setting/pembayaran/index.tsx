@@ -55,8 +55,8 @@ const RowOptions = ({ uid, dataAll }: { uid: any; dataAll: any }) => {
 
   const handleRowEditedClick = () => {
     dataAll.sp_type === 'BULANAN'
-      ? router.push('/ms/setting/pembayaran/bulanan/' + uid)
-      : router.push('/ms/setting/pembayaran/bebas/' + uid)
+      ? router.push('/ms/setting/pembayaran/bulanan/' + uid + '?unit_id=' + dataAll.unit_id)
+      : router.push('/ms/setting/pembayaran/bebas/' + uid + '?unit_id=' + dataAll.unit_id)
   }
 
   const handleDelete = async () => {
@@ -174,7 +174,6 @@ const SettingPembayaran = () => {
   const [years, setYears] = useState<any[]>([])
   const [sp_type, setSpType] = useState<string>('')
   const [sp_types] = useState<any[]>(['BULANAN', 'BEBAS'])
-  const [sp_status, setSpStatus] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
@@ -212,7 +211,7 @@ const SettingPembayaran = () => {
     }
     fetchData()
     fetchUnits()
-  }, [dispatch, school_id, year, sp_type, unit, value])
+  }, [dispatch, school_id, year, sp_type, unit, storedToken, value])
 
   useEffect(() => {
     const currentYear = new Date().getFullYear()

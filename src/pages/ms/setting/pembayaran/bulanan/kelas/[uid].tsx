@@ -13,7 +13,8 @@ import {
   CardActions,
   FormControl,
   CircularProgress,
-  Select
+  Select,
+  Box
 } from '@mui/material'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../../../../configs/axiosConfig'
@@ -39,7 +40,7 @@ const AddPaymentDetailByClass = () => {
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
   const router = useRouter()
-  const { uid } = router.query
+  const { uid, unit_id } = router.query
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = event.target.value
@@ -71,22 +72,6 @@ const AddPaymentDetailByClass = () => {
     }).format(parseInt(numericValue || '0', 10))
     updatedMonths[index].payment = formattedValue
     setMonths(updatedMonths)
-  }
-
-  const fetchUnits = async () => {
-    try {
-      const response = await axiosConfig.get('/getUnit', {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${storedToken}`
-        }
-      })
-      const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
-      setUnits(filteredUnits)
-    } catch (error) {
-      console.error('Failed to fetch units:', error)
-      toast.error('Failed to load units')
-    }
   }
 
   useEffect(() => {
@@ -152,26 +137,42 @@ const AddPaymentDetailByClass = () => {
         }
       }
 
+      const fetchUnits = async () => {
+        try {
+          const response = await axiosConfig.get('/getUnit', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+          const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId && unit.id == unit_id)
+
+          setUnits(filteredUnits)
+        } catch (error) {
+          console.error('Failed to fetch units:', error)
+          toast.error('Failed to load units')
+        }
+      }
+
       fetchMajors()
       fetchClases()
       fetchMonths()
       fetchUnits()
     }
-  }, [uid, schoolId, storedToken])
+  }, [uid, unit_id, schoolId, storedToken])
 
   useEffect(() => {
-    const selectedUnitId = unit
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
-    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id === selectedUnitId) : kelases
+    const selectedUnitId = unit_id
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id == unit_id) : majors
+    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id == unit_id) : kelases
 
     setFilteredMajors(newFilteredMajors)
     setFilteredClasses(newFilteredClasses)
 
-    if (!selectedUnitId) {
-      setMajor('')
-      setKelas('')
-    }
-  }, [unit, majors, kelases])
+    setMajor('')
+    setKelas('')
+    setUnit(unit_id as string)
+  }, [unit, unit_id, majors, kelases])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as string)
@@ -201,6 +202,7 @@ const AddPaymentDetailByClass = () => {
       uid: uid,
       months: months.map(month => {
         const cleanedPayment = month.payment.replace(/[Rp.\s]/g, '')
+
         return {
           month: month.month,
           payment: cleanedPayment,
@@ -219,7 +221,7 @@ const AddPaymentDetailByClass = () => {
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/bulanan/${uid}`)
+        window.history.back()
       } else if (response.status === 404) {
         toast.error('Users Not found')
       } else {
@@ -295,6 +297,7 @@ const AddPaymentDetailByClass = () => {
                   labelId='form-layouts-separator-select-label'
                   value={unit}
                   onChange={handleUnitChange as any}
+                  disabled
                 >
                   {units.map(unit => (
                     <MenuItem key={unit.id} value={unit.id}>
@@ -392,6 +395,17 @@ const AddPaymentDetailByClass = () => {
         <CardActions>
           <Button type='submit' variant='contained' disabled={loading}>
             {loading ? <CircularProgress size={24} /> : 'Simpan'}
+          </Button>
+          <Box m={1} display='inline' />
+          <Button
+            variant='outlined'
+            color='secondary'
+            onClick={() => {
+              // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
+              window.history.back() // Kembali ke halaman sebelumnya
+            }}
+          >
+            Kembali
           </Button>
         </CardActions>
       </form>

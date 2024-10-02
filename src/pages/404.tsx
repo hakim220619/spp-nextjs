@@ -1,9 +1,6 @@
 // ** React Imports
 import { ReactNode } from 'react'
 
-// ** Next Import
-import Link from 'next/link'
-
 // ** MUI Components
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
@@ -35,7 +32,9 @@ const Img = styled('img')(({ theme }) => ({
     marginTop: theme.spacing(20)
   }
 }))
-
+const back = () => {
+  window.history.back()
+}
 const Error404 = () => {
   return (
     <Box className='content-center'>
@@ -47,7 +46,7 @@ const Error404 = () => {
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>
             Oops! 😖 The requested URL was not found on this server.
           </Typography>
-          <Button href='/' component={Link} variant='contained'>
+          <Button onClick={back} variant='contained'>
             Back to Home
           </Button>
         </BoxWrapper>

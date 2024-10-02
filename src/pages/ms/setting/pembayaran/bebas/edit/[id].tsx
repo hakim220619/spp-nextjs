@@ -15,7 +15,7 @@ import InputLabel from '@mui/material/InputLabel'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
-import { CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 
 const AddPaymentDetailByClass = () => {
   const [SpByUid, setSpByUid] = useState<string[]>([])
@@ -116,7 +116,7 @@ const AddPaymentDetailByClass = () => {
       })
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/bebas/${SpByUid}`)
+        window.history.back()
       } else {
         toast.error('Terjadi kesalahan saat menyimpan pembayaran. Silakan coba lagi.')
       }
@@ -182,11 +182,14 @@ const AddPaymentDetailByClass = () => {
           >
             {Loading ? 'Loading...' : 'Simpan'}
           </Button>
+          <Box m={1} display='inline' />
           <Button
-            size='large'
-            color='secondary'
             variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/bebas/${SpByUid}`)}
+            color='secondary'
+            onClick={() => {
+              // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
+              window.history.back() // Kembali ke halaman sebelumnya
+            }}
           >
             Kembali
           </Button>

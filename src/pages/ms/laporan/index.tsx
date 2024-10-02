@@ -1,10 +1,9 @@
-import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import { Button, Grid } from '@mui/material'
 import axiosConfig from 'src/configs/axiosConfig'
-import { ChangeEvent, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { GridSearchIcon } from '@mui/x-data-grid'
 import UserDetailsCard from './userDetail'
 import CustomAutocomplete from 'src/@core/components/mui/autocomplete'
@@ -36,7 +35,7 @@ const PaymentInAdmin = () => {
   const [PaymentName, setPaymentName] = useState<any>(null)
   const [filteredPaymentNames, setFilteredPaymentNames] = useState<any[]>([])
   const [refreshTable, setRefreshTable] = useState(false)
-  // Fetch units, users, and payments
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,24 +61,6 @@ const PaymentInAdmin = () => {
     setFilteredUsers(unit ? users.filter(user => user.unit_id === unit && user.school_id === schoolId) : [])
   }, [unit, users, schoolId])
 
-  // Handle Unit Change
-  const handleUnitChange = useCallback((event: ChangeEvent<{ value: unknown }>) => {
-    const newUnit = event.target.value as string
-    setUnit(newUnit)
-    setUserDetails(null) // Reset user details when unit changes
-  }, [])
-
-  // Handle User Change and fetch user details
-  const handleUserChange = useCallback(
-    (event: ChangeEvent<{ value: unknown }>) => {
-      const userId = event.target.value as string
-      setSelectedUser(userId)
-      const userDetail = users.find(user => user.id === userId)
-      setUserDetails(userDetail || null) // Ensure user details are set correctly
-    },
-    [users]
-  )
-
   // Handle Search
   const onSearch = useCallback(() => {
     if (unit && selectedUser && selectedOption) {
@@ -89,7 +70,7 @@ const PaymentInAdmin = () => {
     } else {
       setShowTable(false)
     }
-  }, [unit, selectedUser, schoolId, PaymentName, selectedOption])
+  }, [unit, selectedUser, schoolId, selectedOption])
 
   // Set years for the year selection
   useEffect(() => {

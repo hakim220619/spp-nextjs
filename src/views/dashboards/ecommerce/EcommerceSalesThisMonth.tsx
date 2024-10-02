@@ -116,7 +116,7 @@ const EcommerceSalesThisMonth = () => {
         <Typography variant='h6' sx={{ mb: 2.5 }}>
           Saldo {schoolName}
         </Typography>
-        <Typography variant='body2'>Total Saldo</Typography>
+        <Typography variant='body2'>Total Saldo Aktif</Typography>
         <Typography variant='h6' color='error'>
           {formatRupiah(totalSaldoBySchool)}
         </Typography>

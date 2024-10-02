@@ -65,7 +65,7 @@ const FormValidationSchema = () => {
     const fetchTypePaymentOptions = async () => {
       if (!storedToken) {
         toast.error('Authentication token not found.')
-        
+
         return
       }
 
@@ -189,6 +189,8 @@ const FormValidationSchema = () => {
                     fullWidth
                     label='School Name'
                     {...field}
+                    onChange={e => field.onChange(e.target.value.toUpperCase())} // Convert to uppercase on change
+                    value={field.value || ''} // Ensure the field has a value
                     error={!!errors.school_name}
                     helperText={errors.school_name?.message}
                   />

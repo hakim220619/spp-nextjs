@@ -30,7 +30,6 @@ import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import axiosConfig from '../../../../../configs/axiosConfig'
 import CustomTextField from 'src/@core/components/mui/text-field'
-import unit from 'src/store/apps/unit'
 
 const statusObj: any = {
   Pending: { title: 'Pending', color: 'error' }
@@ -40,7 +39,17 @@ const typeObj: any = {
   BEBAS: { title: 'BEBAS', color: 'error' }
 }
 
-const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_payment_id: any; user_id: any }) => {
+const RowOptions = ({
+  uid,
+  setting_payment_id,
+  user_id,
+  dataAll
+}: {
+  uid: any
+  setting_payment_id: any
+  user_id: any
+  dataAll: any
+}) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
@@ -94,10 +103,12 @@ const RowOptions = ({ uid, setting_payment_id, user_id }: { uid: any; setting_pa
       <IconButton size='large' color='success' onClick={handleRowEditedClick}>
         <Icon icon='tabler:edit' />
       </IconButton>
+      {dataAll.total_pembayaran === 12 && (
+        <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
+          <Icon icon='tabler:trash' />
+        </IconButton>
+      )}
 
-      <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
-        <Icon icon='tabler:trash' />
-      </IconButton>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{'Are you sure you want to delete this user?'}</DialogTitle>
         <DialogContent>
@@ -184,14 +195,14 @@ const columns: GridColDef[] = [
     field: 'actions',
     headerName: 'Actions',
     renderCell: ({ row }: any) => (
-      <RowOptions uid={row.uid} setting_payment_id={row.setting_payment_uid} user_id={row.user_id} />
+      <RowOptions uid={row.uid} setting_payment_id={row.setting_payment_uid} user_id={row.user_id} dataAll={row} />
     )
   }
 ]
 
 const SettingPembayaran = () => {
   const router = useRouter()
-  const { uid } = router.query
+  const { uid, unit_id } = router.query
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [school_id] = useState<number>(getDataLocal.school_id)
@@ -205,8 +216,6 @@ const SettingPembayaran = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [units, setUnits] = useState<any[]>([])
   const [unit, setUnit] = useState<string>('')
-  const [filteredMajors, setFilteredMajors] = useState<any[]>([])
-  const [filteredClasses, setFilteredClasses] = useState<any[]>([])
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.SettingPembayaranDetail)
   const userData = JSON.parse(localStorage.getItem('userData') as string)
@@ -236,11 +245,16 @@ const SettingPembayaran = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setClases(response.data)
+
+        // Filter response.data berdasarkan unit_id
+        const filteredClasses = response.data.filter((clas: any) => clas.unit_id == unit_id)
+
+        setClases(filteredClasses)
       } catch (error) {
         console.error('Error fetching classes:', error)
       }
     }
+
     const fetchMajors = async () => {
       try {
         const response = await axiosConfig.get(`/getMajors/?schoolId=${schoolId}`, {
@@ -249,7 +263,9 @@ const SettingPembayaran = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setMajors(response.data)
+
+        const filteredMajors = response.data.filter((major: any) => major.unit_id == unit_id)
+        setMajors(filteredMajors)
       } catch (error) {
         console.error('Error fetching majors:', error)
       }
@@ -274,20 +290,13 @@ const SettingPembayaran = () => {
     fetchClases()
     fetchMajors()
     fetchData()
-  }, [dispatch, unit, school_id, clas, major, setting_payment_uid, storedToken, schoolId, value])
+  }, [dispatch, unit, school_id, clas, major, setting_payment_uid, storedToken, schoolId, unit_id, value])
   useEffect(() => {
-    const selectedUnitId = unit
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
-    const newFilteredClasses = selectedUnitId ? classes.filter((cls: any) => cls.unit_id === selectedUnitId) : classes
-
-    setFilteredMajors(newFilteredMajors)
-    setFilteredClasses(newFilteredClasses)
-
-    if (!selectedUnitId) {
-      setMajor('')
-      setClas('')
+    if (unit_id) {
+      setUnit(unit_id as string) // Atur unit awal berdasarkan unit_id yang diberikan
     }
-  }, [unit, majors, clas])
+  }, [unit_id])
+
   const handleFilter = useCallback((val: string) => setValue(val), [])
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setClas(e.target.value as any)
@@ -296,10 +305,10 @@ const SettingPembayaran = () => {
     setMajor(e.target.value as any)
   }, [])
   const handleNavigate = () => {
-    router.push(`/ms/setting/pembayaran/bulanan/kelas/${uid}`)
+    router.push(`/ms/setting/pembayaran/bulanan/kelas/${uid}?unit_id=${unit_id}`)
   }
   const handleNavigateSiswa = () => {
-    router.push(`/ms/setting/pembayaran/bulanan/siswa/${uid}`)
+    router.push(`/ms/setting/pembayaran/bulanan/siswa/${uid}?unit_id=${unit_id}`)
   }
   const handleNavigateBack = () => {
     router.push(`/ms/setting/pembayaran`)
@@ -354,12 +363,12 @@ const SettingPembayaran = () => {
                 <CustomTextField
                   select
                   fullWidth
-                  defaultValue='Pilih Unit'
+                  value={unit} // Unit yang terpilih otomatis
+                  onChange={handleUnitChange} // Meng-handle perubahan pilihan
                   SelectProps={{
-                    value: unit,
-                    displayEmpty: true,
-                    onChange: handleUnitChange as any // Perbaiki ini dengan benar mengikat handleUnitChange
+                    displayEmpty: true
                   }}
+                  disabled
                 >
                   <MenuItem value=''>Pilih Unit</MenuItem>
                   {units.map(data => (
@@ -377,13 +386,12 @@ const SettingPembayaran = () => {
                   value={major}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleMajorChange as any, // Perbaiki ini dengan benar mengikat handleMajorChange
-                    disabled: !unit // Disable if unit is not selected
+                    onChange: handleMajorChange as any // Perbaiki ini dengan benar mengikat handleMajorChange
                   }}
                 >
                   <MenuItem value=''>Pilih Jurusan</MenuItem>
                   {unit &&
-                    filteredMajors.map(major => (
+                    majors.map(major => (
                       <MenuItem key={major.id} value={major.id}>
                         {major.major_name}
                       </MenuItem>
@@ -400,17 +408,15 @@ const SettingPembayaran = () => {
                   value={clas}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleClassChange as any, // Perbaiki ini dengan benar mengikat handleClassChange
-                    disabled: !unit // Disable if unit is not selected
+                    onChange: handleClassChange as any // Perbaiki ini dengan benar mengikat handleClassChange
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>
-                  {unit &&
-                    filteredClasses.map(kelas => (
-                      <MenuItem key={kelas.id} value={kelas.id}>
-                        {kelas.class_name}
-                      </MenuItem>
-                    ))}
+                  {classes.map(kelas => (
+                    <MenuItem key={kelas.id} value={kelas.id}>
+                      {kelas.class_name}
+                    </MenuItem>
+                  ))}
                 </CustomTextField>
               </Grid>
             </Grid>

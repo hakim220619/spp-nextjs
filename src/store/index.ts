@@ -18,6 +18,8 @@ import Unit from 'src/store/apps/unit/index'
 import SettingPembayaran from 'src/store/apps/setting/pembayaran/index'
 import ListPaymentReportAdmin from 'src/store/apps/laporan/index'
 import ListPaymentReportAdminFree from 'src/store/apps/laporan/free'
+import ListPaymentTunggakan from 'src/store/apps/tunggakan/index'
+import Permission from 'src/store/apps/permission/index'
 import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
 export const store = configureStore({
@@ -38,6 +40,8 @@ export const store = configureStore({
     SettingPembayaranDetail,
     ListPaymentReportAdmin,
     ListPaymentReportAdminFree,
+    ListPaymentTunggakan,
+    Permission,
     ListPaymentDashboardByMonthAdmin
   },
   middleware: getDefaultMiddleware =>

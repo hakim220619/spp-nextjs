@@ -14,19 +14,16 @@ import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 // ** Demo Components Imports
 import AnalyticsCongratulations from 'src/views/dashboards/analytics/AnalyticsCongratulations'
 import EcommerceTotalVisits from 'src/views/dashboards/ecommerce/EcommerceTotalVisits'
-import EcommerceVisitsByDay from 'src/views/dashboards/ecommerce/EcommerceVisitsByDay'
-import EcommerceWeeklySalesBg from 'src/views/dashboards/ecommerce/EcommerceWeeklySalesBg'
 import EcommerceSalesThisMonth from 'src/views/dashboards/ecommerce/EcommerceSalesThisMonth'
 import EcommerceActivityTimeline from 'src/views/dashboards/ecommerce/EcommerceActivityTimeline'
 import axiosConfig from 'src/configs/axiosConfig'
 
-const EcommerceDashboard = () => {
+const AdminDashboard = () => {
   const [totalPembayaranBulanan, setTotalPembayaranBulanan] = useState(null)
   const [totalPembayaranBebas, setTotalPembayaranBebas] = useState(null)
   const [totalTunggakanBulanan, setTotalTunggakanBulanan] = useState(null)
   const [totalTunggakanBebas, setTotalTunggakanBebas] = useState(null)
   const [loading, setLoading] = useState(true)
-
   useEffect(() => {
     const data = localStorage.getItem('userData') as any
     const getDataLocal = JSON.parse(data)
@@ -147,9 +144,9 @@ const EcommerceDashboard = () => {
           <Grid item xs={12} md={6}>
             <AnalyticsCongratulations />
           </Grid>
-          <Grid item xs={12} md={6}>
+          {/* <Grid item xs={12} md={6}>
             <EcommerceWeeklySalesBg />
-          </Grid>
+          </Grid> */}
           <Grid item xs={12} sm={6} md={3}>
             <CardStatisticsCharacter
               data={{
@@ -217,4 +214,4 @@ const EcommerceDashboard = () => {
   )
 }
 
-export default EcommerceDashboard
+export default AdminDashboard

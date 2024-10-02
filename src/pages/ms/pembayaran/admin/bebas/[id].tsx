@@ -145,8 +145,6 @@ const columns: GridColDef[] = [
 ]
 
 const UserList: React.FC = () => {
-  const data = localStorage.getItem('userData') as string
-  const getDataLocal = JSON.parse(data)
   const [value] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 15 })
   const [loading, setLoading] = useState<boolean>(true)
@@ -179,7 +177,6 @@ const UserList: React.FC = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        console.log(response.data)
 
         setDataPayment(response.data)
       } catch (error) {
@@ -204,8 +201,6 @@ const UserList: React.FC = () => {
 
     fetchPaymentDetails(id as any)
   }, [dispatch, value, id, school_id, user_id, fetchPaymentDetails])
-
-  const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
     setIsLoading(true)
     if (dataPayment && jumlah) {
@@ -244,7 +239,6 @@ const UserList: React.FC = () => {
           })
         }
         toast.success('Pembayaran Berhasil!')
-        // Handle success (you may want to add more logic here)
       } catch (error) {
         setIsLoading(false)
         toast.error('Terjadi kesalahan saat memproses pembayaran.')
@@ -273,12 +267,7 @@ const UserList: React.FC = () => {
   const handleDialogClose = () => {
     setOpenDialog(false)
   }
-
-  const handleSubmit = async () => {
-    await onsubmit()
-    handleDialogClose() // Close dialog after submission
-  }
-
+  
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={9}>

@@ -80,9 +80,11 @@ const columns: GridColDef[] = [
     minWidth: 140,
     valueGetter: params => {
       const { row } = params
+
       return row.pending - (row.detail_verified + row.detail_paid)
     },
     valueFormatter: ({ value }) => {
+      
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',

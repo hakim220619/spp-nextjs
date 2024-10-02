@@ -18,7 +18,7 @@ import toast from 'react-hot-toast'
 import Select from '@mui/material/Select'
 import axiosConfig from '../../../../../../configs/axiosConfig'
 import { useRouter } from 'next/router'
-import { CircularProgress } from '@mui/material'
+import { Box, CircularProgress } from '@mui/material'
 
 const AddPaymentDetailByClass = () => {
   const [spName, setSpName] = useState<string>('')
@@ -28,7 +28,6 @@ const AddPaymentDetailByClass = () => {
   const [kelases, setKelases] = useState<any[]>([])
   const [major, setMajor] = useState<string>('')
   const [majors, setMajors] = useState<any[]>([])
-  const [months, setMonths] = useState<any[]>([])
   const [amount, setAmount] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [unit, setUnit] = useState<string>('')
@@ -39,7 +38,7 @@ const AddPaymentDetailByClass = () => {
   const storedToken = window.localStorage.getItem('token')
   const schoolId = userData.school_id
   const router = useRouter()
-  const { uid } = router.query
+  const { uid, unit_id } = router.query
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = event.target.value
@@ -118,40 +117,20 @@ const AddPaymentDetailByClass = () => {
         console.error('Error fetching majors:', error)
       }
     }
-
-    const fetchMonths = async () => {
-      try {
-        const response = await axiosConfig.get(`/getMonths/?schoolId=${schoolId}`, {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
-          }
-        })
-        setMonths(response.data)
-      } catch (error) {
-        console.error('Error fetching months:', error)
-      }
-    }
-
     fetchUnits() // Fetch units
     fetchMajors()
     fetchClases()
-    fetchMonths()
   }, [uid, schoolId, storedToken])
 
   useEffect(() => {
     const selectedUnitId = unit
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id === selectedUnitId) : majors
-    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id === selectedUnitId) : kelases
+    const newFilteredMajors = selectedUnitId ? majors.filter((major: any) => major.unit_id == unit_id) : majors
+    const newFilteredClasses = selectedUnitId ? kelases.filter((cls: any) => cls.unit_id == unit_id) : kelases
 
     setFilteredMajors(newFilteredMajors)
     setFilteredClasses(newFilteredClasses)
-
-    if (!selectedUnitId) {
-      setMajor('')
-      setKelas('')
-    }
-  }, [unit, majors, kelases])
+    setUnit(unit_id as string)
+  }, [unit, unit_id, majors, kelases])
 
   const handleClassChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
     setKelas(e.target.value as string)
@@ -191,7 +170,7 @@ const AddPaymentDetailByClass = () => {
 
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/bebas/${uid}`)
+        router.push(`/ms/setting/pembayaran/bebas/${uid}?unit_id=${unit_id}`)
       } else if (response.status === 404) {
         toast.error('Users Not found')
       } else {
@@ -263,6 +242,7 @@ const AddPaymentDetailByClass = () => {
                   labelId='form-layouts-separator-select-label'
                   value={unit}
                   onChange={handleUnitChange as any} // Handle unit change
+                  disabled
                 >
                   {units.map(data => (
                     <MenuItem key={data.id} value={data.id}>
@@ -334,11 +314,14 @@ const AddPaymentDetailByClass = () => {
           >
             {loading ? 'Loading...' : 'Simpan'}
           </Button>
+          <Box m={1} display='inline' />
           <Button
-            size='large'
-            color='secondary'
             variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/bebas/${uid}`)} // Navigate to the route when clicked
+            color='secondary'
+            onClick={() => {
+              // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
+              window.history.back() // Kembali ke halaman sebelumnya
+            }}
           >
             Kembali
           </Button>

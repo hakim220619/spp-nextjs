@@ -97,6 +97,7 @@ const FormValidationSchema = () => {
   const [filteredClasses, setFilteredClasses] = useState<Class[]>([])
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [selectedUnitId, setSelectedUnitId] = useState<string | undefined>()
   const [gambar, setGambarValue] = useState<File>()
 
   const data = localStorage.getItem('userData') as string
@@ -107,7 +108,7 @@ const FormValidationSchema = () => {
     setShowPassword(!showPassword)
   }
 
-  const defaultValues: any = {
+  const defaultValues: User = {
     nisn: '1242324534',
     full_name: 'asdasd',
     email: 'sdasd@gmail.com',
@@ -119,7 +120,8 @@ const FormValidationSchema = () => {
     unit_id: '',
     address: 'asdasd',
     gambar: null,
-    date_of_birth: ''
+    date_of_birth: '',
+    school_id: ''
   }
 
   // Fetch Majors, Classes, and Units using useEffect
@@ -168,34 +170,26 @@ const FormValidationSchema = () => {
     fetchUnits()
   }, [schoolId])
 
-  // Update majors and classes when unit_id changes
+  // Form hook setup
   const {
     control,
     handleSubmit,
     formState: { errors },
     setValue,
-    watch
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
     resolver: yupResolver(schema)
   })
 
+  // Handle unit selection
   useEffect(() => {
-    const selectedUnitId = watch('unit_id')
-    const newFilteredMajors = selectedUnitId ? majors.filter((major: Major) => major.unit_id === selectedUnitId) : []
-
-    const newFilteredClasses = selectedUnitId ? clas.filter((cls: Class) => cls.unit_id === selectedUnitId) : []
-
-    setFilteredMajors(newFilteredMajors)
-    setFilteredClasses(newFilteredClasses)
-
     // Reset major and class fields when unit_id changes
-    if (!selectedUnitId) {
-      setValue('major', '')
-      setValue('class', '')
-    }
-  }, [watch('unit_id'), majors, clas])
+    setValue('major', '')
+    setValue('class', '')
+    setFilteredMajors(majors.filter(major => major.unit_id === selectedUnitId))
+    setFilteredClasses(clas.filter(cls => cls.unit_id === selectedUnitId))
+  }, [selectedUnitId, majors, clas, setValue])
 
   const onSubmit = async (data: User) => {
     setLoading(true)
@@ -264,9 +258,8 @@ const FormValidationSchema = () => {
                     value={value}
                     label='Unit'
                     onChange={e => {
+                      setSelectedUnitId(e.target.value) // Set selected unit ID
                       onChange(e)
-                      setValue('major', '')
-                      setValue('class', '')
                     }}
                     error={Boolean(errors.unit_id)}
                     helperText={errors.unit_id?.message}
@@ -384,58 +377,56 @@ const FormValidationSchema = () => {
             </Grid>
 
             {/* Conditionally Render Class Dropdown */}
-            {watch('unit_id') && (
-              <Grid item xs={6}>
-                <Controller
-                  name='class'
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <CustomTextField
-                      select
-                      fullWidth
-                      value={value}
-                      label='Kelas'
-                      onChange={onChange}
-                      error={Boolean(errors.class)}
-                      helperText={errors.class?.message}
-                    >
-                      {filteredClasses.map(data => (
-                        <MenuItem key={data.id} value={data.id}>
-                          {data.class_name}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
-                  )}
-                />
-              </Grid>
-            )}
+
+            <Grid item xs={6}>
+              <Controller
+                name='class'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <CustomTextField
+                    select
+                    fullWidth
+                    value={value}
+                    label='Kelas'
+                    onChange={onChange}
+                    error={Boolean(errors.class)}
+                    helperText={errors.class?.message}
+                  >
+                    {filteredClasses.map(data => (
+                      <MenuItem key={data.id} value={data.id}>
+                        {data.class_name}
+                      </MenuItem>
+                    ))}
+                  </CustomTextField>
+                )}
+              />
+            </Grid>
 
             {/* Conditionally Render Major Dropdown */}
-            {watch('unit_id') && (
-              <Grid item xs={6}>
-                <Controller
-                  name='major'
-                  control={control}
-                  render={({ field: { value, onChange } }) => (
-                    <CustomTextField
-                      select
-                      fullWidth
-                      value={value}
-                      label='Jurusan'
-                      onChange={onChange}
-                      error={Boolean(errors.major)}
-                      helperText={errors.major?.message}
-                    >
-                      {filteredMajors.map(data => (
-                        <MenuItem key={data.id} value={data.id}>
-                          {data.major_name}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
-                  )}
-                />
-              </Grid>
-            )}
+
+            <Grid item xs={6}>
+              <Controller
+                name='major'
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <CustomTextField
+                    select
+                    fullWidth
+                    value={value}
+                    label='Jurusan'
+                    onChange={onChange}
+                    error={Boolean(errors.major)}
+                    helperText={errors.major?.message}
+                  >
+                    {filteredMajors.map(data => (
+                      <MenuItem key={data.id} value={data.id}>
+                        {data.major_name}
+                      </MenuItem>
+                    ))}
+                  </CustomTextField>
+                )}
+              />
+            </Grid>
 
             <Grid item xs={6}>
               <Controller
@@ -476,7 +467,6 @@ const FormValidationSchema = () => {
                     }}
                     onChange={(event: ChangeEvent<HTMLInputElement>) => {
                       const file = event.target.files?.[0]
-                      // console.log(file)
 
                       setGambarValue(file)
                       onChange(event)

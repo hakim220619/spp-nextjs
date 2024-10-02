@@ -16,7 +16,7 @@ import {
   DialogContentText,
   DialogActions
 } from '@mui/material'
-import { DataGrid, GridCloseIcon, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -120,9 +120,6 @@ const UserList: React.FC = () => {
   const store = useSelector((state: RootState) => state.PembayaranByMonth)
   const router = useRouter()
   const { id, school_id, user_id } = router.query
-  console.log(selectedRows)
-  console.log(rowSelectionModel)
-
   useEffect(() => {
     setLoading(true)
     dispatch(
@@ -152,8 +149,6 @@ const UserList: React.FC = () => {
       try {
         const filteredRows = selectedRows.filter(row => row.status !== 'Verified' && row.status !== 'Paid')
         const token = localStorage.getItem('token')
-        console.log(spName.affiliate * filteredRows.length)
-        console.log(spName.affiliate)
 
         const response = await axiosConfig.post(
           '/create-payment-pending-byAdmin',
@@ -201,7 +196,6 @@ const UserList: React.FC = () => {
 
   const handleClickOpen = () => {
     const filteredRows = selectedRows.filter(row => row.status !== 'Verified' && row.status !== 'Paid')
-    // Set selected payment details before opening the dialog
     setSelectedPaymentDetails(filteredRows)
     setOpen(true)
   }

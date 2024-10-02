@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Card,
   Grid,
@@ -18,7 +18,6 @@ import CustomChip from 'src/@core/components/mui/chip'
 import { fetchDataPaymentPayByMonth } from 'src/store/apps/pembayaran/bulanan/index'
 import { RootState, AppDispatch } from 'src/store'
 import { UsersType } from 'src/types/apps/userTypes'
-import TableHeader from 'src/pages/ms/pembayaran/bulanan/TableHeader'
 import { useRouter } from 'next/router'
 import Typography from '@mui/material/Typography'
 import axiosConfig from '../../../../configs/axiosConfig'
@@ -101,13 +100,15 @@ const columns: GridColDef[] = [
 const UserList: React.FC = () => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
-  const [value, setValue] = useState<string>('')
+  const [value] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 15 })
   const [loading, setLoading] = useState<boolean>(true)
   const [rowSelectionModel, setRowSelectionModel] = useState<number[]>([])
   const [selectedRows, setSelectedRows] = useState<any[]>([])
   const [spName, setSpName] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
+  const [clientKey, setClientKey] = useState('')
+  const [snapUrl, setSnapUrl] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.PembayaranByMonth)
   const router = useRouter()
@@ -135,17 +136,12 @@ const UserList: React.FC = () => {
     }
   }, [store.data])
 
-  const handleFilter = useCallback((val: string) => setValue(val), [])
   const [toastShown, setToastShown] = useState(false)
   const onsubmit = async () => {
     if (spName && jumlah) {
       try {
         const totalAmount = jumlah.replace(/[^\d]/g, '') // Hanya angka
-        console.log(totalAmount)
-
         const filteredRows = selectedRows.filter(row => row.status !== 'Verified')
-        console.log(filteredRows)
-        console.log(spName)
 
         const response = await fetch('/api/createMidtransTransaction', {
           method: 'POST',
@@ -156,15 +152,16 @@ const UserList: React.FC = () => {
             dataUsers: spName,
             dataPayment: filteredRows,
             total_amount: totalAmount,
-            user_id: getDataLocal.id
+            user_id: getDataLocal.id,
+            school_id: getDataLocal.school_id
           })
         })
 
         const { transactionToken, orderId, transactionUrl } = await response.json() // Hapus transactionUrl
+        console.log(transactionUrl)
 
         if (transactionToken) {
-          var snap: any
-          snap.pay(transactionToken, {
+          ;(window as any).snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
               if (!toastShown) {
@@ -312,11 +309,34 @@ const UserList: React.FC = () => {
   }
 
   useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-    script.setAttribute('data-client-key', 'SB-Mid-client-a3XBeF6t11TJ5LWQ')
-    document.body.appendChild(script)
-  }, [])
+    async function fetchClientKey() {
+      try {
+        const response = await fetch(`/api/getsettingapk?school_id=${getDataLocal.school_id}`)
+        const data = await response.json()
+        if (response.ok) {
+          setClientKey(data.data.claientKey)
+          setSnapUrl(data.data.urlCreateTransaksiMidtrans)
+        } else {
+          console.error(data.message)
+        }
+      } catch (error) {
+        console.error('Error fetching client key:', error)
+      }
+    }
+    fetchClientKey()
+  }, [getDataLocal.school_id])
+  useEffect(() => {
+    if (clientKey && snapUrl) {
+      const script = document.createElement('script')
+      script.src = snapUrl // Use dynamic snap URL from API
+      script.setAttribute('data-client-key', clientKey)
+      document.body.appendChild(script)
+
+      return () => {
+        document.body.removeChild(script)
+      }
+    }
+  }, [clientKey, snapUrl])
 
   const cekTransaksiById = () => {
     // Mengambil token yang disimpan (misalnya, dari local storage)

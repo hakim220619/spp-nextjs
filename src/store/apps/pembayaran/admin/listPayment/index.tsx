@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { Dispatch } from 'redux'
 import axiosConfig from 'src/configs/axiosConfig'
 
 interface DataParams {
@@ -7,10 +6,6 @@ interface DataParams {
   school_id: string
   user_id: string
   unit_id: string
-}
-interface Redux {
-  getState: any
-  dispatch: Dispatch<any>
 }
 
 // ** Fetch Users

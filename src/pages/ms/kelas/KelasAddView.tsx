@@ -17,7 +17,6 @@ import * as yup from 'yup'
 import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
-import axios from 'axios'
 
 // ** Custom Imports
 import axiosConfig from '../../../configs/axiosConfig'

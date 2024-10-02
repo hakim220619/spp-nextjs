@@ -5,7 +5,7 @@ import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import { Button, Grid } from '@mui/material'
 import axiosConfig from 'src/configs/axiosConfig'
-import { ChangeEvent, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { GridSearchIcon } from '@mui/x-data-grid'
 import TabelPaymentMonth from 'src/pages/ms/pembayaran/admin/TabelPaymentMonth'
 import UserDetailsCard from './userDetail'
@@ -69,25 +69,6 @@ const PaymentInAdmin = () => {
       setFilteredUsers([])
     }
   }, [unit, users, schoolId])
-
-  // Handle Unit Change
-  const handleUnitChange = useCallback((e: ChangeEvent<{ value: unknown }>) => {
-    setUnit(e.target.value as string)
-    setUserDetails(null) // Reset user details when unit changes
-  }, [])
-
-  // Handle User Change and fetch user details
-  const handleUserChange = useCallback(
-    (e: ChangeEvent<{ value: unknown }>) => {
-      const userId = e.target.value as string
-      setSelectedUser(userId)
-
-      // Fetch user details based on selected user
-      const userDetail = users.find(user => user.id === userId)
-      setUserDetails(userDetail || null) // Ensure user details are set correctly
-    },
-    [users]
-  )
 
   // Handle Search
   const onSearch = useCallback(() => {

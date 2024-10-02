@@ -2,20 +2,11 @@
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 
-// ** Custom Component Import
-import CustomTextField from 'src/@core/components/mui/text-field'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-interface TableHeaderProps {
-  value: string
-  handleFilter: (val: string) => void
-}
-
-const TableHeader = (props: TableHeaderProps) => {
+const TableHeader = () => {
   // ** Props
-  const { handleFilter, value } = props
 
   return (
     <Box
@@ -33,17 +24,7 @@ const TableHeader = (props: TableHeaderProps) => {
       <Button color='secondary' variant='tonal' startIcon={<Icon icon='tabler:upload' />}>
         Export
       </Button>
-      <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-        <Button
-          variant='contained'
-          color='warning'
-          onClick={() => {
-            
-          }}
-        >
-          Cek Transaksi
-        </Button>
-      </Box>
+      <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}></Box>
     </Box>
   )
 }

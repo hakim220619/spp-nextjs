@@ -1,7 +1,13 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+
+// ** Custom Component Import
 import CustomTextField from 'src/@core/components/mui/text-field'
 
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
+import Link from 'next/link'
 
 interface TableHeaderProps {
   value: string
@@ -25,7 +31,9 @@ const TableHeader = (props: TableHeaderProps) => {
         justifyContent: 'space-between'
       }}
     >
-      <p></p>
+      <Button color='secondary' variant='tonal' startIcon={<Icon icon='tabler:upload' />}>
+        Export
+      </Button>
       <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
         <CustomTextField
           value={value}
@@ -33,6 +41,12 @@ const TableHeader = (props: TableHeaderProps) => {
           placeholder='Search Name'
           onChange={e => handleFilter(e.target.value)}
         />
+        <Link href='/ms/permission/PermissionAddView' passHref>
+          <Button variant='contained' sx={{ '& svg': { mr: 2 } }}>
+            <Icon fontSize='1.125rem' icon='tabler:plus' />
+            Tambah
+          </Button>
+        </Link>
       </Box>
     </Box>
   )

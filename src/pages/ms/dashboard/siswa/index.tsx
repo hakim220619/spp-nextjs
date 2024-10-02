@@ -19,12 +19,10 @@ const EcommerceDashboard = () => {
   const [totalTunggakanBulanan, setTotalTunggakanBulanan] = useState(null)
   const [totalTunggakanFree, setTotalTunggakanFree] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [role, setRole] = useState<number | null>(null)
   useEffect(() => {
     const data = localStorage.getItem('userData') as any
     const getDataLocal = JSON.parse(data)
     const storedToken = window.localStorage.getItem('token')
-    setRole(getDataLocal.role)
     const fetchTotalTunggakanBulananBySiswa = async () => {
       try {
         const response = await axiosConfig.get('/get-total-tunggakan-bulanan-bySiswa', {
@@ -122,13 +120,8 @@ const EcommerceDashboard = () => {
               }}
             />
           </Grid>
-          <Grid container spacing={2}>
-            {role === 160 ? (
-              <Grid item xs={12} sm={12} md={12}>
-                <TabelPaymentMonth />
-              </Grid>
-            ) : // Anda bisa tambahkan fallback jika diperlukan, atau biarkan kosong
-            null}
+          <Grid item xs={12} sm={12} md={12}>
+            <TabelPaymentMonth />
           </Grid>
         </Grid>
       </KeenSliderWrapper>

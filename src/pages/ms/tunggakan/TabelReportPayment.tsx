@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Card, Grid, CircularProgress, IconButton } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
-import { ListPaymentReportAdminFree } from 'src/store/apps/laporan/free'
+import { ListPaymentTunggakan } from 'src/store/apps/tunggakan/index'
 import { RootState, AppDispatch } from 'src/store'
 import TableHeader from 'src/pages/ms/laporan/TableHeader'
 import toast from 'react-hot-toast'
@@ -36,22 +35,40 @@ const columns: GridColDef[] = [
   { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 140 },
   { field: 'sp_name', headerName: 'Pembayaran', flex: 0.175, minWidth: 140 },
   {
-    field: 'amount',
-    headerName: 'Jumlah',
+    field: 'pending',
+    headerName: 'Tunggakan',
     flex: 0.175,
     minWidth: 140,
-    renderCell: params => {
-      const formattedAmount = new Intl.NumberFormat('id-ID', {
+    valueGetter: params => {
+      const { row } = params
+
+      return row.pending - (row.detail_verified + row.detail_paid)
+    },
+    valueFormatter: ({ value }) => {
+      return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(params.value)
-
-      return <span>{formattedAmount}</span> // Render the formatted amount
+      }).format(value)
     }
   },
-
+  {
+    field: 'verified',
+    headerName: 'Proses Pembayaran',
+    flex: 0.175,
+    minWidth: 140,
+    valueGetter: params => {
+      // Check if the type is BULANAN or BEBAS
+      return params.row.type === 'BULANAN' ? params.row.verified : params.row.detail_verified
+    },
+    valueFormatter: ({ value }) => {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        maximumFractionDigits: 0 // Menghilangkan bagian desimal
+      }).format(value)
+    }
+  },
   {
     field: 'type',
     headerName: 'Tipe Pembayaran',
@@ -77,7 +94,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Status',
     flex: 0.175,
-    maxWidth: 240,
+    minWidth: 190,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
 
@@ -103,40 +120,35 @@ const columns: GridColDef[] = [
   }
 ]
 
-interface TabelReportPaymentFreeProps {
+interface TabelReportPaymentMonthProps {
   school_id: any
   unit_id: any
   user_id: any
-  setting_payment_uid: any
-  year: any
-  type: string
+  clas: any
+  major: any
   refresh: any
 }
 
-const TabelReportPaymentFree = ({
+const TabelReportPaymentMonth = ({
   school_id,
   unit_id,
   user_id,
-  year,
-  type,
-  setting_payment_uid,
+  clas,
+  major,
   refresh
-}: TabelReportPaymentFreeProps) => {
+}: TabelReportPaymentMonthProps) => {
   const [value, setValue] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState<boolean>(true)
   const dispatch = useDispatch<AppDispatch>()
-  const store = useSelector((state: RootState) => state.ListPaymentReportAdminFree)
-  console.log(store)
+  const store = useSelector((state: RootState) => state.ListPaymentTunggakan)
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
         await new Promise(resolve => setTimeout(resolve, 1000))
-        await dispatch(
-          ListPaymentReportAdminFree({ school_id, unit_id, user_id, year, type, setting_payment_uid, q: value })
-        )
+        await dispatch(ListPaymentTunggakan({ school_id, unit_id, user_id, clas: clas.id, major: major.id, q: value }))
       } catch (error) {
         console.error('Error fetching data:', error)
         toast.error('Failed to fetch data. Please try again.')
@@ -146,7 +158,7 @@ const TabelReportPaymentFree = ({
     }
 
     fetchData()
-  }, [dispatch, setting_payment_uid, type, year, school_id, unit_id, user_id, value, refresh])
+  }, [dispatch, school_id, unit_id, clas, major, user_id, value, refresh])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 
@@ -183,4 +195,4 @@ const TabelReportPaymentFree = ({
   )
 }
 
-export default TabelReportPaymentFree
+export default TabelReportPaymentMonth

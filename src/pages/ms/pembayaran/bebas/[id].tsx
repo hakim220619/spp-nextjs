@@ -147,6 +147,8 @@ const UserList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [dataPayment, setDataPayment] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
+  const [clientKey, setClientKey] = useState('')
+  const [snapUrl, setSnapUrl] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.PembayaranByFree)
   const router = useRouter()
@@ -215,14 +217,14 @@ const UserList: React.FC = () => {
           body: JSON.stringify({
             dataPayment: dataPayment,
             total_amount: total_amount,
-            user_id: dataPayment.user_id
+            user_id: dataPayment.user_id,
+            school_id: getDataLocal.school_id
           })
         })
         const { transactionToken, orderId, transactionUrl } = await response.json()
 
         if (transactionToken) {
-          var snap: any
-          snap.pay(transactionToken, {
+          ;(window as any).snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
               toast.success('Pembayaran berhasil!')
@@ -329,6 +331,12 @@ const UserList: React.FC = () => {
             onError: function () {
               window.removeEventListener('beforeunload', handleBeforeUnload)
               toast.error('Pembayaran gagal!')
+            },
+            onClose: function () {
+              window.addEventListener('beforeunload', event => {
+                event.preventDefault()
+                event.returnValue = '' // Beberapa browser membutuhkan returnValue kosong
+              })
             }
           })
         } else {
@@ -347,11 +355,43 @@ const UserList: React.FC = () => {
   }
 
   useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js'
-    script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY!)
-    document.body.appendChild(script)
-  }, [])
+    async function fetchClientKey() {
+      try {
+        const response = await fetch(`/api/getsettingapk?school_id=${getDataLocal.school_id}`)
+        const data = await response.json()
+        console.log(response.ok)
+
+        if (response.ok) {
+          setClientKey(data.data.claientKey)
+          setSnapUrl(data.data.urlCreateTransaksiMidtrans)
+        } else {
+          console.error(data.message)
+        }
+      } catch (error) {
+        console.error('Error fetching client key:', error)
+      }
+    }
+    fetchClientKey()
+  }, [getDataLocal.school_id])
+  useEffect(() => {
+    if (clientKey && snapUrl) {
+      const script = document.createElement('script')
+      script.src = snapUrl // Use dynamic snap URL from API
+      script.setAttribute('data-client-key', clientKey)
+      document.body.appendChild(script)
+
+      return () => {
+        document.body.removeChild(script)
+      }
+    }
+  }, [clientKey, snapUrl])
+
+  // useEffect(() => {
+  //   const script = document.createElement('script')
+  //   script.src = `${process.env.NEXT_PUBLIC_MIDTRANS_URL_PROD}` // Ubah ke URL Production
+  //   script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_PROD!)
+  //   document.body.appendChild(script)
+  // }, [])
   const formatRupiah = (value: any) => {
     if (!value) return ''
 

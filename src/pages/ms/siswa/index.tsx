@@ -205,8 +205,6 @@ const UserList = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState<boolean>(true)
   const [majors, setMajors] = useState<any[]>([])
-  const [statuses] = useState<any[]>(['ON', 'OFF'])
-  const [status, setStatus] = useState<any>('')
   const [units, setUnits] = useState<Unit[]>([])
   const [unit, setUnit] = useState<string>('')
 

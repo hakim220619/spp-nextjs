@@ -6,28 +6,24 @@ interface DataParams {
   q: string
   user_id: any
   unit_id: any
-  year: any
-  type: string
-  setting_payment_uid: any
+  clas: any
+  major: string
 }
 
 // ** Fetch Users
-export const ListPaymentReportAdminFree = createAsyncThunk(
-  'appData/ListPaymentReportAdminFree',
-  async (params: DataParams) => {
-    const storedToken = window.localStorage.getItem('token')
-    const customConfig = {
-      params,
-      headers: {
-        Accept: 'application/json',
-        Authorization: 'Bearer ' + storedToken
-      }
+export const ListPaymentTunggakan = createAsyncThunk('appData/ListPaymentTunggakan', async (params: DataParams) => {
+  const storedToken = window.localStorage.getItem('token')
+  const customConfig = {
+    params,
+    headers: {
+      Accept: 'application/json',
+      Authorization: 'Bearer ' + storedToken
     }
-    const response = await axiosConfig.get('/list-report-free', customConfig)
-
-    return response.data
   }
-)
+  const response = await axiosConfig.get('/list-tunggakan', customConfig)
+
+  return response.data
+})
 
 export const appDataSlice = createSlice({
   name: 'appData',
@@ -39,7 +35,7 @@ export const appDataSlice = createSlice({
   },
   reducers: {},
   extraReducers: builder => {
-    builder.addCase(ListPaymentReportAdminFree.fulfilled, (state, action) => {
+    builder.addCase(ListPaymentTunggakan.fulfilled, (state, action) => {
       state.data = action.payload
       state.total = action.payload.total
       state.params = action.payload.params

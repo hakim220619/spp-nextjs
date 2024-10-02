@@ -125,7 +125,7 @@ const AddPaymentDetailByClass = () => {
       })
       if (response.status === 200) {
         toast.success('Pembayaran berhasil disimpan!')
-        router.push(`/ms/setting/pembayaran/bulanan/${SpByUid}`)
+        window.history.back()
       } else {
         toast.error('Terjadi kesalahan saat menyimpan pembayaran. Silakan coba lagi.')
       }
@@ -195,12 +195,7 @@ const AddPaymentDetailByClass = () => {
           >
             {Loading ? 'Loading...' : 'Simpan'}
           </Button>
-          <Button
-            size='large'
-            color='secondary'
-            variant='outlined'
-            onClick={() => router.push(`/ms/setting/pembayaran/bulanan/${uid}`)}
-          >
+          <Button size='large' color='secondary' variant='outlined' onClick={() => window.history.back()}>
             Kembali
           </Button>
         </CardActions>
