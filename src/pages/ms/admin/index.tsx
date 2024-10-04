@@ -21,6 +21,7 @@ import axiosConfig from '../../../configs/axiosConfig'
 import CircularProgress from '@mui/material/CircularProgress'
 import toast from 'react-hot-toast'
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material'
+import urlImage from '../../../configs/url_image'
 
 interface CellType {
   row: UsersType
@@ -92,6 +93,34 @@ const columns: GridColDef[] = [
   { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 290 },
   { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 90 },
   { field: 'school_name', headerName: 'Sekolah', flex: 0.175, minWidth: 80 },
+  {
+    field: 'image',
+    headerName: 'Gambar',
+    flex: 0.175,
+    minWidth: 70,
+    renderCell: params => (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center', // Center horizontally
+          alignItems: 'center', // Center vertically
+          height: '100%' // Ensure the cell height is utilized
+        }}
+      >
+        <img
+          src={`${urlImage}uploads/school/admin/${params.row.school_id}/${params.value}`}
+          alt='image'
+          style={{
+            padding: 2,
+            width: '40px', // Reduced width
+            height: '40px', // Reduced height for a circular shape
+            borderRadius: '50%', // Makes the image circular
+            objectFit: 'cover' // Ensures the image covers the area without stretching
+          }}
+        />
+      </div>
+    )
+  },
   {
     field: 'date_of_birth',
     headerName: 'Tanggal Lahir',

@@ -109,16 +109,16 @@ const FormValidationSchema = () => {
   }
 
   const defaultValues: User = {
-    nisn: '1242324534',
-    full_name: 'asdasd',
-    email: 'sdasd@gmail.com',
-    phone: '6285797887711',
-    password: '12345678',
+    nisn: '',
+    full_name: '',
+    email: '',
+    phone: '',
+    password: '',
     major: '',
     status: 'ON',
     class: '',
     unit_id: '',
-    address: 'asdasd',
+    address: '',
     gambar: null,
     date_of_birth: '',
     school_id: ''
@@ -175,7 +175,7 @@ const FormValidationSchema = () => {
     control,
     handleSubmit,
     formState: { errors },
-    setValue,
+    setValue
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',

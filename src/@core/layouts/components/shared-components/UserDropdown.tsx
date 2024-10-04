@@ -23,6 +23,8 @@ import { useAuth } from 'src/hooks/useAuth'
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
 
+import urlImage from '../../../../configs/url_image'
+
 interface Props {
   settings: Settings
 }
@@ -86,6 +88,7 @@ const UserDropdown = (props: Props) => {
     logout()
     handleDropdownClose()
   }
+  const userData = JSON.parse(localStorage.getItem('userData') as string)
 
   return (
     <Fragment>
@@ -101,7 +104,9 @@ const UserDropdown = (props: Props) => {
       >
         <Avatar
           alt='John Doe'
-          src='/images/avatars/1.png'
+          src={`${urlImage}uploads/school/${userData?.role === 160 ? 'siswa' : 'admin'}/${userData?.school_id}/${
+            userData?.image
+          }`}
           onClick={handleDropdownOpen}
           sx={{ width: 38, height: 38 }}
         />
@@ -124,7 +129,13 @@ const UserDropdown = (props: Props) => {
                 horizontal: 'right'
               }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar
+                alt='John Doe'
+                src={`${urlImage}uploads/school/${userData?.role === 160 ? 'siswa' : 'admin'}/${userData?.school_id}/${
+                  userData?.image
+                }`}
+                sx={{ width: '2.5rem', height: '2.5rem' }}
+              />
             </Badge>
             <Box sx={{ display: 'flex', ml: 2.5, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 500 }}>{getDataLocal.full_name}</Typography>

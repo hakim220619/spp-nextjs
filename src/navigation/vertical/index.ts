@@ -59,6 +59,7 @@ const navigation = (): VerticalNavItemsType => {
         icon: 'tabler:users',
         badgeColor: 'error',
         children: [
+          { title: 'Admin', path: '/ms/admin' },
           { title: 'Siswa', path: '/ms/siswa', subject: 'ms-siswa' },
           { title: 'Kelas', path: '/ms/kelas' },
           { title: 'Jurusan', path: '/ms/jurusan' },
@@ -90,7 +91,10 @@ const navigation = (): VerticalNavItemsType => {
         title: 'Setting',
         icon: 'tabler:settings-cog',
         badgeColor: 'error',
-        children: [{ title: 'Aplikasi', path: '/ms/setting/aplikasi' }]
+        children: [
+          { title: 'Aplikasi', path: '/ms/setting/aplikasi' },
+          { title: 'Template Pesan', path: '/ms/templateMessage' }
+        ]
       }
     ]
   } else if (role === 200) {

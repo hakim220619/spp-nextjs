@@ -155,7 +155,7 @@ const AdminDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+ 10%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-1.png'
+                src: '/images/all/gambar1.png'
               }}
             />
           </Grid>
@@ -168,7 +168,7 @@ const AdminDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+25.5%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-2.png'
+                src: '/images/all/gambar2.png'
               }}
             />
           </Grid>
@@ -181,7 +181,7 @@ const AdminDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+25.5%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-2.png'
+                src: '/images/all/gambar3.png'
               }}
             />
           </Grid>
@@ -194,7 +194,7 @@ const AdminDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+25.5%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-2.png'
+                src: '/images/all/gambar4.png'
               }}
             />
           </Grid>

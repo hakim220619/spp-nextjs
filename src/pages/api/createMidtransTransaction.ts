@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next/types'
 
 // @ts-ignore: midtrans-client has no type definitions
-
 import midtransClient from 'midtrans-client'
 import mysql from 'mysql2/promise'
 

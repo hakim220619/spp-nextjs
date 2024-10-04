@@ -28,10 +28,10 @@ export const fetchDataPermission = createAsyncThunk('appUsers/fetchDataPermissio
 
 export const deletePermission = createAsyncThunk(
   'appUsers/deletePermission',
-  async (uid: number | string, { getState, dispatch }: Redux) => {
+  async (id: number | string, { getState, dispatch }: Redux) => {
     const storedToken = window.localStorage.getItem('token')
     const dataAll = {
-      data: uid
+      data: id
     }
     const customConfig = {
       headers: {
@@ -39,7 +39,7 @@ export const deletePermission = createAsyncThunk(
         Authorization: 'Bearer ' + storedToken
       }
     }
-    const response = await axiosConfig.post('/delete-kelas', dataAll, customConfig)
+    const response = await axiosConfig.post('/delete-permission', dataAll, customConfig)
     const { school_id, q } = getState().Permission
 
     // Memanggil fetchDataPermission untuk memperbarui data setelah penghapusan

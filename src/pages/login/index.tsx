@@ -141,7 +141,27 @@ const LoginPage = () => {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: 400 }}>
-            {/* <img src='/images/LogoPIBT.png' alt='Logo' width={100} height={100} /> */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center', // Mengatur secara horizontal di tengah
+                alignItems: 'center', // Mengatur secara vertikal di tengah
+                height: '20vh', // Menggunakan tinggi penuh layar
+                [theme.breakpoints.up('sm')]: {
+                  display: 'none' // Sembunyikan di layar desktop (lebih dari 600px)
+                }
+              }}
+            >
+              <Box
+                component='img'
+                src='/images/LogoPIBT.png'
+                alt='Logo'
+                sx={{
+                  width: 150,
+                  height: 150
+                }}
+              />
+            </Box>
             <Box sx={{ my: 6 }}>
               <Typography variant='h3' sx={{ mb: 1.5 }}>
                 {`Welcome to ${themeConfig.templateName}! 👋🏻`}

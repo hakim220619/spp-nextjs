@@ -34,7 +34,6 @@ interface FormInputs {
 const schema = yup.object().shape({
   school_id: yup.string().required('School ID is required'),
   title: yup.string().required('Title is required'),
-  path: yup.string().required('Path is required'),
   role: yup.string().required('Role is required'),
   status: yup.string().oneOf(['ON', 'OFF'], 'Invalid status').required('Status is required')
 })

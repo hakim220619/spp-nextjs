@@ -33,7 +33,7 @@ const statusObj: any = {
   OFF: { title: 'OFF', color: 'error' }
 }
 
-const RowOptions = ({ uid }: { uid: any }) => {
+const RowOptions = ({ id }: { id: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
@@ -42,11 +42,11 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowEditedClick = () => router.push('/ms/permission/' + uid)
+  const handleRowEditedClick = () => router.push('/ms/permission/' + id)
 
   const handleDelete = async () => {
     try {
-      await dispatch(deletePermission(uid)).unwrap()
+      await dispatch(deletePermission(id)).unwrap()
       await dispatch(fetchDataPermission({ school_id, q: value }))
       toast.success('Successfully deleted!')
       setOpen(false)
@@ -87,7 +87,7 @@ const RowOptions = ({ uid }: { uid: any }) => {
 
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
-  { field: 'school_name', headerName: 'Nama Sekolah', flex: 0.175, minWidth: 140 },
+  { field: 'school_name', headerName: 'Nama Sekolah', flex: 0.175, minWidth: 240 },
   { field: 'title', headerName: 'Nama Menu', flex: 0.175, minWidth: 140 },
   { field: 'icon', headerName: 'Icon', flex: 0.25, minWidth: 180 },
   { field: 'path', headerName: 'Url Path', flex: 0.25, minWidth: 180 },
@@ -118,7 +118,7 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions uid={row.id} />
+    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
   }
 ]
 
@@ -127,7 +127,7 @@ const PermissionList = () => {
   const getDataLocal = JSON.parse(data)
   const [school_id] = useState<number>(getDataLocal.school_id)
   const [value, setValue] = useState<string>('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState<boolean>(true)
   const [status] = useState<any>('')
   const dispatch = useDispatch<AppDispatch>()

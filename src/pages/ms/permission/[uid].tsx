@@ -24,12 +24,14 @@ const FormValidationSchema = () => {
   const storedToken = window.localStorage.getItem('token')
 
   // State variables
-  const [class_status, setStatus] = useState<string>('ON')
-  const [class_name, setClassName] = useState<string>('')
-  const [class_desc, setClassDesc] = useState<string>('')
+  const [status, setStatus] = useState<string>('ON')
   const [school_id, setSchoolId] = useState<string>('')
-  const [unit_id, setUnitId] = useState<string>('') // New state for unit_id
-  const [units, setUnits] = useState<any[]>([]) // State to hold unit data
+  const [title, setTitle] = useState<string>('')
+  const [icon, setIcon] = useState<string>('')
+  const [path, setPath] = useState<string>('')
+  const [role, setRole] = useState<string>('')
+  const [schools, setSchools] = useState([]) // State for school options
+  const [roles, setRoles] = useState([]) // State for role options
 
   // Fetch class details
   useEffect(() => {
@@ -37,7 +39,7 @@ const FormValidationSchema = () => {
       axiosConfig
         .post(
           '/detailPermission',
-          { uid },
+          { id: uid },
           {
             headers: {
               Accept: 'application/json',
@@ -46,12 +48,13 @@ const FormValidationSchema = () => {
           }
         )
         .then(response => {
-          const { class_name, class_desc, class_status, school_id, unit_id } = response.data
-          setClassName(class_name)
-          setClassDesc(class_desc)
-          setStatus(class_status)
+          const { status, school_id, title, icon, path, role } = response.data
+          setStatus(status)
           setSchoolId(school_id)
-          setUnitId(unit_id) // Set unit_id from response
+          setTitle(title)
+          setIcon(icon)
+          setPath(path)
+          setRole(role)
         })
         .catch(error => {
           console.error('Error fetching class details:', error)
@@ -59,50 +62,63 @@ const FormValidationSchema = () => {
     }
   }, [uid, storedToken])
 
-  // Fetch units
   useEffect(() => {
-    const fetchUnits = async () => {
+    const fetchSchools = async () => {
       try {
-        const response = await axiosConfig.get('/getUnit', {
+        const response = await axiosConfig.get('/getSchool', {
           headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${window.localStorage.getItem('token')}`
           }
         })
-
-        const userData = JSON.parse(localStorage.getItem('userData') as any)
-        const schoolId = userData ? userData.school_id : null // Retrieve school_id from userData
-
-        if (schoolId) {
-          const filteredUnits = response.data.filter((unit: any) => unit.school_id === schoolId)
-          setUnits(filteredUnits) // Set the filtered units
-        } else {
-          console.warn('No school_id found in userData')
-          setUnits([]) // Or handle accordingly if no school_id is found
-        }
+        setSchools(response.data)
       } catch (error) {
-        console.error('Failed to fetch units:', error)
-        toast.error('Failed to load units')
+        console.error('Failed to fetch schools:', error)
+        toast.error('Failed to load schools')
       }
     }
 
-    fetchUnits()
+    const fetchRoles = async () => {
+      try {
+        const response = await axiosConfig.get('/getRole', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${window.localStorage.getItem('token')}`
+          }
+        })
+        setRoles(response.data)
+      } catch (error) {
+        console.error('Failed to fetch roles:', error)
+        toast.error('Failed to load roles')
+      }
+    }
+
+    fetchSchools()
+    fetchRoles()
   }, [])
+
+  const handleRoleChange = (event: any) => {
+    setRole(event.target.value)
+  }
+
+  const handleSchoolChange = (event: any) => {
+    setSchoolId(event.target.value)
+  }
 
   const onSubmit = () => {
     const formData = {
-      uid: uid,
+      id: uid,
       school_id: school_id,
-      class_name,
-      class_desc,
-      class_status,
-      unit_id // Include unit_id in form data
+      title,
+      icon,
+      path,
+      role
     }
 
     if (storedToken) {
       axiosConfig
         .post(
-          '/update-kelas',
+          '/update-permission',
           { data: formData },
           {
             headers: {
@@ -113,7 +129,7 @@ const FormValidationSchema = () => {
         )
         .then(() => {
           toast.success('Successfully Updated!')
-          router.push('/ms/kelas')
+          router.push('/ms/permission')
         })
         .catch(() => {
           toast.error("Failed. This didn't work.")
@@ -127,50 +143,74 @@ const FormValidationSchema = () => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={5}>
-            {/* Unit Selection Field */}
+            {/* Title Field */}
             <Grid item xs={6}>
-              <CustomTextField select fullWidth label='Unit' value={unit_id} onChange={e => setUnitId(e.target.value)}>
-                {units.map(unit => (
-                  <MenuItem key={unit.id} value={unit.id}>
-                    {unit.unit_name}
+              <CustomTextField
+                fullWidth
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                label='Title'
+                placeholder='Title'
+              />
+            </Grid>
+
+            {/* Icon Field */}
+            <Grid item xs={6}>
+              <CustomTextField
+                fullWidth
+                value={icon}
+                onChange={e => setIcon(e.target.value)}
+                label='Icon'
+                placeholder='Icon'
+              />
+            </Grid>
+
+            {/* Path Field */}
+            <Grid item xs={6}>
+              <CustomTextField
+                fullWidth
+                value={path}
+                onChange={e => setPath(e.target.value)}
+                label='Path'
+                placeholder='Path'
+              />
+            </Grid>
+
+            {/* Role Field */}
+            <Grid item xs={6}>
+              <CustomTextField select fullWidth label='Role' value={role} onChange={handleRoleChange}>
+                <MenuItem value='' disabled>
+                  Select Role
+                </MenuItem>
+                {roles // Filter to exclude ID 160
+                  .map((role: any) => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.role_name}
+                    </MenuItem>
+                  ))}
+              </CustomTextField>
+            </Grid>
+
+            {/* School Field */}
+            <Grid item xs={6}>
+              <CustomTextField select fullWidth label='School' value={school_id} onChange={handleSchoolChange}>
+                <MenuItem value='' disabled>
+                  Select School
+                </MenuItem>
+                {schools.map((schoolItem: any) => (
+                  <MenuItem key={schoolItem.id} value={schoolItem.id}>
+                    {schoolItem.school_name}
                   </MenuItem>
                 ))}
               </CustomTextField>
             </Grid>
-            {/* Class Name Field */}
-            <Grid item xs={6}>
-              <CustomTextField
-                fullWidth
-                value={class_name}
-                onChange={e => setClassName(e.target.value)}
-                label='Nama Kelas'
-                placeholder='Nama Kelas'
-              />
-            </Grid>
 
             {/* Class Status Field */}
             <Grid item xs={6}>
-              <CustomTextField
-                select
-                fullWidth
-                label='Status'
-                value={class_status}
-                onChange={e => setStatus(e.target.value)}
-              >
+              <CustomTextField select fullWidth label='Status' value={status} onChange={e => setStatus(e.target.value)}>
                 <MenuItem value='ON'>ON</MenuItem>
                 <MenuItem value='OFF'>OFF</MenuItem>
               </CustomTextField>
-            </Grid>
-
-            {/* Class Description Field */}
-            <Grid item xs={6}>
-              <CustomTextField
-                fullWidth
-                value={class_desc}
-                onChange={e => setClassDesc(e.target.value)}
-                label='Deskripsi'
-                placeholder='Deskripsi'
-              />
             </Grid>
 
             {/* Submit Button */}

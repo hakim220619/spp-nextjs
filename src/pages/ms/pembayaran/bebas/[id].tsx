@@ -222,17 +222,23 @@ const UserList: React.FC = () => {
           })
         })
         const { transactionToken, orderId, transactionUrl } = await response.json()
+        console.log(transactionUrl)
 
         if (transactionToken) {
           ;(window as any).snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
               toast.success('Pembayaran berhasil!')
+              if (!toastShown) {
+                toast.success('Data pembayaran pending berhasil dikirim.')
+                setToastShown(true) // Set state to true to prevent multiple toasts
+              }
+
               try {
                 // Mengirim data pending payment ke API /create-payment-pending menggunakan Axios
                 axiosConfig
                   .post(
-                    '/create-payment-success-Free',
+                    '/create-payment-pending-Free',
                     {
                       dataPayment: dataPayment,
                       order_id: orderId,
@@ -273,7 +279,6 @@ const UserList: React.FC = () => {
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
-              window.removeEventListener('beforeunload', handleBeforeUnload)
             },
             onPending: function () {
               if (!toastShown) {
@@ -326,17 +331,9 @@ const UserList: React.FC = () => {
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
-              window.removeEventListener('beforeunload', handleBeforeUnload)
             },
             onError: function () {
-              window.removeEventListener('beforeunload', handleBeforeUnload)
               toast.error('Pembayaran gagal!')
-            },
-            onClose: function () {
-              window.addEventListener('beforeunload', event => {
-                event.preventDefault()
-                event.returnValue = '' // Beberapa browser membutuhkan returnValue kosong
-              })
             }
           })
         } else {
@@ -349,10 +346,6 @@ const UserList: React.FC = () => {
       toast.error('Data tidak lengkap. Pastikan semua informasi sudah diisi.')
     }
   }
-  const handleBeforeUnload = function (e: any) {
-    e.preventDefault()
-    e.returnValue = '' // Mencegah default behavior redirect
-  }
 
   useEffect(() => {
     async function fetchClientKey() {
@@ -363,7 +356,7 @@ const UserList: React.FC = () => {
 
         if (response.ok) {
           setClientKey(data.data.claientKey)
-          setSnapUrl(data.data.urlCreateTransaksiMidtrans)
+          setSnapUrl(data.data.snapUrl)
         } else {
           console.error(data.message)
         }

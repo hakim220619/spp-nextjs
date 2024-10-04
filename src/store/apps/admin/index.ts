@@ -5,7 +5,7 @@ import axiosConfig from 'src/configs/axiosConfig'
 interface DataParams {
   q: string
   status: string
-  school: string
+  school: any
   role: string
 }
 interface Redux {
@@ -16,6 +16,8 @@ interface Redux {
 // ** Fetch Users
 export const fetchData = createAsyncThunk('appUsers/fetchData', async (params: DataParams) => {
   const storedToken = window.localStorage.getItem('token')
+  const userData = JSON.parse(localStorage.getItem('userData') as string)
+
   const customConfig = {
     params,
     headers: {
@@ -25,7 +27,21 @@ export const fetchData = createAsyncThunk('appUsers/fetchData', async (params: D
   }
   const response = await axiosConfig.get('/list-admin', customConfig)
 
-  return response.data
+  // Cek apakah school_id ada di params, dan filter berdasarkan school_id
+  const school_id = userData.school_id
+
+  let filteredData
+
+  if (school_id == 1) {
+    // Jika school_id = 1, tampilkan semua data
+    filteredData = response.data
+  } else {
+    // Filter data berdasarkan school_id
+    filteredData = response.data.filter((item: any) => item.school_id === school_id && item.role !== 180)
+  }
+  console.log(filteredData)
+
+  return filteredData
 })
 
 export const deleteUser = createAsyncThunk(
@@ -42,7 +58,7 @@ export const deleteUser = createAsyncThunk(
       }
     }
     const response = await axiosConfig.post('/delete-admin', dataAll, customConfig)
-    const { role, status, school, q } = getState().admin
+    const { role, status, school, q } = getState().Admin
 
     // Memanggil fetchData untuk memperbarui data setelah penghapusan
     dispatch(fetchData({ role, status, school, q }))

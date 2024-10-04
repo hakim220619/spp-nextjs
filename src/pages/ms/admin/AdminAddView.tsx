@@ -38,7 +38,7 @@ interface User {
   status: 'ON' | 'OFF'
   role: string
   address: string
-  image: File | null
+  gambar: File | null
   date_of_birth: '' // Add default value for date_of_birth
 }
 
@@ -76,29 +76,37 @@ const FormValidationSchema = () => {
   const [schools, setSchools] = useState<School[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [showPassword, setShowPassword] = useState(false)
+  const [image, setGambarValue] = useState<File>()
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword)
   }
 
   const defaultValues: any = {
-    full_name: 'asdasd',
-    email: 'sdasd@gmail.com',
-    phone: '6285797887711',
-    password: '12345678',
+    full_name: '',
+    email: '',
+    phone: '',
+    password: '',
     school: '',
     status: 'ON',
     role: '',
-    address: 'asdasd',
-    image: null,
+    address: '',
+    gambar: null,
     date_of_birth: ''
   }
 
   // Fetch Schools and Roles using useEffect
   useEffect(() => {
     const storedToken = window.localStorage.getItem('token')
+    const userData = JSON.parse(localStorage.getItem('userData') as string) || {} // Tambahkan fallback object kosong jika userData tidak ada
 
     const fetchSchools = async () => {
+      if (!storedToken) {
+        console.error('No token found in localStorage')
+        
+        return
+      }
+
       try {
         const response = await axiosConfig.get('/getSchool', {
           headers: {
@@ -106,9 +114,21 @@ const FormValidationSchema = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setSchools(response.data)
-      } catch (error) {
-        console.error('Error fetching schools:', error)
+
+        const schools = response.data
+        const userSchoolId = userData?.school_id // Gunakan optional chaining
+
+        if (userSchoolId === 1) {
+          // User dengan school_id 1 bisa melihat semua sekolah
+          setSchools(schools)
+        } else {
+          // Filter berdasarkan school_id user
+          const filteredSchools = schools.filter((school: { id: number }) => school.id === userSchoolId)
+
+          setSchools(filteredSchools)
+        }
+      } catch (error: any) {
+        console.error('Error fetching schools:', error.response?.data || error.message)
       }
     }
 
@@ -120,7 +140,17 @@ const FormValidationSchema = () => {
             Authorization: `Bearer ${storedToken}`
           }
         })
-        setRoles(response.data)
+
+        let rolesData = response.data
+        const userSchoolId = userData?.school_id // Gunakan optional chaining
+
+        // Cek apakah school_id == 1, jika ya, tampilkan semua role
+        if (userSchoolId !== 1) {
+          // Jika school_id bukan 1, filter role yang memiliki id 150 dan 180
+          rolesData = rolesData.filter((role: any) => role.id === 170 || role.id === 190 || role.id === 200)
+        }
+
+        setRoles(rolesData)
       } catch (error) {
         console.error('Error fetching roles:', error)
       }
@@ -134,7 +164,6 @@ const FormValidationSchema = () => {
     control,
     handleSubmit,
     formState: { errors },
-    setValue
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
@@ -148,16 +177,15 @@ const FormValidationSchema = () => {
     formData.append('email', data.email)
     formData.append('phone', data.phone)
     formData.append('password', data.password)
-    formData.append('school', data.school)
+    formData.append('school_id', data.school)
     formData.append('status', data.status)
     formData.append('role', data.role)
     formData.append('address', data.address)
     formData.append('date_of_birth', localDate)
 
-    if (data.image) {
-      formData.append('image', data.image)
+    if (image) {
+      formData.append('image', image)
     }
-
     const storedToken = window.localStorage.getItem('token')
     axiosConfig
       .post('/create-admin', formData, {
@@ -339,26 +367,28 @@ const FormValidationSchema = () => {
 
             <Grid item xs={6}>
               <Controller
-                name='image'
+                name='gambar'
                 control={control}
                 render={({ field: { onChange } }) => (
                   <CustomTextField
                     fullWidth
+                    name='gambar'
                     type='file'
-                    label='Upload Image'
+                    label='Upload Gambar'
                     InputLabelProps={{
-                      shrink: true // Agar label tetap muncul meskipun input type file
+                      shrink: true
                     }}
                     inputProps={{
                       accept: 'image/*'
                     }}
                     onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      const file = event.target.files?.[0] || null
-                      setValue('image', file)
-                      onChange(event) // Triggers form update
+                      const file = event.target.files?.[0]
+
+                      setGambarValue(file)
+                      onChange(event)
                     }}
-                    error={Boolean(errors.image)}
-                    helperText={errors.image?.message}
+                    error={Boolean(errors.gambar)}
+                    helperText={errors.gambar?.message}
                   />
                 )}
               />
@@ -413,7 +443,7 @@ const FormValidationSchema = () => {
                 Submit
               </Button>
               <Box m={1} display='inline' />
-              <Link href='/ms/users' passHref>
+              <Link href='/ms/admin' passHref>
                 <Button type='button' variant='contained' color='secondary'>
                   Back
                 </Button>

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 // ** MUI Imports
@@ -42,45 +42,13 @@ const FormValidationSchema = () => {
   const [status, setStatus] = useState<string>('ON')
   const [role, setRole] = useState<string>('')
   const [address, setAddress] = useState<string>('')
-  const [image] = useState<File | null>(null)
+  const [image, setImage] = useState<File | null>(null)
   const [roles, setRoles] = useState<Role[]>([])
   const [schools, setSchools] = useState<School[]>([])
   const [updated_by] = useState<string>(userData.id)
   const [dateOfBirth, setDateOfBirth] = useState<string>('')
-
   const router = useRouter()
   const { uid } = router.query
-
-  const fetchSchools = async () => {
-    const storedToken = window.localStorage.getItem('token')
-    try {
-      const response = await axiosConfig.get('/getSchool', {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${storedToken}`
-        }
-      })
-      setSchools(response.data)
-    } catch (error) {
-      console.error('Error fetching schools:', error)
-    }
-  }
-
-  const fetchRoles = async () => {
-    const storedToken = window.localStorage.getItem('token')
-    try {
-      const response = await axiosConfig.get('/getRole', {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${storedToken}`
-        }
-      })
-      const filteredRoles = response.data.filter((role: Role) => role.id !== '160')
-      setRoles(filteredRoles)
-    } catch (error) {
-      console.error('Error fetching roles:', error)
-    }
-  }
 
   useEffect(() => {
     const storedToken = window.localStorage.getItem('token')
@@ -98,7 +66,6 @@ const FormValidationSchema = () => {
         )
         .then(response => {
           const { email, full_name, phone, address, role, school_id, status, date_of_birth } = response.data
-          console.log(response.data)
           const localDate = new Date(date_of_birth).toLocaleDateString('en-CA') //
 
           setEmail(email)
@@ -110,6 +77,48 @@ const FormValidationSchema = () => {
           setStatus(status)
           setDateOfBirth(localDate.slice(0, 10))
         })
+    }
+    const fetchSchools = async () => {
+      const storedToken = window.localStorage.getItem('token')
+      try {
+        const response = await axiosConfig.get('/getSchool', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const schools = response.data
+        const userSchoolId = userData.school_id
+        if (userSchoolId === 1) {
+          // User dengan school_id 1 bisa melihat semua sekolah
+          setSchools(schools)
+        } else {
+          // Filter berdasarkan school_id user
+          const filteredSchools = schools.filter((school: { id: number }) => school.id === userSchoolId)
+
+          setSchools(filteredSchools)
+        }
+      } catch (error) {
+        console.error('Error fetching schools:', error)
+      }
+    }
+
+    const fetchRoles = async () => {
+      const storedToken = window.localStorage.getItem('token')
+      try {
+        const response = await axiosConfig.get('/getRole', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${storedToken}`
+          }
+        })
+        const filteredRoles = response.data.filter(
+          (role: Role) => role.id === 170 || role.id === 190 || role.id === 200
+        )
+        setRoles(filteredRoles)
+      } catch (error) {
+        console.error('Error fetching roles:', error)
+      }
     }
 
     // Fetch schools and roles when component loads
@@ -167,29 +176,33 @@ const FormValidationSchema = () => {
     }
 
     const storedToken = window.localStorage.getItem('token')
-    const formData = {
-      uid,
-      full_name: fullName,
-      email,
-      phone,
-      school,
-      status,
-      role,
-      address,
-      image,
-      updated_by,
-      date_of_birth: dateOfBirth
+
+    // Membuat objek formData menggunakan FormData
+    const formData = new FormData()
+    formData.append('uid', uid as string)
+    formData.append('full_name', fullName)
+    formData.append('email', email)
+    formData.append('phone', phone)
+    formData.append('school_id', school)
+    formData.append('status', status)
+    formData.append('role', role)
+    formData.append('address', address)
+    formData.append('updated_by', updated_by)
+    formData.append('date_of_birth', dateOfBirth)
+    if (image) {
+      formData.append('image', image) // Append the image file
     }
 
     if (storedToken) {
       axiosConfig
         .post(
           '/update-admin',
-          { data: formData },
+          formData, // Mengirim formData
           {
             headers: {
               Accept: 'application/json',
-              Authorization: `Bearer ${storedToken}`
+              Authorization: `Bearer ${storedToken}`,
+              'Content-Type': 'multipart/form-data' // Mengatur konten tipe untuk FormData
             }
           }
         )
@@ -282,6 +295,27 @@ const FormValidationSchema = () => {
                 onChange={e => setDateOfBirth(e.target.value)}
                 label='Date of Birth'
                 InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <CustomTextField
+                fullWidth
+                name='image'
+                type='file'
+                label='Gambar'
+                InputLabelProps={{
+                  shrink: true
+                }}
+                inputProps={{
+                  accept: 'image/png, image/jpeg'
+                }}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  const file = event.target.files?.[0]
+                  if (file) {
+                    // You can set the image state here if needed
+                    setImage(file) // Assuming setGambarValue is defined in your state
+                  }
+                }}
               />
             </Grid>
 

@@ -158,14 +158,13 @@ const UserList: React.FC = () => {
         })
 
         const { transactionToken, orderId, transactionUrl } = await response.json() // Hapus transactionUrl
-        console.log(transactionUrl)
+        console.log(transactionToken)
 
         if (transactionToken) {
           ;(window as any).snap.pay(transactionToken, {
             // autoRedirect: false, // Disable auto redirect for all statuses
             onSuccess: function () {
               if (!toastShown) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
                 toast.success('Data pembayaran pending berhasil dikirim.')
                 setToastShown(true)
               }
@@ -203,29 +202,21 @@ const UserList: React.FC = () => {
                         setJumlah('0')
                       })
                     } else {
-                      window.removeEventListener('beforeunload', handleBeforeUnload)
-
                       toast.error('Gagal mengirim data pembayaran pending.')
                     }
                   })
                   .catch(error => {
-                    window.removeEventListener('beforeunload', handleBeforeUnload)
-
                     console.error('Error sending pending payment data:', error)
                     toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
                   })
               } catch (error) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
-
                 console.error('Error:', error)
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
-              window.addEventListener('beforeunload', handleBeforeUnload)
             },
             onPending: function () {
               if (!toastShown) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
                 toast.success('Data pembayaran pending berhasil dikirim.')
                 setToastShown(true)
               }
@@ -263,31 +254,24 @@ const UserList: React.FC = () => {
                         setJumlah('0')
                       })
                     } else {
-                      window.removeEventListener('beforeunload', handleBeforeUnload)
-
                       toast.error('Gagal mengirim data pembayaran pending.')
                     }
                   })
                   .catch(error => {
-                    window.removeEventListener('beforeunload', handleBeforeUnload)
-
                     console.error('Error sending pending payment data:', error)
                     toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
                   })
               } catch (error) {
-                window.removeEventListener('beforeunload', handleBeforeUnload)
-
                 console.error('Error:', error)
 
                 // toast.error('Terjadi kesalahan saat mengirim data pembayaran pending.')
               }
-              window.addEventListener('beforeunload', handleBeforeUnload)
 
               // Logika lain untuk status pending
             },
             onError: function () {
               // Hapus event listener ketika terjadi error
-              window.removeEventListener('beforeunload', handleBeforeUnload)
+
               toast.error('Pembayaran gagal!')
             }
           })
@@ -302,12 +286,6 @@ const UserList: React.FC = () => {
     }
   }
 
-  // Fungsi event handler untuk mencegah redirect atau unload
-  const handleBeforeUnload = function (e: any) {
-    e.preventDefault()
-    e.returnValue = '' // Mencegah default behavior redirect
-  }
-
   useEffect(() => {
     async function fetchClientKey() {
       try {
@@ -315,7 +293,7 @@ const UserList: React.FC = () => {
         const data = await response.json()
         if (response.ok) {
           setClientKey(data.data.claientKey)
-          setSnapUrl(data.data.urlCreateTransaksiMidtrans)
+          setSnapUrl(data.data.snapUrl)
         } else {
           console.error(data.message)
         }

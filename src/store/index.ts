@@ -20,6 +20,7 @@ import ListPaymentReportAdmin from 'src/store/apps/laporan/index'
 import ListPaymentReportAdminFree from 'src/store/apps/laporan/free'
 import ListPaymentTunggakan from 'src/store/apps/tunggakan/index'
 import Permission from 'src/store/apps/permission/index'
+import TemplateMessage from 'src/store/apps/templateMessage/index'
 import SettingPembayaranDetail from 'src/store/apps/setting/pembayaran/detail/index'
 
 export const store = configureStore({
@@ -42,6 +43,7 @@ export const store = configureStore({
     ListPaymentReportAdminFree,
     ListPaymentTunggakan,
     Permission,
+    TemplateMessage,
     ListPaymentDashboardByMonthAdmin
   },
   middleware: getDefaultMiddleware =>
