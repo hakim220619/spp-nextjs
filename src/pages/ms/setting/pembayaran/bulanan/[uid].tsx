@@ -152,7 +152,7 @@ const columns: GridColDef[] = [
     field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 150,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.type]
 
@@ -172,7 +172,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Status',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
 
@@ -225,7 +225,6 @@ const SettingPembayaran = () => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Delay by 2 seconds (2000 milliseconds)
         await new Promise(resolve => setTimeout(resolve, 1000))
         await dispatch(
           fetchDataSettingPembayaranDetail({ unit_id: unit, school_id, clas, major, setting_payment_uid, q: value })
@@ -246,7 +245,6 @@ const SettingPembayaran = () => {
           }
         })
 
-        // Filter response.data berdasarkan unit_id
         const filteredClasses = response.data.filter((clas: any) => clas.unit_id == unit_id)
 
         setClases(filteredClasses)
@@ -293,7 +291,7 @@ const SettingPembayaran = () => {
   }, [dispatch, unit, school_id, clas, major, setting_payment_uid, storedToken, schoolId, unit_id, value])
   useEffect(() => {
     if (unit_id) {
-      setUnit(unit_id as string) // Atur unit awal berdasarkan unit_id yang diberikan
+      setUnit(unit_id as string)
     }
   }, [unit_id])
 
@@ -323,48 +321,33 @@ const SettingPembayaran = () => {
         <Card>
           <CardHeader title='Pengaturan Pembayaran' />
           <CardContent>
-            <Grid container spacing={12}>
-              <Grid item xs={4}>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
-                  onClick={handleNavigate}
-                >
+            <Grid container spacing={6} direction='row'>
+              <Grid item xs={12} sm={4}>
+                <Button variant='contained' color='primary' sx={{ width: '100%' }} onClick={handleNavigate}>
                   <Icon fontSize='1.125rem' icon='tabler:plus' />
                   Pembayaran Baru Kelas
                 </Button>
               </Grid>
 
-              <Grid item xs={4}>
-                <Button
-                  variant='contained'
-                  color='success'
-                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
-                  onClick={handleNavigateSiswa}
-                >
+              <Grid item xs={12} sm={4}>
+                <Button variant='contained' color='success' sx={{ width: '100%' }} onClick={handleNavigateSiswa}>
                   <Icon fontSize='1.125rem' icon='tabler:plus' />
                   Buat Pembayaran Siswa
                 </Button>
               </Grid>
-              <Grid item xs={4}>
-                <Button
-                  variant='contained'
-                  color='secondary'
-                  sx={{ '& svg': { mr: 2 }, width: '100%' }}
-                  onClick={handleNavigateBack}
-                >
+              <Grid item xs={12} sm={4}>
+                <Button variant='contained' color='secondary' sx={{ width: '100%' }} onClick={handleNavigateBack}>
                   <Icon fontSize='1.125rem' icon='tabler:reload' />
                   Kembali
                 </Button>
               </Grid>
-              <Grid item sm={4} xs={12}>
+              <Grid item xs={12} sm={4}>
                 <InputLabel>Unit</InputLabel>
                 <CustomTextField
                   select
                   fullWidth
-                  value={unit} // Unit yang terpilih otomatis
-                  onChange={handleUnitChange} // Meng-handle perubahan pilihan
+                  value={unit}
+                  onChange={handleUnitChange}
                   SelectProps={{
                     displayEmpty: true
                   }}
@@ -386,7 +369,7 @@ const SettingPembayaran = () => {
                   value={major}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleMajorChange as any // Perbaiki ini dengan benar mengikat handleMajorChange
+                    onChange: handleMajorChange as any
                   }}
                 >
                   <MenuItem value=''>Pilih Jurusan</MenuItem>
@@ -399,7 +382,6 @@ const SettingPembayaran = () => {
                 </CustomTextField>
               </Grid>
 
-              {/* Filtered Class Selection */}
               <Grid item xs={12} sm={4}>
                 <InputLabel>Kelas</InputLabel>
                 <CustomTextField
@@ -408,7 +390,7 @@ const SettingPembayaran = () => {
                   value={clas}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleClassChange as any // Perbaiki ini dengan benar mengikat handleClassChange
+                    onChange: handleClassChange as any
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>

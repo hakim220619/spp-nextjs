@@ -325,7 +325,7 @@ const FormValidationSchema = () => {
                 ))}
               </CustomTextField>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6}>
               <CustomTextField
                 fullWidth
                 type='file'

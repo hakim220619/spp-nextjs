@@ -57,7 +57,7 @@ const columns: GridColDef[] = [
     field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 150,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.type]
 
@@ -84,7 +84,6 @@ const columns: GridColDef[] = [
       return row.pending - (row.detail_verified + row.detail_paid)
     },
     valueFormatter: ({ value }) => {
-      
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -124,12 +123,12 @@ const columns: GridColDef[] = [
       }).format(value)
     }
   },
-  { field: 'years', headerName: 'Tahun', flex: 0.175, maxWidth: 120 },
+  { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 120 },
   {
     field: 'status_lunas',
     headerName: 'Status',
     flex: 0.175,
-    maxWidth: 240,
+    minWidth: 140,
     renderCell: (params: GridRenderCellParams) => {
       const statusKey = params.row.type === 'BULANAN' ? 'status_lunas' : 'status_lunas_detail'
       const status = statusObj[params.row[statusKey]]

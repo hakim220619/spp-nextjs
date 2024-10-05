@@ -27,7 +27,9 @@ import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { DateType } from 'src/types/forms/reactDatepickerTypes'
 import { IconButton, InputAdornment } from '@mui/material'
-import { GridVisibilityOffIcon } from '@mui/x-data-grid'
+
+// ** Icon Imports
+import Icon from 'src/@core/components/icon'
 
 interface User {
   full_name: string
@@ -78,10 +80,6 @@ const FormValidationSchema = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [image, setGambarValue] = useState<File>()
 
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword)
-  }
-
   const defaultValues: any = {
     full_name: '',
     email: '',
@@ -103,7 +101,7 @@ const FormValidationSchema = () => {
     const fetchSchools = async () => {
       if (!storedToken) {
         console.error('No token found in localStorage')
-        
+
         return
       }
 
@@ -163,7 +161,7 @@ const FormValidationSchema = () => {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors }
   } = useForm<User>({
     defaultValues,
     mode: 'onChange',
@@ -211,8 +209,8 @@ const FormValidationSchema = () => {
       <CardHeader title='Add New User' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={5}>
-            <Grid item xs={6}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='full_name'
                 control={control}
@@ -230,7 +228,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='email'
                 control={control}
@@ -249,25 +247,38 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='phone'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
-                    value={value}
+                    value={value.startsWith('62') ? value : `62${value}`} // Ensure the value always starts with 62
                     label='No. Wa'
-                    onChange={onChange}
+                    onChange={e => {
+                      const newValue = e.target.value
+
+                      // Allow only numeric characters and prevent deletion of the '62' prefix
+                      if (/^\d*$/.test(newValue)) {
+                        if (newValue.startsWith('62')) {
+                          onChange(newValue)
+                        } else if (!newValue) {
+                          // If input is cleared, reset it to '62'
+                          onChange('62')
+                        }
+                      }
+                    }}
                     placeholder='628123456789'
                     error={Boolean(errors.phone)}
                     helperText={errors.phone?.message}
+                    inputProps={{ maxLength: 15 }} // Limit max length if necessary
                   />
                 )}
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='password'
                 control={control}
@@ -283,8 +294,12 @@ const FormValidationSchema = () => {
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position='end'>
-                          <IconButton onClick={handleClickShowPassword} edge='end'>
-                            {showPassword ? <GridVisibilityOffIcon /> : <GridVisibilityOffIcon />}
+                          <IconButton
+                            edge='end'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            <Icon fontSize='1.25rem' icon={showPassword ? 'tabler:eye' : 'tabler:eye-off'} />
                           </IconButton>
                         </InputAdornment>
                       )
@@ -294,7 +309,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='school'
                 control={control}
@@ -318,7 +333,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='role'
                 control={control}
@@ -344,7 +359,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='status'
                 control={control}
@@ -365,7 +380,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='gambar'
                 control={control}
@@ -393,7 +408,8 @@ const FormValidationSchema = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='date_of_birth'
                 control={control}
@@ -420,13 +436,15 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={12} md={12}>
               <Controller
                 name='address'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
+                    multiline
+                    rows={2}
                     value={value}
                     label='Alamat'
                     onChange={onChange}

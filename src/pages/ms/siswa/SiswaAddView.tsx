@@ -196,7 +196,7 @@ const FormValidationSchema = () => {
     const localDate = new Date(data.date_of_birth).toLocaleDateString('en-CA')
     const formData = new FormData()
     formData.append('nisn', data.nisn)
-    formData.append('full_name', data.full_name)
+    formData.append('full_name', data.full_name.toUpperCase())
     formData.append('email', data.email)
     formData.append('phone', data.phone)
     formData.append('password', data.password)
@@ -246,8 +246,9 @@ const FormValidationSchema = () => {
       <CardHeader title='Tambah Siswa' />
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Grid container spacing={5}>
-            <Grid item xs={6}>
+          <Grid container spacing={3} justifyContent='center' alignItems='center'>
+            {/* Unit ID Field */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='unit_id'
                 control={control}
@@ -258,7 +259,7 @@ const FormValidationSchema = () => {
                     value={value}
                     label='Unit'
                     onChange={e => {
-                      setSelectedUnitId(e.target.value) // Set selected unit ID
+                      setSelectedUnitId(e.target.value)
                       onChange(e)
                     }}
                     error={Boolean(errors.unit_id)}
@@ -273,7 +274,8 @@ const FormValidationSchema = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
+
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='nisn'
                 control={control}
@@ -286,11 +288,22 @@ const FormValidationSchema = () => {
                     placeholder='1242324534'
                     error={Boolean(errors.nisn)}
                     helperText={errors.nisn?.message}
+                    inputProps={{
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                      onKeyPress: event => {
+                        if (!/[0-9]/.test(event.key)) {
+                          event.preventDefault() // Blocks any non-numeric input
+                        }
+                      }
+                    }}
                   />
                 )}
               />
             </Grid>
-            <Grid item xs={6}>
+
+            {/* Full Name Field */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='full_name'
                 control={control}
@@ -308,7 +321,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            {/* Email Field */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='email'
                 control={control}
@@ -327,25 +341,39 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={4}>
               <Controller
                 name='phone'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
-                    value={value}
-                    label='No. WA'
-                    onChange={onChange}
+                    value={value.startsWith('62') ? value : `62${value}`} // Ensure the value always starts with 62
+                    label='No. Wa'
+                    onChange={e => {
+                      const newValue = e.target.value
+                      
+                      // Allow only numeric characters and prevent deletion of the '62' prefix
+                      if (/^\d*$/.test(newValue)) {
+                        if (newValue.startsWith('62')) {
+                          onChange(newValue)
+                        } else if (!newValue) {
+                          // If input is cleared, reset it to '62'
+                          onChange('62')
+                        }
+                      }
+                    }}
                     placeholder='628123456789'
                     error={Boolean(errors.phone)}
                     helperText={errors.phone?.message}
+                    inputProps={{ maxLength: 15 }} // Limit max length if necessary
                   />
                 )}
               />
             </Grid>
 
-            <Grid item xs={6}>
+            {/* Password Field */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='password'
                 control={control}
@@ -376,9 +404,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            {/* Conditionally Render Class Dropdown */}
-
-            <Grid item xs={6}>
+            {/* Class Dropdown */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='class'
                 control={control}
@@ -402,9 +429,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            {/* Conditionally Render Major Dropdown */}
-
-            <Grid item xs={6}>
+            {/* Major Dropdown */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='major'
                 control={control}
@@ -428,7 +454,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            {/* Status Dropdown */}
+            <Grid item xs={12} sm={6} md={4} lg={4}>
               <Controller
                 name='status'
                 control={control}
@@ -449,7 +476,8 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            {/* Gambar Upload */}
+            <Grid item xs={12} sm={6} md={4} lg={6}>
               <Controller
                 name='gambar'
                 control={control}
@@ -467,7 +495,6 @@ const FormValidationSchema = () => {
                     }}
                     onChange={(event: ChangeEvent<HTMLInputElement>) => {
                       const file = event.target.files?.[0]
-
                       setGambarValue(file)
                       onChange(event)
                     }}
@@ -477,7 +504,9 @@ const FormValidationSchema = () => {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+
+            {/* Date of Birth Field */}
+            <Grid item xs={12} sm={6} md={4} lg={6}>
               <Controller
                 name='date_of_birth'
                 control={control}
@@ -504,13 +533,16 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
-            <Grid item xs={6}>
+            {/* Address Field */}
+            <Grid item xs={12} sm={12} md={12} lg={12}>
               <Controller
                 name='address'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
+                    multiline
+                    rows={2}
                     value={value}
                     label='Alamat'
                     onChange={onChange}
@@ -522,6 +554,7 @@ const FormValidationSchema = () => {
               />
             </Grid>
 
+            {/* Submit and Back Buttons */}
             <Grid item xs={12}>
               <Button type='submit' variant='contained' disabled={loading}>
                 {loading ? <CircularProgress size={24} /> : 'Submit'}

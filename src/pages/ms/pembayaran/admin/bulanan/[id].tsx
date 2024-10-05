@@ -209,7 +209,9 @@ const UserList: React.FC = () => {
 
   return (
     <Grid container spacing={6.5}>
-      <Grid item xs={9}>
+      <Grid item xs={12} md={9}>
+        {' '}
+        {/* Full width on mobile, 9/12 on medium screens and up */}
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
@@ -230,13 +232,13 @@ const UserList: React.FC = () => {
               onPaginationModelChange={setPaginationModel}
               checkboxSelection
               rowSelectionModel={rowSelectionModel}
-              isRowSelectable={params => params.row.status === 'Pending'} // Disable selection for rows with "Verified" status
+              isRowSelectable={params => params.row.status === 'Pending'}
               onRowSelectionModelChange={newSelectionModel => {
                 setRowSelectionModel(newSelectionModel as any)
 
                 const filteredData = newSelectionModel.map(id => {
                   const selectedRow: any = store.data.find((row: any) => row.id === id)
-
+                  
                   return {
                     id: selectedRow.id,
                     total_payment: selectedRow.total_payment,
@@ -249,7 +251,7 @@ const UserList: React.FC = () => {
                 setSelectedRows(filteredData)
 
                 const totalAmount = filteredData
-                  .filter(row => row.status !== 'Verified' && row.status !== 'Paid') // Filter rows where status is not "Verified" and is "Paid"
+                  .filter(row => row.status !== 'Verified' && row.status !== 'Paid')
                   .reduce((sum, row) => sum + row.total_payment, 0)
 
                 const formattedTotalAmount = new Intl.NumberFormat('id-ID', {
@@ -262,17 +264,20 @@ const UserList: React.FC = () => {
               }}
               sx={{
                 '& .MuiDataGrid-checkboxInput': {
-                  ml: 0 // Align checkbox to the left
+                  ml: 0
                 },
                 '& .Mui-checked.Mui-disabled': {
-                  color: 'rgba(0, 0, 0, 0.6)' // Keep checkbox with a "checked" and "disabled" state
+                  color: 'rgba(0, 0, 0, 0.6)'
                 }
               }}
             />
           )}
         </Card>
       </Grid>
-      <Grid item xs={3}>
+
+      <Grid item xs={12} md={3}>
+        {' '}
+        {/* Full width on mobile, 3/12 on medium screens and up */}
         <Card>
           <CardContent>
             <Grid item xs={12}>
@@ -285,7 +290,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
               <TextField
                 fullWidth
-                value={spName ? spName.sp_name : ''} // Menampilkan nama pembayaran
+                value={spName ? spName.sp_name : ''}
                 InputProps={{
                   readOnly: true
                 }}
@@ -296,7 +301,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
               <TextField
                 fullWidth
-                value={spName ? spName.type : ''} // Menampilkan tipe pembayaran
+                value={spName ? spName.type : ''}
                 InputProps={{
                   readOnly: true
                 }}
@@ -314,13 +319,12 @@ const UserList: React.FC = () => {
               />
             </Grid>
             <Box m={2} display='inline' />
-            {/* Tombol Bayar dan Kembali */}
-            <Grid container justifyContent='left'>
+            <Grid container justifyContent='flex-start'>
               <Button
                 variant='contained'
                 color='primary'
                 onClick={handleClickOpen}
-                disabled={rowSelectionModel.length === 0} // Nonaktifkan tombol jika rowSelectionModel adalah array kosong
+                disabled={rowSelectionModel.length === 0}
               >
                 Bayar
               </Button>
@@ -331,7 +335,7 @@ const UserList: React.FC = () => {
                 variant='outlined'
                 color='secondary'
                 onClick={() => {
-                  window.history.back() // Kembali ke halaman sebelumnya
+                  window.history.back()
                 }}
               >
                 Kembali
@@ -339,6 +343,7 @@ const UserList: React.FC = () => {
             </Grid>
           </CardContent>
         </Card>
+        {/* Dialog Konfirmasi Pembayaran */}
         <Dialog open={open} onClose={() => handleClose(false)} maxWidth='sm' fullWidth>
           <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -349,13 +354,12 @@ const UserList: React.FC = () => {
           </DialogTitle>
           <DialogContent>
             <DialogContentText sx={{ mb: 2 }}>Apakah Anda yakin ingin melanjutkan pembayaran ini?</DialogContentText>
-            {/* Display selected payment details in the dialog */}
             <Box mt={2}>
               {selectedPaymentDetails
-                .filter(payment => payment.status === 'Pending') // Filter for pending payments
+                .filter(payment => payment.status === 'Pending')
                 .map(payment => (
                   <Typography
-                    key={payment.id} // Gantilah ini jika payment.id tidak tersedia
+                    key={payment.id}
                     sx={{
                       mb: 2,
                       display: 'flex',
@@ -376,7 +380,6 @@ const UserList: React.FC = () => {
                       <strong>Bulan:</strong> {payment.month}
                     </span>
                     <span>
-                      <strong></strong>{' '}
                       {new Intl.NumberFormat('id-ID', {
                         style: 'currency',
                         currency: 'IDR',
@@ -386,7 +389,6 @@ const UserList: React.FC = () => {
                   </Typography>
                 ))}
 
-              {/* Calculate total payment for pending payments only */}
               <Typography
                 sx={{
                   mt: 2,
@@ -410,7 +412,7 @@ const UserList: React.FC = () => {
                     maximumFractionDigits: 0
                   }).format(
                     selectedPaymentDetails
-                      .filter(payment => payment.status === 'Pending') // Ensure only pending payments are summed
+                      .filter(payment => payment.status === 'Pending')
                       .reduce((total, payment) => total + payment.total_payment, 0)
                   )}
                 </span>
@@ -418,22 +420,17 @@ const UserList: React.FC = () => {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button
-              onClick={() => handleClose(false)}
-              variant='contained'
-              color='error'
-              sx={{ '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' } }}
-            >
+            <Button onClick={() => handleClose(false)} variant='contained' color='error'>
               Batal
             </Button>
             <Button
               onClick={() => {
-                setIsLoading(true) // Start loading
+                setIsLoading(true)
                 onsubmit()
               }}
               variant='contained'
               color='primary'
-              disabled={isLoading} // Disable button if loading
+              disabled={isLoading}
             >
               {isLoading ? (
                 <Box display='flex' alignItems='center'>

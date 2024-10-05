@@ -431,17 +431,23 @@ const UserList: React.FC = () => {
         console.error('Error fetching transaction:', error)
       })
   }
-
+  const backtodashboard = () => {
+    router.push('/ms/dashboard/siswa/')
+  }
+  
   return (
-    <Grid container spacing={6.5}>
-      <Grid item xs={9}>
+    <Grid container spacing={2}>
+      {/* Main Content */}
+      <Grid item xs={12} md={9}>
+        {' '}
+        {/* Full width on xs (mobile), 9 columns on md (tablet and desktop) */}
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
           <Box
             sx={{
               py: 4,
-              px: 6,
+              px: 3, // Adjust padding for smaller screens
               rowGap: 2,
               columnGap: 4,
               display: 'flex',
@@ -481,77 +487,81 @@ const UserList: React.FC = () => {
           )}
         </Card>
       </Grid>
-      <Grid item xs={3}>
+
+      {/* Sidebar Content */}
+      <Grid item xs={12} md={3}>
+        {' '}
+        {/* Full width on xs, 3 columns on md */}
         <Card>
           <CardContent>
-            <Grid item xs={12}>
-              <Typography variant='body2' sx={{ fontWeight: 600 }}>
-                Pembayaran Details
-              </Typography>
-            </Grid>
-            <Box m={1} display='inline' />
-            <Grid item xs={12} sm={12}>
-              <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
-              <TextField
-                fullWidth
-                value={dataPayment ? dataPayment.sp_name : ''} // Menampilkan nama pembayaran
-                InputProps={{
-                  readOnly: true
-                }}
-              />
-            </Grid>
-            <Box m={1} display='inline' />
-            <Grid item xs={12} sm={12}>
-              <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
-              <TextField
-                fullWidth
-                value={dataPayment ? dataPayment.type : ''} // Menampilkan tipe pembayaran
-                InputProps={{
-                  readOnly: true
-                }}
-              />
-            </Grid>
-            <Box m={1} display='inline' />
-            <Grid item xs={12} sm={12}>
-              <InputLabel id='form-layouts-separator-select-label'>Total Pembayaran</InputLabel>
-              <TextField
-                fullWidth
-                value={formatRupiah(
-                  dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
-                )}
-              />
-            </Grid>
-            <Grid item xs={12} sm={12}>
-              <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
-              <TextField fullWidth value={formatRupiah(jumlah)} onChange={handleChange} />
-            </Grid>
-            <Box m={2} display='inline' />
-            {/* Tombol Bayar dan Kembali */}
-            <Grid container justifyContent='left'>
-              <Button
-                variant='contained'
-                color='primary'
-                onClick={() => {
-                  onsubmit()
-                }}
-                disabled={
-                  parseInt(jumlah.replace(/[^\d]/g, ''), 10) >
-                  dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
-                } // Disable jika jumlah melebihi total pembayaran
-              >
-                Bayar
-              </Button>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Typography variant='body2' sx={{ fontWeight: 600 }}>
+                  Pembayaran Details
+                </Typography>
+              </Grid>
               <Box m={1} display='inline' />
-              <Button
-                variant='outlined'
-                color='secondary'
-                onClick={() => {
-                  // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
-                  window.history.back() // Kembali ke halaman sebelumnya
-                }}
-              >
-                Kembali
-              </Button>
+              <Grid item xs={12}>
+                <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
+                <TextField
+                  fullWidth
+                  value={dataPayment ? dataPayment.sp_name : ''}
+                  InputProps={{
+                    readOnly: true
+                  }}
+                />
+              </Grid>
+              <Box m={1} display='inline' />
+              <Grid item xs={12}>
+                <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
+                <TextField
+                  fullWidth
+                  value={dataPayment ? dataPayment.type : ''}
+                  InputProps={{
+                    readOnly: true
+                  }}
+                />
+              </Grid>
+              <Box m={1} display='inline' />
+              <Grid item xs={12}>
+                <InputLabel id='form-layouts-separator-select-label'>Total Pembayaran</InputLabel>
+                <TextField
+                  fullWidth
+                  value={formatRupiah(
+                    dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
+                <TextField fullWidth value={formatRupiah(jumlah)} onChange={handleChange} />
+              </Grid>
+              <Box m={2} display='inline' />
+              <Grid container justifyContent='left'>
+                <Button
+                  variant='contained'
+                  color='primary'
+                  onClick={() => {
+                    onsubmit()
+                  }}
+                  disabled={
+                    parseInt(jumlah.replace(/[^\d]/g, ''), 10) >
+                    dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
+                  }
+                >
+                  Bayar
+                </Button>
+                <Box m={1} display='inline' />
+                <Button
+                  variant='outlined'
+                  color='secondary'
+                  onClick={() => {
+                    backtodashboard()
+                  }}
+                >
+                  Kembali
+                </Button>
+              </Grid>
             </Grid>
           </CardContent>
         </Card>

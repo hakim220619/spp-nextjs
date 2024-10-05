@@ -158,7 +158,6 @@ const UserList: React.FC = () => {
         })
 
         const { transactionToken, orderId, transactionUrl } = await response.json() // Hapus transactionUrl
-        console.log(transactionToken)
 
         if (transactionToken) {
           ;(window as any).snap.pay(transactionToken, {
@@ -189,6 +188,7 @@ const UserList: React.FC = () => {
                   )
                   .then(response => {
                     if (response.status === 200) {
+                      setJumlah('')
                       setLoading(true)
                       dispatch(
                         fetchDataPaymentPayByMonth({
@@ -199,7 +199,6 @@ const UserList: React.FC = () => {
                         })
                       ).finally(() => {
                         setLoading(false)
-                        setJumlah('0')
                       })
                     } else {
                       toast.error('Gagal mengirim data pembayaran pending.')
@@ -241,6 +240,7 @@ const UserList: React.FC = () => {
                   )
                   .then(response => {
                     if (response.status === 200) {
+                      setJumlah('')
                       setLoading(true)
                       dispatch(
                         fetchDataPaymentPayByMonth({
@@ -251,7 +251,6 @@ const UserList: React.FC = () => {
                         })
                       ).finally(() => {
                         setLoading(false)
-                        setJumlah('0')
                       })
                     } else {
                       toast.error('Gagal mengirim data pembayaran pending.')
@@ -317,6 +316,8 @@ const UserList: React.FC = () => {
   }, [clientKey, snapUrl])
 
   const cekTransaksiById = () => {
+    setJumlah('')
+    
     // Mengambil token yang disimpan (misalnya, dari local storage)
     const token = localStorage.getItem('token')
 
@@ -335,6 +336,7 @@ const UserList: React.FC = () => {
 
         if (response.data.success == true) {
           setLoading(true)
+          setJumlah('')
           dispatch(
             fetchDataPaymentPayByMonth({
               id_payment: id,
@@ -344,6 +346,7 @@ const UserList: React.FC = () => {
             })
           ).finally(() => {
             setLoading(false)
+            setJumlah('')
           })
         }
       })
@@ -352,17 +355,20 @@ const UserList: React.FC = () => {
         console.error('Error fetching transaction:', error)
       })
   }
+  const backtodashboard = () => {
+    router.push('/ms/dashboard/siswa/')
+  }
 
   return (
     <Grid container spacing={6.5}>
-      <Grid item xs={9}>
+      <Grid item xs={12} md={9}>
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
           <Box
             sx={{
-              py: 4,
-              px: 6,
+              py: { xs: 2, md: 4 },
+              px: { xs: 3, md: 6 },
               rowGap: 2,
               columnGap: 4,
               display: 'flex',
@@ -400,27 +406,25 @@ const UserList: React.FC = () => {
               onPaginationModelChange={setPaginationModel}
               checkboxSelection
               rowSelectionModel={rowSelectionModel}
-              isRowSelectable={params => params.row.status !== 'Verified' && params.row.status !== 'Paid'} // Disable selection for rows with "Verified" status
-              onRowSelectionModelChange={newSelectionModel => {
-                setRowSelectionModel(newSelectionModel as any)
+              isRowSelectable={params => params.row.status !== 'Verified' && params.row.status !== 'Paid'}
+              onRowSelectionModelChange={(newSelectionModel: any) => {
+                setRowSelectionModel(newSelectionModel)
 
-                const filteredData = newSelectionModel.map(id => {
-                  const selectedRow: any = store.data.find((row: any) => row.id === id)
-
-                  return {
+                // Only include rows where status is not 'Verified' or 'Paid'
+                const filteredData = newSelectionModel
+                  .map((id: any) => store.data.find((row: any) => row.id === id))
+                  .filter((selectedRow: any) => selectedRow.status !== 'Verified' && selectedRow.status !== 'Paid')
+                  .map((selectedRow: any) => ({
                     id: selectedRow.id,
                     total_payment: selectedRow.total_payment,
                     month: selectedRow.month,
                     years: selectedRow.years,
                     status: selectedRow.status
-                  }
-                })
+                  }))
 
                 setSelectedRows(filteredData)
 
-                const totalAmount = filteredData
-                  .filter(row => row.status !== 'Verified') // Filter rows where status is not "Verified"
-                  .reduce((sum, row) => sum + row.total_payment, 0)
+                const totalAmount = filteredData.reduce((sum: any, row: any) => sum + row.total_payment, 0)
 
                 const formattedTotalAmount = new Intl.NumberFormat('id-ID', {
                   style: 'currency',
@@ -432,17 +436,18 @@ const UserList: React.FC = () => {
               }}
               sx={{
                 '& .MuiDataGrid-checkboxInput': {
-                  ml: 0 // Align checkbox to the left
+                  ml: 0
                 },
                 '& .Mui-checked.Mui-disabled': {
-                  color: 'rgba(0, 0, 0, 0.6)' // Keep checkbox with a "checked" and "disabled" state
+                  color: 'rgba(0, 0, 0, 0.6)'
                 }
               }}
             />
           )}
         </Card>
       </Grid>
-      <Grid item xs={3}>
+
+      <Grid item xs={12} md={3}>
         <Card>
           <CardContent>
             <Grid item xs={12}>
@@ -453,39 +458,21 @@ const UserList: React.FC = () => {
             <Box m={1} display='inline' />
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
-              <TextField
-                fullWidth
-                value={spName ? spName.sp_name : ''} // Menampilkan nama pembayaran
-                InputProps={{
-                  readOnly: true
-                }}
-              />
+              <TextField fullWidth value={spName ? spName.sp_name : ''} InputProps={{ readOnly: true }} />
             </Grid>
             <Box m={1} display='inline' />
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
-              <TextField
-                fullWidth
-                value={spName ? spName.type : ''} // Menampilkan tipe pembayaran
-                InputProps={{
-                  readOnly: true
-                }}
-              />
+              <TextField fullWidth value={spName ? spName.type : ''} InputProps={{ readOnly: true }} />
             </Grid>
             <Box m={1} display='inline' />
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
-              <TextField
-                fullWidth
-                value={jumlah}
-                InputProps={{
-                  readOnly: true
-                }}
-              />
+              <TextField fullWidth value={jumlah} InputProps={{ readOnly: true }} />
             </Grid>
             <Box m={2} display='inline' />
-            {/* Tombol Bayar dan Kembali */}
-            <Grid container justifyContent='left'>
+
+            <Grid container justifyContent={{ xs: 'center', md: 'left' }}>
               <Button
                 variant='contained'
                 color='primary'
@@ -496,13 +483,11 @@ const UserList: React.FC = () => {
                 Bayar
               </Button>
               <Box m={1} display='inline' />
-
               <Button
                 variant='outlined'
                 color='secondary'
                 onClick={() => {
-                  // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
-                  window.history.back() // Kembali ke halaman sebelumnya
+                  backtodashboard()
                 }}
               >
                 Kembali

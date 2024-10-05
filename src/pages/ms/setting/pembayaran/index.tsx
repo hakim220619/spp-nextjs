@@ -119,7 +119,7 @@ const columns: GridColDef[] = [
     field: 'sp_type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.sp_type]
 
@@ -139,7 +139,7 @@ const columns: GridColDef[] = [
     field: 'sp_status',
     headerName: 'Status',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.sp_status]
 

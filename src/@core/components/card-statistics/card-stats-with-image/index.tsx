@@ -22,9 +22,9 @@ const CardStatsCharacter = ({ data }: Props) => {
   return (
     <Card sx={{ overflow: 'visible', position: 'relative' }}>
       <CardContent sx={{ pb: '0 !important' }}>
-        <Grid container spacing={2}>
+        <Grid container spacing={2} overflow={'auto'}>
           <Grid item xs={12} sm={6}>
-            <Typography sx={{ mb: 1.5, fontWeight: 600, whiteSpace: 'nowrap' }}>{title}</Typography>
+            <Typography sx={{ mb: 1.5, fontWeight: 500, whiteSpace: 'nowrap' }}>{title}</Typography>
             <CustomChip
               skin='light'
               size='small'
@@ -41,6 +41,7 @@ const CardStatsCharacter = ({ data }: Props) => {
               </Typography>
             </Box>
           </Grid>
+
           <Grid
             item
             xs={12}
@@ -49,10 +50,12 @@ const CardStatsCharacter = ({ data }: Props) => {
               display: 'flex',
               alignItems: 'flex-end',
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              marginTop: { xs: '10px', sm: 0 }
+              marginTop: { xs: '10px', sm: 0 },
+              paddingBottom: '20px' // Adjusting the space below the image
             }}
           >
-            <img src={src} alt={title} style={{ maxWidth: '100%', height: 'auto' }} />
+            <img src={src} alt={title} style={{ maxWidth: '100%', height: 'auto', marginTop: '10px' }} />{' '}
+            {/* Adjusted margin */}
           </Grid>
         </Grid>
       </CardContent>

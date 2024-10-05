@@ -98,12 +98,12 @@ const RowOptions = ({ uid }: { uid: any }) => {
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
   { field: 'unit_name', headerName: 'Unit', flex: 0.175, minWidth: 160 },
-  { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 100 },
+  { field: 'nisn', headerName: 'Nisn', flex: 0.175, minWidth: 130 },
   { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.25, minWidth: 180 },
   { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 200 },
   { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 130 },
-  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 180 },
-  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 180 },
+  { field: 'class_name', headerName: 'Kelas', flex: 0.175, minWidth: 140 },
+  { field: 'major_name', headerName: 'Jurusan', flex: 0.175, minWidth: 140 },
   {
     field: 'date_of_birth',
     headerName: 'Tanggal Lahir',

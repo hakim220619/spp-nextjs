@@ -42,7 +42,6 @@ const statusObj: any = {
 const RowOptions = ({ data }: { uid: any; data: any }) => {
   const handleRowRedirectClick = () => window.open(data.redirect_url)
 
-  // Kondisi untuk menampilkan RowOptions jika status adalah 'verified' dan redirect_url tidak null
   if (data.status !== 'Verified' || data.redirect_url === null) {
     return null
   }
@@ -62,9 +61,9 @@ const columns: GridColDef[] = [
     headerName: 'No',
     width: 70,
     renderCell: (params: GridRenderCellParams) => {
-      return params.api.getRowIndexRelativeToVisibleRows(params.id) + 1 // Menghasilkan nomor urut otomatis dimulai dari 1
+      return params.api.getRowIndexRelativeToVisibleRows(params.id) + 1
     },
-    sortable: false // Menonaktifkan sorting untuk kolom ini
+    sortable: false
   },
   {
     field: 'full_name',
@@ -72,19 +71,19 @@ const columns: GridColDef[] = [
     flex: 0.175,
     minWidth: 140,
     renderCell: (params: GridRenderCellParams) => {
-      const sortedRowIds = params.api.getSortedRowIds() // Mendapatkan urutan ID setelah sorting
-      const rowIndex = sortedRowIds.indexOf(params.id) + 1 // Mencari index dari ID dan increment
+      const sortedRowIds = params.api.getSortedRowIds()
+      const rowIndex = sortedRowIds.indexOf(params.id) + 1
 
       return `Pembayaran ke ${rowIndex}`
     },
-    sortable: false // Menonaktifkan sorting untuk kolom ini
+    sortable: false
   },
   {
     field: 'amount',
     headerName: 'Jumlah',
     flex: 0.175,
-    minWidth: 140,
-    valueGetter: ({ row }) => row.amount + row.affiliate, // Summing amount and affiliate
+    minWidth: 120,
+    valueGetter: ({ row }) => row.amount + row.affiliate,
     valueFormatter: ({ value }) =>
       new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -97,7 +96,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Status',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 180,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
 
@@ -117,16 +116,12 @@ const columns: GridColDef[] = [
     field: 'created_at',
     headerName: 'Dibuat',
     flex: 0.175,
-    minWidth: 140,
+    minWidth: 180,
     valueFormatter: params => {
       const date = new Date(params.value)
-
-      // Format date
       const day = String(date.getDate()).padStart(2, '0')
-      const month = String(date.getMonth() + 1).padStart(2, '0') // Month is 0-based, so add 1
+      const month = String(date.getMonth() + 1).padStart(2, '0')
       const year = date.getFullYear()
-
-      // Format time
       const hours = String(date.getHours()).padStart(2, '0')
       const minutes = String(date.getMinutes()).padStart(2, '0')
       const seconds = String(date.getSeconds()).padStart(2, '0')
@@ -150,7 +145,7 @@ const UserList: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [dataPayment, setDataPayment] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
-  const [isLoading, setIsLoading] = useState(false) // State for overlay loading
+  const [isLoading, setIsLoading] = useState(false)
 
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.PembayaranByFree)
@@ -160,11 +155,6 @@ const UserList: React.FC = () => {
   const fetchPaymentDetails = useCallback(
     async (id: string) => {
       try {
-        const storedToken = window.localStorage.getItem('token')
-
-        // Get additional data from local storage or another function as necessary
-
-        // Send all parameters as query parameters
         const response = await axiosConfig.get('/list-payment-pay-byFree', {
           params: {
             uid: id,
@@ -183,7 +173,7 @@ const UserList: React.FC = () => {
         console.error('Error fetching payment details:', error)
       }
     },
-    [school_id, user_id] // You should include these dependencies instead of `id`
+    [storedToken, school_id, user_id]
   )
 
   useEffect(() => {
@@ -201,6 +191,7 @@ const UserList: React.FC = () => {
 
     fetchPaymentDetails(id as any)
   }, [dispatch, value, id, school_id, user_id, fetchPaymentDetails])
+
   const onsubmit = async () => {
     setIsLoading(true)
     if (dataPayment && jumlah) {
@@ -217,7 +208,7 @@ const UserList: React.FC = () => {
           {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${storedToken}` // Add the token here
+              Authorization: `Bearer ${storedToken}`
             }
           }
         )
@@ -248,13 +239,15 @@ const UserList: React.FC = () => {
       toast.error('Data tidak lengkap. Pastikan semua informasi sudah diisi.')
     }
   }
+
   const formatRupiah = (value: any) => {
     if (!value) return ''
 
     return 'Rp ' + Number(value).toLocaleString('id-ID', { minimumFractionDigits: 0 })
   }
+
   const handleChange = (e: any) => {
-    const value = e.target.value.replace(/[^0-9]/g, '') // Hanya angka
+    const value = e.target.value.replace(/[^0-9]/g, '')
     setJumlah(value)
   }
 
@@ -267,17 +260,17 @@ const UserList: React.FC = () => {
   const handleDialogClose = () => {
     setOpenDialog(false)
   }
-  
+
   return (
     <Grid container spacing={6.5}>
-      <Grid item xs={9}>
+      <Grid item xs={12} sm={9} md={9}>
         <Card>
           <CardHeader title='Data Pembayaran' />
           <Divider sx={{ m: '0 !important' }} />
           {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+            <Box display='flex' justifyContent='center' alignItems='center' minHeight='400px'>
               <CircularProgress color='secondary' />
-            </div>
+            </Box>
           ) : (
             <DataGrid
               autoHeight
@@ -292,7 +285,7 @@ const UserList: React.FC = () => {
           )}
         </Card>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={12} sm={3} md={3}>
         <Card>
           <CardContent>
             <Grid item xs={12}>
@@ -305,7 +298,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Nama Pembayaran</InputLabel>
               <TextField
                 fullWidth
-                value={dataPayment ? dataPayment.sp_name : ''} // Menampilkan nama pembayaran
+                value={dataPayment ? dataPayment.sp_name : ''}
                 InputProps={{
                   readOnly: true
                 }}
@@ -316,7 +309,7 @@ const UserList: React.FC = () => {
               <InputLabel id='form-layouts-separator-select-label'>Tipe</InputLabel>
               <TextField
                 fullWidth
-                value={dataPayment ? dataPayment.type : ''} // Menampilkan tipe pembayaran
+                value={dataPayment ? dataPayment.type : ''}
                 InputProps={{
                   readOnly: true
                 }}
@@ -332,43 +325,32 @@ const UserList: React.FC = () => {
                 )}
               />
             </Grid>
-
             <Grid item xs={12} sm={12}>
               <InputLabel id='form-layouts-separator-select-label'>Jumlah</InputLabel>
               <TextField fullWidth value={formatRupiah(jumlah)} onChange={handleChange} />
             </Grid>
             <Box m={2} display='inline' />
-            {/* Tombol Bayar dan Kembali */}
             <Grid container justifyContent='left'>
               <Button
                 variant='contained'
                 color='primary'
-                onClick={handleDialogOpen} // Open dialog instead of submitting
+                onClick={handleDialogOpen}
                 disabled={
-                  !jumlah || // Disable if jumlah is null or empty
-                  parseInt(jumlah.replace(/[^\d]/g, ''), 10) === 0 || // Disable if jumlah is 0
+                  !jumlah ||
+                  parseInt(jumlah.replace(/[^\d]/g, ''), 10) === 0 ||
                   parseInt(jumlah.replace(/[^\d]/g, ''), 10) >
                     dataPayment.amount - store.data.reduce((acc: number, curr: any) => acc + curr.amount, 0)
-                } // Disable if amount exceeds total payment
+                }
               >
                 Bayar
               </Button>
-
               <Box m={1} display='inline' />
-              <Button
-                variant='outlined'
-                color='secondary'
-                onClick={() => {
-                  // Logic untuk tombol Kembali, misalnya kembali ke halaman sebelumnya
-                  window.history.back() // Kembali ke halaman sebelumnya
-                }}
-              >
+              <Button variant='outlined' color='secondary' onClick={() => window.history.back()}>
                 Kembali
               </Button>
             </Grid>
           </CardContent>
         </Card>
-        {/* Dialog Confirmation */}
         <Dialog open={openDialog} onClose={handleDialogClose}>
           <DialogTitle textAlign={'center'}>Konfirmasi Pembayaran</DialogTitle>
           <DialogContent>
@@ -390,7 +372,7 @@ const UserList: React.FC = () => {
                 <span>
                   <strong>Nama Pembayaran:</strong>
                 </span>
-                <span>{dataPayment.sp_name}</span> {/* Assuming full_name is part of dataPayment */}
+                <span>{dataPayment.sp_name}</span>
               </Typography>
               <Typography
                 sx={{
@@ -408,7 +390,7 @@ const UserList: React.FC = () => {
                 <span>
                   <strong>Sekolah :</strong>
                 </span>
-                <span>{dataPayment.school_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+                <span>{dataPayment.school_name}</span>
               </Typography>
               <Typography
                 sx={{
@@ -426,7 +408,7 @@ const UserList: React.FC = () => {
                 <span>
                   <strong>Nama Lengkap :</strong>
                 </span>
-                <span>{dataPayment.full_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+                <span>{dataPayment.full_name}</span>
               </Typography>
               <Typography
                 sx={{
@@ -444,7 +426,7 @@ const UserList: React.FC = () => {
                 <span>
                   <strong>Kelas :</strong>
                 </span>
-                <span>{dataPayment.class_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+                <span>{dataPayment.class_name}</span>
               </Typography>
               <Typography
                 sx={{
@@ -462,7 +444,7 @@ const UserList: React.FC = () => {
                 <span>
                   <strong>Jurusan :</strong>
                 </span>
-                <span>{dataPayment.major_name}</span> {/* Assuming kelas_jurusan is part of dataPayment */}
+                <span>{dataPayment.major_name}</span>
               </Typography>
               <Typography
                 sx={{
@@ -495,12 +477,12 @@ const UserList: React.FC = () => {
             </Button>
             <Button
               onClick={() => {
-                setIsLoading(true) // Start loading
+                setIsLoading(true)
                 onsubmit()
               }}
               variant='contained'
               color='primary'
-              disabled={isLoading} // Disable button if loading
+              disabled={isLoading}
             >
               {isLoading ? (
                 <Box display='flex' alignItems='center'>

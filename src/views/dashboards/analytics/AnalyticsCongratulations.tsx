@@ -78,7 +78,6 @@ const AnalyticsCongratulations = () => {
           </Grid>
           <Grid
             item
-            marginTop={35}
             xs={12}
             sm={6}
             sx={{
@@ -95,7 +94,7 @@ const AnalyticsCongratulations = () => {
                 src={`/images/cards/congratulations-john.png`}
                 style={{
                   width: '100%',
-                  maxWidth: 150 // Batasi ukuran maksimal pada layar kecil
+                  maxWidth: 130 // Batasi ukuran maksimal pada layar kecil
                 }}
               />
             </StyledGrid>

@@ -166,7 +166,7 @@ const columns: GridColDef[] = [
     field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 150,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.type]
 
@@ -186,7 +186,7 @@ const columns: GridColDef[] = [
     field: 'status',
     headerName: 'Status',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
 
@@ -335,8 +335,9 @@ const SettingPembayaran = () => {
         <Card>
           <CardHeader title='Pengaturan Pembayaran' />
           <CardContent>
-            <Grid container spacing={12}>
-              <Grid item xs={4}>
+            <Grid container spacing={3}>
+              {/* Button for Pembayaran Baru Kelas */}
+              <Grid item xs={12} sm={4}>
                 <Button
                   variant='contained'
                   color='primary'
@@ -348,7 +349,8 @@ const SettingPembayaran = () => {
                 </Button>
               </Grid>
 
-              <Grid item xs={4}>
+              {/* Button for Buat Pembayaran Siswa */}
+              <Grid item xs={12} sm={4}>
                 <Button
                   variant='contained'
                   color='success'
@@ -359,7 +361,9 @@ const SettingPembayaran = () => {
                   Buat Pembayaran Siswa
                 </Button>
               </Grid>
-              <Grid item xs={4}>
+
+              {/* Button for Kembali */}
+              <Grid item xs={12} sm={4}>
                 <Button
                   variant='contained'
                   color='secondary'
@@ -370,7 +374,9 @@ const SettingPembayaran = () => {
                   Kembali
                 </Button>
               </Grid>
-              <Grid item sm={4} xs={12}>
+
+              {/* Unit Selection */}
+              <Grid item xs={12} sm={4}>
                 <InputLabel>Unit</InputLabel>
                 <CustomTextField
                   select
@@ -379,7 +385,7 @@ const SettingPembayaran = () => {
                   SelectProps={{
                     value: unit,
                     displayEmpty: true,
-                    onChange: handleUnitChange as any, // Perbaiki ini dengan benar mengikat handleUnitChange
+                    onChange: handleUnitChange as any,
                     disabled: true
                   }}
                 >
@@ -391,6 +397,8 @@ const SettingPembayaran = () => {
                   ))}
                 </CustomTextField>
               </Grid>
+
+              {/* Major Selection */}
               <Grid item xs={12} sm={4}>
                 <InputLabel>Jurusan</InputLabel>
                 <CustomTextField
@@ -399,7 +407,7 @@ const SettingPembayaran = () => {
                   value={major}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleMajorChange as any // Perbaiki ini dengan benar mengikat handleMajorChange
+                    onChange: handleMajorChange as any
                   }}
                 >
                   <MenuItem value=''>Pilih Jurusan</MenuItem>
@@ -412,7 +420,7 @@ const SettingPembayaran = () => {
                 </CustomTextField>
               </Grid>
 
-              {/* Filtered Class Selection */}
+              {/* Class Selection */}
               <Grid item xs={12} sm={4}>
                 <InputLabel>Kelas</InputLabel>
                 <CustomTextField
@@ -421,7 +429,7 @@ const SettingPembayaran = () => {
                   value={clas}
                   SelectProps={{
                     displayEmpty: true,
-                    onChange: handleClassChange as any // Perbaiki ini dengan benar mengikat handleClassChange
+                    onChange: handleClassChange as any
                   }}
                 >
                   <MenuItem value=''>Pilih Kelas</MenuItem>

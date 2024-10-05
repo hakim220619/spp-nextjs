@@ -150,8 +150,8 @@ const SettingAddPembayaran = () => {
         <CardHeader title='Tambah Pembayaran' />
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Grid container spacing={5}>
-              <Grid item xs={6}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='sp_name'
                   control={control}
@@ -168,7 +168,7 @@ const SettingAddPembayaran = () => {
                   )}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='year'
                   control={control}
@@ -192,7 +192,7 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='sp_type'
                   control={control}
@@ -213,7 +213,7 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='sp_status'
                   control={control}
@@ -234,7 +234,7 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='unit_id'
                   control={control}
@@ -260,7 +260,7 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6} md={6} lg={4}>
                 <Controller
                   name='sp_desc'
                   control={control}
@@ -278,7 +278,7 @@ const SettingAddPembayaran = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={12}>
                 <Button type='submit' variant='contained' disabled={isLoading}>
                   {isLoading ? <CircularProgress size={24} /> : 'Submit'}
                 </Button>

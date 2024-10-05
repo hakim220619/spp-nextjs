@@ -90,9 +90,9 @@ const RowOptions = ({ uid }: { uid: any }) => {
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
   { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.25, minWidth: 180 },
-  { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 290 },
-  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 90 },
-  { field: 'school_name', headerName: 'Sekolah', flex: 0.175, minWidth: 80 },
+  { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 190 },
+  { field: 'phone', headerName: 'No. Wa', flex: 0.175, minWidth: 140 },
+  { field: 'school_name', headerName: 'Sekolah', flex: 0.175, minWidth: 180 },
   {
     field: 'image',
     headerName: 'Gambar',
@@ -136,7 +136,7 @@ const columns: GridColDef[] = [
       return `${day}/${month}/${year}`
     }
   },
-  { field: 'role_name', headerName: 'Role Name', flex: 0.175, minWidth: 260 },
+  { field: 'role_name', headerName: 'Role Name', flex: 0.175, minWidth: 160 },
   {
     field: 'status',
     headerName: 'Status',

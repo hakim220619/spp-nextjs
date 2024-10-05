@@ -54,7 +54,7 @@ const columns: GridColDef[] = [
     field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.type]
 
@@ -70,12 +70,12 @@ const columns: GridColDef[] = [
       )
     }
   },
-  { field: 'years', headerName: 'Tahun', flex: 0.175, maxWidth: 120 },
+  { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 120 },
   {
     field: 'status',
     headerName: 'Status',
     flex: 0.175,
-    maxWidth: 240,
+    minWidth: 140,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
 
@@ -143,7 +143,7 @@ const TabelReportPaymentMonth = ({
     }
 
     fetchData()
-  }, [dispatch,setting_payment_uid, type, year, school_id, unit_id, user_id, value, refresh])
+  }, [dispatch, setting_payment_uid, type, year, school_id, unit_id, user_id, value, refresh])
 
   const handleFilter = useCallback((val: string) => setValue(val), [])
 

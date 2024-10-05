@@ -1,8 +1,7 @@
 // ** React Imports
 import { ReactNode } from 'react'
 
-// ** Next Import
-import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 // ** MUI Components
 import Button from '@mui/material/Button'
@@ -37,6 +36,21 @@ const Img = styled('img')(({ theme }) => ({
 }))
 
 const Error500 = () => {
+  const router = useRouter()
+
+  const handleBackToHome = () => {
+    // Clear cookies (userData and token)
+    document.cookie = 'userData=; Max-Age=0; path=/;'
+    document.cookie = 'token=; Max-Age=0; path=/;'
+
+    // Clear localStorage (userData and token)
+    localStorage.removeItem('userData')
+    localStorage.removeItem('token')
+
+    // Redirect to login page
+    router.push('/login')
+  }
+
   return (
     <Box className='content-center'>
       <Box sx={{ p: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -47,7 +61,7 @@ const Error500 = () => {
           <Typography sx={{ mb: 6, color: 'text.secondary' }}>
             There was an error with the internal server. Please contact your site administrator.
           </Typography>
-          <Button href='/' component={Link} variant='contained'>
+          <Button onClick={handleBackToHome} variant='contained'>
             Back to Home
           </Button>
         </BoxWrapper>

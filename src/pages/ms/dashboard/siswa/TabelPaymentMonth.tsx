@@ -46,13 +46,13 @@ const RowOptions = ({ uid, type }: { uid: any; type: any }) => {
 const columns: GridColDef[] = [
   { field: 'no', headerName: 'No', width: 70 },
   { field: 'unit_name', headerName: 'Unit', flex: 0.175, minWidth: 140 },
-  { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 140 },
+  { field: 'full_name', headerName: 'Nama Siswa', flex: 0.175, minWidth: 180 },
   { field: 'sp_name', headerName: 'Pembayaran', flex: 0.175, minWidth: 140 },
   {
     field: 'type',
     headerName: 'Tipe Pembayaran',
     flex: 0.175,
-    minWidth: 80,
+    minWidth: 120,
     renderCell: (params: GridRenderCellParams) => {
       const type = typeObj[params.row.type]
 
@@ -121,13 +121,13 @@ const columns: GridColDef[] = [
       }).format(value)
     }
   },
-  { field: 'years', headerName: 'Tahun', flex: 0.175, maxWidth: 120 },
+  { field: 'years', headerName: 'Tahun', flex: 0.175, minWidth: 120 },
 
   {
     field: 'status_lunas',
     headerName: 'Status',
     flex: 0.175,
-    maxWidth: 240,
+    minWidth: 140,
     renderCell: (params: GridRenderCellParams) => {
       const statusKey = params.row.type === 'BULANAN' ? 'status_lunas' : 'status_lunas_detail'
       const status = statusObj[params.row[statusKey]]

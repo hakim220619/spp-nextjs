@@ -46,6 +46,7 @@ const FormValidationSchema = () => {
   const [roles, setRoles] = useState<Role[]>([])
   const [schools, setSchools] = useState<School[]>([])
   const [updated_by] = useState<string>(userData.id)
+  const [schoolId] = useState<any>(userData.school_id)
   const [dateOfBirth, setDateOfBirth] = useState<string>('')
   const router = useRouter()
   const { uid } = router.query
@@ -88,7 +89,7 @@ const FormValidationSchema = () => {
           }
         })
         const schools = response.data
-        const userSchoolId = userData.school_id
+        const userSchoolId = schoolId
         if (userSchoolId === 1) {
           // User dengan school_id 1 bisa melihat semua sekolah
           setSchools(schools)
@@ -124,7 +125,7 @@ const FormValidationSchema = () => {
     // Fetch schools and roles when component loads
     fetchSchools()
     fetchRoles()
-  }, [uid])
+  }, [schoolId, uid])
 
   const handleRoleChange = useCallback((e: React.ChangeEvent<{ value: unknown }>) => {
     setRole(e.target.value as string)
@@ -222,7 +223,7 @@ const FormValidationSchema = () => {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Grid container spacing={5}>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
                 value={fullName}
@@ -231,7 +232,7 @@ const FormValidationSchema = () => {
                 placeholder='Leonard'
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
                 type='email'
@@ -241,26 +242,30 @@ const FormValidationSchema = () => {
                 placeholder='carterleonard@gmail.com'
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
-                value={phone}
-                onChange={e => setPhone(e.target.value)}
+                value={phone.startsWith('62') ? phone : `62${phone}`} // Pastikan value selalu diawali dengan '62'
+                onChange={e => {
+                  const newValue = e.target.value
+
+                  // Izinkan hanya karakter numerik dan cegah penghapusan prefiks '62'
+                  if (/^\d*$/.test(newValue)) {
+                    if (newValue.startsWith('62')) {
+                      setPhone(newValue)
+                    } else if (newValue === '') {
+                      // Jika input dikosongkan, reset kembali ke '62'
+                      setPhone('62')
+                    }
+                  }
+                }}
                 label='Phone Number'
-                placeholder='6285***'
+                placeholder='628123456789'
+                inputProps={{ maxLength: 15 }} // Batasi panjang maksimal
               />
             </Grid>
 
-            <Grid item xs={6}>
-              <CustomTextField
-                fullWidth
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                label='Address'
-                placeholder='Jl Hr Agung'
-              />
-            </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField select fullWidth label='Role' value={role} onChange={handleRoleChange}>
                 <MenuItem value='' disabled>
                   Select Role
@@ -274,7 +279,7 @@ const FormValidationSchema = () => {
                   ))}
               </CustomTextField>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField select fullWidth label='School' value={school} onChange={handleSchoolChange}>
                 <MenuItem value='' disabled>
                   Select School
@@ -287,7 +292,7 @@ const FormValidationSchema = () => {
               </CustomTextField>
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
                 type='date'
@@ -297,7 +302,7 @@ const FormValidationSchema = () => {
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
                 name='image'
@@ -313,19 +318,31 @@ const FormValidationSchema = () => {
                   const file = event.target.files?.[0]
                   if (file) {
                     // You can set the image state here if needed
-                    setImage(file) // Assuming setGambarValue is defined in your state
+                    setImage(file) // Assuming setImage is defined in your state
                   }
                 }}
               />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <CustomTextField
                 fullWidth
                 value={status}
                 onChange={e => setStatus(e.target.value)}
                 label='Status'
                 placeholder='ON'
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={12} md={12}>
+              <CustomTextField
+                fullWidth
+                multiline
+                rows={2}
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                label='Address'
+                placeholder='Jl Hr Agung'
               />
             </Grid>
             <Grid item xs={12}>

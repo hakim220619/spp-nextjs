@@ -104,7 +104,7 @@ const EcommerceDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+ 10%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-1.png'
+                src: '/images/all/gambar1.png'
               }}
             />
           </Grid>
@@ -116,7 +116,7 @@ const EcommerceDashboard = () => {
                 chipColor: 'success',
                 trendNumber: '+ 10%',
                 chipText: 'Year of 2024',
-                src: '/images/cards/card-stats-img-1.png'
+                src: '/images/all/gambar2.png'
               }}
             />
           </Grid>
