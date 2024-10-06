@@ -83,19 +83,20 @@ const PaymentInAdmin = () => {
 
     try {
       const response = await axiosConfig.post(
-        '/sendMessageBroadcast',
+        'http://waspeed.my.id:3000/send-message',
         {
-          dataUsers: userDetail, // Data pengguna yang akan dikirim pesan
-          message: message // Pesan yang ingin dikirim
+          sessionId: 'de4eb5cd4524874e35746b0020cb83',
+          number: '6285797887711',
+          message: 'asd'
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}` // Tambahkan token di header Authorization
+            'Content-Type': 'application/json'
           }
         }
       )
-      if (response.status === 200) {
+
+      if (response) {
         toast.success('Pesan berhasil dikirim!') // Notifikasi sukses
         setLoading(false)
         setMessage('') // Atur ulang message menjadi string kosong
