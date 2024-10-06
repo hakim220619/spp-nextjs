@@ -82,19 +82,20 @@ const PaymentInAdmin = () => {
     }
 
     try {
-      const response = await fetch('http://103.196.155.68:5000/send-message', {
-        method: 'POST', // Specify the HTTP method (POST in this case)
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await axiosConfig.post(
+        '/sendMessageBroadcast',
+        {
+          dataUsers: userDetail, // Data pengguna yang akan dikirim pesan
+          message: message // Pesan yang ingin dikirim
         },
-        body: JSON.stringify({
-          sessionId: '26a1fb4cb643af524df73233802a56',
-          number: '6285797887711',
-          message: 'asd'
-        })
-      })
-
-      if (response) {
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}` // Tambahkan token di header Authorization
+          }
+        }
+      )
+      if (response.status === 200) {
         toast.success('Pesan berhasil dikirim!') // Notifikasi sukses
         setLoading(false)
         setMessage('') // Atur ulang message menjadi string kosong
