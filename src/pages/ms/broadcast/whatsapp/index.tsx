@@ -82,19 +82,17 @@ const PaymentInAdmin = () => {
     }
 
     try {
-      const response = await axiosConfig.post(
-        'http://waspeed.my.id:3000/send-message',
-        {
+      const response = await fetch('http://waspeed.my.id:3000/send-message', {
+        method: 'POST', // Specify the HTTP method (POST in this case)
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           sessionId: 'de4eb5cd4524874e35746b0020cb83',
           number: '6285797887711',
           message: 'asd'
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      )
+        })
+      })
 
       if (response) {
         toast.success('Pesan berhasil dikirim!') // Notifikasi sukses
