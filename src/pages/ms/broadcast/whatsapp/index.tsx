@@ -82,13 +82,13 @@ const PaymentInAdmin = () => {
     }
 
     try {
-      const response = await fetch('http://103.196.155.68:3000/send-message', {
+      const response = await fetch('http://103.196.155.68:4000/send-message', {
         method: 'POST', // Specify the HTTP method (POST in this case)
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          sessionId: 'de4eb5cd4524874e35746b0020cb83',
+          sessionId: '7d6cd87ee21f7e840860c7164843f2',
           number: '6285797887711',
           message: 'asd'
         })
