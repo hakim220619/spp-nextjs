@@ -82,7 +82,7 @@ const PaymentInAdmin = () => {
     }
 
     try {
-      const response = await fetch('http://waspeed.my.id:3000/send-message', {
+      const response = await fetch('http://103.196.155.68:3000/send-message', {
         method: 'POST', // Specify the HTTP method (POST in this case)
         headers: {
           'Content-Type': 'application/json'
