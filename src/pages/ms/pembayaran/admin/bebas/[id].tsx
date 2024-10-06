@@ -146,7 +146,8 @@ const UserList: React.FC = () => {
   const [dataPayment, setDataPayment] = useState<any>('')
   const [jumlah, setJumlah] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-
+  const data = localStorage.getItem('userData') as string
+  const getDataLocal = JSON.parse(data)
   const dispatch = useDispatch<AppDispatch>()
   const store = useSelector((state: RootState) => state.PembayaranByFree)
   const router = useRouter()
@@ -193,6 +194,8 @@ const UserList: React.FC = () => {
   }, [dispatch, value, id, school_id, user_id, fetchPaymentDetails])
 
   const onsubmit = async () => {
+    console.log(getDataLocal.id)
+
     setIsLoading(true)
     if (dataPayment && jumlah) {
       try {
@@ -200,6 +203,7 @@ const UserList: React.FC = () => {
         const response = await axiosConfig.post(
           '/create-payment-pending-byAdmin-free',
           {
+            admin_id: getDataLocal.id,
             dataPayment: dataPayment,
             total_amount: totalAmount,
             user_id: dataPayment.user_id,

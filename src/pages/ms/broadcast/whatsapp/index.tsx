@@ -86,7 +86,8 @@ const PaymentInAdmin = () => {
         '/sendMessageBroadcast',
         {
           dataUsers: userDetail, // Data pengguna yang akan dikirim pesan
-          message: message // Pesan yang ingin dikirim
+          message: message, // Pesan yang ingin dikirim
+          school_id: schoolId
         },
         {
           headers: {

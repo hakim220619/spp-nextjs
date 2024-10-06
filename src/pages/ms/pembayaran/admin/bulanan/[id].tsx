@@ -149,7 +149,6 @@ const UserList: React.FC = () => {
       try {
         const filteredRows = selectedRows.filter(row => row.status !== 'Verified' && row.status !== 'Paid')
         const token = localStorage.getItem('token')
-
         const response = await axiosConfig.post(
           '/create-payment-pending-byAdmin',
           {
@@ -238,7 +237,7 @@ const UserList: React.FC = () => {
 
                 const filteredData = newSelectionModel.map(id => {
                   const selectedRow: any = store.data.find((row: any) => row.id === id)
-                  
+
                   return {
                     id: selectedRow.id,
                     total_payment: selectedRow.total_payment,
