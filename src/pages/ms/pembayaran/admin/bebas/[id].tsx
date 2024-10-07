@@ -205,7 +205,7 @@ const UserList: React.FC = () => {
           {
             admin_id: getDataLocal.id,
             dataPayment: dataPayment,
-            total_amount: totalAmount,
+            total_amount: totalAmount + dataPayment.affiliate,
             user_id: dataPayment.user_id,
             total_affiliate: dataPayment.affiliate
           },

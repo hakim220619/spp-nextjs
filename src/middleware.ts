@@ -9,8 +9,6 @@ async function fetchRolePermissions(schoolId: string): Promise<{ [key: string]: 
     if (response.status !== 200) {
       throw new Error('Failed to fetch role permissions')
     }
-    console.log(response.data)
-
     return response.data
   } catch (error) {
     console.error('Error fetching role permissions:', error)
@@ -21,16 +19,13 @@ async function fetchRolePermissions(schoolId: string): Promise<{ [key: string]: 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Log the incoming request URL for debugging
-  console.log(`Incoming request URL: ${pathname}`)
-
   // Ambil cookie userData
   const userDataCookie = request.cookies.get('userData')
 
   // Jika cookie userData tidak ada, redirect ke halaman 404 atau login
   if (!userDataCookie) {
     console.error('userData cookie not found, redirecting to 404')
-    
+
     return NextResponse.redirect(new URL('/404', request.url)) // Redirect jika cookie tidak ada
   }
 
@@ -57,11 +52,9 @@ export async function middleware(request: NextRequest) {
     // Cek apakah ada izin untuk path yang diminta
     const matchingPermission = Object.keys(rolePermissions).find(path => {
       const normalizedPath = path.replace(':uid*', '[uid*]') // Menormalisasi path dengan wildcard
-      console.log(normalizedPath)
 
       return pathname.startsWith(normalizedPath)
     })
-    console.log(matchingPermission)
 
     if (!matchingPermission) {
       console.error('No matching permissions for this path, redirecting to 403')

@@ -11,6 +11,7 @@ import authConfig from 'src/configs/auth'
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
 import axiosConfig from 'src/configs/axiosConfig'
+import { el } from 'date-fns/locale'
 
 // ** Defaults
 const defaultProvider: AuthValuesType = {
@@ -37,93 +38,98 @@ const AuthProvider = ({ children }: Props) => {
   const router = useRouter()
 
   useEffect(() => {
-    const initAuth = async (): Promise<void> => {
-      const storedToken = window.localStorage.getItem('token')
-      if (storedToken) {
-        setLoading(true)
-        await checkLogin(storedToken)
-      } else {
-        setLoading(false)
-        router.replace('/login')
-      }
-    }
-
-    const checkLogin = async (token: string): Promise<void> => {
-      setLoading(true)
-      try {
-        const response = await axiosConfig.get('/checklogin', {
-          headers: {
-            Accept: 'application/json',
-            Authorization: 'Bearer ' + token
-          }
-        })
-
-        setUser({ ...response.data.userData })
-      } catch (error) {
-        handleAuthError(error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    const handleAuthError = async (error: any) => {
-      localStorage.removeItem('userData')
-      setUser(null)
-
-      if (error.response) {
-        const errorMessage = error.response.data.message
-
-        if (errorMessage === 'Invalid token') {
-          // Attempt to refresh token if "Invalid token"
-          await refreshAccessToken()
+    if (router.pathname == '/ppdb') {
+      router.push('/ppdb')
+      setLoading(false)
+    } else {
+      const initAuth = async (): Promise<void> => {
+        const storedToken = window.localStorage.getItem('token')
+        if (storedToken) {
+          setLoading(true)
+          await checkLogin(storedToken)
         } else {
-          // Handle other errors
-          if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-            router.replace('/login')
-          }
+          setLoading(false)
+          router.replace('/login')
         }
-      } else {
-        console.error('Authentication error:', error) // Log unknown errors
-        router.replace('/login') // Redirect to login for other errors
-      }
-    }
-
-    const refreshAccessToken = async (): Promise<void> => {
-      const refreshToken = localStorage.getItem('refreshToken')
-      if (!refreshToken) {
-        router.replace('/login')
-        
-        return
       }
 
-      try {
-        const storedToken = localStorage.getItem('token')
-        const response = await axiosConfig.get('/refresh-token', {
-          headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${storedToken}`
+      const checkLogin = async (token: string): Promise<void> => {
+        setLoading(true)
+        try {
+          const response = await axiosConfig.get('/checklogin', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: 'Bearer ' + token
+            }
+          })
+
+          setUser({ ...response.data.userData })
+        } catch (error) {
+          handleAuthError(error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      const handleAuthError = async (error: any) => {
+        localStorage.removeItem('userData')
+        setUser(null)
+
+        if (error.response) {
+          const errorMessage = error.response.data.message
+
+          if (errorMessage === 'Invalid token') {
+            // Attempt to refresh token if "Invalid token"
+            await refreshAccessToken()
+          } else {
+            // Handle other errors
+            if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
+              router.replace('/login')
+            }
           }
-        })
-
-        const newAccessToken = response.data.accessToken
-        const userData = response.data.userData
-
-        // Update local storage
-        window.localStorage.setItem('token', newAccessToken)
-        window.localStorage.setItem('userData', JSON.stringify(userData))
-
-        // Set cookies for token and userData
-        Cookies.set('token', newAccessToken, { expires: 7 }) // Set cookie for 7 days
-        Cookies.set('userData', JSON.stringify(userData), { expires: 7 }) // Set cookie for 7 days
-
-        setUser({ ...userData })
-      } catch (error) {
-        console.error('Failed to refresh token:', error) // Log refresh token errors
-        handleLogout()
+        } else {
+          console.error('Authentication error:', error) // Log unknown errors
+          router.replace('/login') // Redirect to login for other errors
+        }
       }
-    }
 
-    initAuth()
+      const refreshAccessToken = async (): Promise<void> => {
+        const refreshToken = localStorage.getItem('refreshToken')
+        if (!refreshToken) {
+          router.replace('/login')
+
+          return
+        }
+
+        try {
+          const storedToken = localStorage.getItem('token')
+          const response = await axiosConfig.get('/refresh-token', {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${storedToken}`
+            }
+          })
+
+          const newAccessToken = response.data.accessToken
+          const userData = response.data.userData
+
+          // Update local storage
+          window.localStorage.setItem('token', newAccessToken)
+          window.localStorage.setItem('userData', JSON.stringify(userData))
+
+          // Set cookies for token and userData
+          Cookies.set('token', newAccessToken, { expires: 7 }) // Set cookie for 7 days
+          Cookies.set('userData', JSON.stringify(userData), { expires: 7 }) // Set cookie for 7 days
+
+          setUser({ ...userData })
+        } catch (error) {
+          console.error('Failed to refresh token:', error) // Log refresh token errors
+          handleLogout()
+        }
+      }
+
+      initAuth()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

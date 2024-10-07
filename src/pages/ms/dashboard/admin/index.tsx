@@ -23,10 +23,12 @@ const AdminDashboard = () => {
   const [totalPembayaranBebas, setTotalPembayaranBebas] = useState(null)
   const [totalTunggakanBulanan, setTotalTunggakanBulanan] = useState(null)
   const [totalTunggakanBebas, setTotalTunggakanBebas] = useState(null)
+  const [role, setrole] = useState(null)
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     const data = localStorage.getItem('userData') as any
     const getDataLocal = JSON.parse(data)
+    setrole(getDataLocal.role)
     const storedToken = window.localStorage.getItem('token')
     const fetchTotalPembayaranBulanan = async () => {
       try {
@@ -198,12 +200,66 @@ const AdminDashboard = () => {
               }}
             />
           </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBebas),
+                trend: 'positive',
+                title: 'Total Pembayaran Hari Ini',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/all/gambar4.png'
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBebas),
+                trend: 'positive',
+                title: 'Total Pembayaran Minggu Ini',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/all/gambar4.png'
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBebas),
+                trend: 'positive',
+                title: 'Total Pembayaran Bulan Ini',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/all/gambar4.png'
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <CardStatisticsCharacter
+              data={{
+                stats: formatRupiah(totalTunggakanBebas),
+                trend: 'positive',
+                title: 'Total Pembayaran Tahun Ini',
+                chipColor: 'success',
+                trendNumber: '+25.5%',
+                chipText: 'Year of 2024',
+                src: '/images/all/gambar4.png'
+              }}
+            />
+          </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
             <EcommerceTotalVisits />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <EcommerceSalesThisMonth />
+            <Grid item xs={12} sm={6} md={3}>
+              {role === 170 && <EcommerceSalesThisMonth />}
+            </Grid>
           </Grid>
           <Grid item xs={12} md={6}>
             <EcommerceActivityTimeline />

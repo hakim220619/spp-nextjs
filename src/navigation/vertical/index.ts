@@ -55,6 +55,12 @@ const navigation = (): VerticalNavItemsType => {
         path: '/ms/broadcast/whatsapp'
       },
       {
+        title: 'PPDB',
+        icon: 'tabler:registered',
+        badgeColor: 'error',
+        children: [{ title: 'Daftar Siswa', path: '/ms/ppdb' }]
+      },
+      {
         title: 'Master Data',
         icon: 'tabler:users',
         badgeColor: 'error',
