@@ -1,5 +1,10 @@
+// ** React Imports
 import { ReactNode, ReactElement, useEffect } from 'react'
+
+// ** Next Import
 import { useRouter } from 'next/router'
+
+// ** Hooks Import
 import { useAuth } from 'src/hooks/useAuth'
 
 interface AuthGuardProps {
@@ -12,24 +17,26 @@ const AuthGuard = (props: AuthGuardProps) => {
   const auth = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    if (!router.isReady) {
-      return
-    }
+  useEffect(
+    () => {
+      if (!router.isReady) {
+        return
+      }
 
-    // Cek apakah halaman yang diakses adalah /ppdb/ dan biarkan akses tanpa login
-    if (router.asPath === '/ppdb') {
-      return
-    }
-
-    // Cek apakah user sudah login, jika belum arahkan ke halaman login
-    if (auth.user === null && !window.localStorage.getItem('userData')) {
-      router.replace({
-        pathname: '/login',
-        query: { returnUrl: router.asPath }
-      })
-    }
-  }, [router.isReady, router.asPath, auth.user])
+      if (auth.user === null && !window.localStorage.getItem('userData')) {
+        if (router.asPath !== '/') {
+          router.replace({
+            pathname: '/login',
+            query: { returnUrl: router.asPath }
+          })
+        } else {
+          router.replace('/login')
+        }
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [router.route]
+  )
 
   if (auth.loading || auth.user === null) {
     return fallback

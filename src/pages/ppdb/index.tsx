@@ -1,14 +1,10 @@
 import { ReactNode, useState, useEffect } from 'react'
-import Link from 'next/link'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { styled, useTheme } from '@mui/material/styles'
-import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
 import CircularProgress from '@mui/material/CircularProgress'
 import CustomTextField from 'src/@core/components/mui/text-field'
@@ -43,11 +39,6 @@ const RightWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   [theme.breakpoints.up('xl')]: {
     maxWidth: 750
   }
-}))
-
-const LinkStyled = styled(Link)(({ theme }) => ({
-  textDecoration: 'none',
-  color: `${theme.palette.primary.main} !important`
 }))
 
 const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ theme }) => ({
@@ -88,7 +79,7 @@ const Register = () => {
   }
 
   const handleValidation = () => {
-    let errors: any = {}
+    const errors: any = {} // Use 'const' instead of 'let'
     let formIsValid = true
 
     // Validate NISN
@@ -128,6 +119,7 @@ const Register = () => {
     }
 
     setFormErrors(errors)
+
     return formIsValid
   }
 

@@ -11,7 +11,6 @@ import authConfig from 'src/configs/auth'
 // ** Types
 import { AuthValuesType, LoginParams, ErrCallbackType, UserDataType } from './types'
 import axiosConfig from 'src/configs/axiosConfig'
-import { el } from 'date-fns/locale'
 
 // ** Defaults
 const defaultProvider: AuthValuesType = {

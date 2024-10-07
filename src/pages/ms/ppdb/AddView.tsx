@@ -128,6 +128,8 @@ const PpdbForm = () => {
         }
       })
       .then(response => {
+        console.log(response);
+        
         toast.success('Successfully Added Student!')
         router.push('/ms/ppdb')
       })

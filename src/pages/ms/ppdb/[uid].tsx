@@ -18,7 +18,7 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 import { Box } from '@mui/system'
 
 const FormValidationSchema = () => {
-  const { handleSubmit, register } = useForm()
+  const { handleSubmit } = useForm()
   const router = useRouter()
   const { uid } = router.query
   const storedToken = window.localStorage.getItem('token')

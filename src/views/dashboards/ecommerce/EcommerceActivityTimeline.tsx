@@ -11,11 +11,11 @@ import TimelineContent from '@mui/lab/TimelineContent'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import MuiTimeline, { TimelineProps } from '@mui/lab/Timeline'
-import axios from 'axios'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 import axiosConfig from 'src/configs/axiosConfig'
+import { Pagination } from '@mui/material'
 
 // Styled Timeline component
 const Timeline = styled(MuiTimeline)<TimelineProps>({
@@ -29,21 +29,25 @@ const Timeline = styled(MuiTimeline)<TimelineProps>({
   }
 })
 
+const ITEMS_PER_PAGE = 6 // Constant for pagination limit
+
 const EcommerceActivityTimeline = () => {
   const [activities, setActivities] = useState([])
+  const [page, setPage] = useState(1) // State for pagination
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const schoolId = getDataLocal.school_id
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token') // Get token from localStorage
-        // You can replace 123 with dynamic data if available
         const response = await axiosConfig.get(`/getActivityBySchoolId?school_id=${schoolId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         })
+        console.log(response.data)
         setActivities(response.data) // Assuming the data is an array of activities
       } catch (error) {
         console.error('Error fetching activities:', error)
@@ -51,7 +55,32 @@ const EcommerceActivityTimeline = () => {
     }
 
     fetchData()
-  }, [])
+  }, [schoolId])
+
+  // Function to format the date
+  const formatDate = (dateString: string) => {
+    const createdAt = new Date(dateString)
+    const formattedDate = createdAt.toLocaleString('sv-SE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false // Use 24-hour format
+    })
+
+    return formattedDate
+  }
+
+  // Function to handle page changes
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    setPage(value)
+  }
+
+  // Calculate the paginated activities
+  const startIndex = (page - 1) * ITEMS_PER_PAGE
+  const paginatedActivities = activities.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
   return (
     <Card>
@@ -66,44 +95,21 @@ const EcommerceActivityTimeline = () => {
       />
       <CardContent sx={{ pt: theme => `${theme.spacing(2.5)} !important` }}>
         <Timeline sx={{ my: 0, py: 0 }}>
-          {activities.map((activity, index) => (
-            // <TimelineItem key={index}>
-            //   <TimelineSeparator>
-            //     <TimelineDot color={activity.status === 'error' ? 'error' : 'primary'} />
-            //     {index !== activities.length - 1 && <TimelineConnector />}
-            //   </TimelineSeparator>
-            //   <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(3)} !important` }}>
-            //     <Box
-            //       sx={{
-            //         mb: 3,
-            //         display: 'flex',
-            //         flexWrap: 'wrap',
-            //         alignItems: 'center',
-            //         justifyContent: 'space-between'
-            //       }}
-            //     >
-            //       <Typography sx={{ mr: 2, fontWeight: 600 }}>{activity.title}</Typography>
-            //       <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-            //         {activity.date}
-            //       </Typography>
-            //     </Box>
-            //     <Typography variant='body2' sx={{ mb: 2 }}>
-            //       {activity.description}
-            //     </Typography>
-            //     {activity.file && (
-            //       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            //         <img width={24} height={24} alt={activity.fileName} src='/images/icons/file-icons/pdf.png' />
-            //         <Typography variant='subtitle2' sx={{ ml: 2, fontWeight: 600 }}>
-            //           {activity.fileName}
-            //         </Typography>
-            //       </Box>
-            //     )}
-            //   </TimelineContent>
-            // </TimelineItem>
-            <TimelineItem>
+          {paginatedActivities.map((activity: any, index) => (
+            <TimelineItem key={startIndex + index}>
               <TimelineSeparator>
-                <TimelineDot color='error' />
-                <TimelineConnector />
+                <TimelineDot
+                  color={
+                    activity.action === 'Insert' || activity.action === 'Create'
+                      ? 'success'
+                      : activity.action === 'Update'
+                      ? 'info'
+                      : activity.action === 'Delete'
+                      ? 'error'
+                      : 'primary'
+                  }
+                />
+                {index !== paginatedActivities.length - 1 && <TimelineConnector />}
               </TimelineSeparator>
               <TimelineContent sx={{ mt: 0, mb: theme => `${theme.spacing(3)} !important` }}>
                 <Box
@@ -115,24 +121,34 @@ const EcommerceActivityTimeline = () => {
                     justifyContent: 'space-between'
                   }}
                 >
-                  <Typography sx={{ mr: 2, fontWeight: 600 }}>8 Invoices have been paid</Typography>
+                  <Typography sx={{ mr: 2, fontWeight: 600 }}>{activity.action}</Typography>
                   <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                    Wednesday
+                    {formatDate(activity.created_at)}
                   </Typography>
                 </Box>
                 <Typography variant='body2' sx={{ mb: 2 }}>
-                  Invoices have been paid to the company.
+                  {activity.detail}
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <img width={24} height={24} alt='invoice.pdf' src='/images/icons/file-icons/pdf.png' />
-                  <Typography variant='subtitle2' sx={{ ml: 2, fontWeight: 600 }}>
-                    bookingCard.pdf
-                  </Typography>
-                </Box>
+                {activity.file && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <img width={24} height={24} alt={activity.fileName} src='/images/icons/file-icons/pdf.png' />
+                    <Typography variant='subtitle2' sx={{ ml: 2, fontWeight: 600 }}>
+                      {activity.fileName}
+                    </Typography>
+                  </Box>
+                )}
               </TimelineContent>
             </TimelineItem>
           ))}
         </Timeline>
+
+        {/* Pagination Component */}
+        <Pagination
+          count={Math.ceil(activities.length / ITEMS_PER_PAGE)}
+          page={page}
+          onChange={handlePageChange}
+          sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}
+        />
       </CardContent>
     </Card>
   )

@@ -9,6 +9,7 @@ async function fetchRolePermissions(schoolId: string): Promise<{ [key: string]: 
     if (response.status !== 200) {
       throw new Error('Failed to fetch role permissions')
     }
+    
     return response.data
   } catch (error) {
     console.error('Error fetching role permissions:', error)
