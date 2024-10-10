@@ -69,6 +69,8 @@ const RowOptions = ({ data }: { uid: any; data: any }) => {
 
     const img = new Image()
     img.crossOrigin = 'Anonymous'
+
+    
     img.src = logoImageUrl
 
     img.onload = () => {
