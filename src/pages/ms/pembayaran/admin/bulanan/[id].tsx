@@ -70,11 +70,13 @@ const RowOptions = ({ data }: { uid: any; data: any }) => {
 
     const logoImageUrl = `${urlImage}${getDataLocal.logo}`
 
-
     const img = new Image()
+    img.crossOrigin = 'Anonymous'
+
     img.src = logoImageUrl
 
     img.onload = () => {
+      document.body.appendChild(img) // Menambahkan gambar ke DOM sebagai contoh
       // Add the logo
       doc.addImage(img, 'PNG', 10, 10, 20, 20)
 
