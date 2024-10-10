@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Card, Grid, CircularProgress, IconButton } from '@mui/material'
+import { Card, Grid, CircularProgress, IconButton, Dialog, DialogTitle, Button, DialogContent } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { useDispatch, useSelector } from 'react-redux'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -8,6 +8,10 @@ import { RootState, AppDispatch } from 'src/store'
 import TableHeader from 'src/pages/ms/laporan/TableHeader'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
+import { UsersType } from 'src/types/apps/userTypes'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import urlImage from 'src/configs/url_image'
 
 const statusObj: any = {
   Pending: { title: 'Proses Pembayaran', color: 'error' },
@@ -19,12 +23,190 @@ const typeObj: any = {
   BEBAS: { title: 'BEBAS', color: 'warning' }
 }
 
-const RowOptions = () => {
+interface CellType {
+  row: UsersType
+}
+
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF
+  }
+}
+
+const RowOptions = ({ data }: { uid: any; data: any }) => {
+  const [openPdfPreview, setOpenPdfPreview] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const dataLocal = localStorage.getItem('userData') as string
+  const getDataLocal = JSON.parse(dataLocal)
+  const formattedUpdatedAt = new Date(data.updated_at).toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+
+  const createPdf = async () => {
+    const doc = new jsPDF()
+
+    const logoImageUrl = `${urlImage}${getDataLocal.logo}`
+
+    const img = new Image()
+    img.src = logoImageUrl
+
+    img.onload = () => {
+      // Add the logo
+      doc.addImage(img, 'PNG', 10, 10, 20, 20)
+
+      // Add school name and address
+      doc.setFontSize(14)
+      doc.setFont('verdana', 'bold')
+      const schoolNameWidth = doc.getTextWidth(data.school_name)
+      const xSchoolNamePosition = (doc.internal.pageSize.getWidth() - schoolNameWidth) / 2
+
+      doc.text(data.school_name, xSchoolNamePosition, 20)
+      doc.setFontSize(10)
+      doc.setFont('verdana', 'normal')
+
+      const addressWidth = doc.getTextWidth(data.school_address)
+      const xAddressPosition = (doc.internal.pageSize.getWidth() - addressWidth) / 2
+
+      doc.text(data.school_address, xAddressPosition, 26)
+
+      // Draw a horizontal line
+      doc.line(10, 32, 200, 32)
+
+      // Student Information
+      // Student Information
+      // Student Information
+      const studentInfoY = 40 // Base Y position for student info
+      const lineSpacing = 4 // Adjust this value to reduce spacing
+
+      const infoLines = [
+        { label: 'NIS', value: data.nisn },
+        { label: 'Nama', value: data.full_name },
+        { label: 'Kelas', value: data.class_name },
+        { label: 'Jurusan', value: data.major_name }
+      ]
+
+      // Set positions for left and right columns
+      const leftColumnX = 10 // X position for the left column
+      const rightColumnX = 100 // X position for the right column
+      const labelOffset = 30 // Offset for the label and value
+
+      infoLines.forEach((info, index) => {
+        const yPosition = studentInfoY + Math.floor(index / 2) * lineSpacing // Increment y for each pair
+
+        if (index % 2 === 0) {
+          // Even index: Left column for the first two entries
+          doc.text(info.label, leftColumnX, yPosition)
+          doc.text(`: ${info.value}`, leftColumnX + labelOffset, yPosition) // Adjust padding for alignment
+        } else {
+          // Odd index: Right column for the last two entries
+          doc.text(info.label, rightColumnX, yPosition)
+          doc.text(`: ${info.value}`, rightColumnX + labelOffset, yPosition) // Adjust padding for alignment
+        }
+      })
+
+      // Draw another horizontal line below the student information
+      doc.line(10, studentInfoY + 2 * lineSpacing, 200, studentInfoY + 2 * lineSpacing)
+
+      // Payment details header
+      doc.text('Dengan rincian pembayaran sebagai berikut:', 10, studentInfoY + infoLines.length * 3)
+
+      const tableBody = [
+        [
+          data.id,
+          data.sp_name + ' ' + data.years,
+          data.month,
+          data.status == 'Paid' ? 'Lunas' : 'Belum Lunas',
+          formattedUpdatedAt,
+          `Rp. ${data.total_payment.toLocaleString()}`
+        ]
+      ]
+
+      // Set up the table
+      doc.autoTable({
+        startY: studentInfoY + infoLines.length * 3 + 4,
+        margin: { left: 10 },
+        head: [['ID', 'Pembayaran', 'Bulan', 'Status', 'Dibuat', 'Total Tagihan']],
+        body: tableBody,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [50, 50, 50],
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          font: 'verdana',
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 8,
+          font: 'verdana'
+        },
+        alternateRowStyles: {
+          fillColor: [230, 230, 230] // Change this to your desired secondary color
+        },
+        columnStyles: {
+          0: { cellWidth: 20 }, // ID column width
+          1: { cellWidth: 50 }, // Pembayaran column width
+          2: { cellWidth: 20 }, // Status column width
+          3: { cellWidth: 20 }, // Dibuat column width
+          4: { cellWidth: 50 }, // Total Tagihan column width
+          5: { cellWidth: 30 } // Total Tagihan column width
+        }
+      })
+
+      // Create a Blob URL for the PDF
+      const pdfOutput = doc.output('blob')
+      const blobUrl = URL.createObjectURL(pdfOutput)
+      setPdfUrl(blobUrl) // Set the URL for the dialog
+      setOpenPdfPreview(true) // Open the dialog
+    }
+
+    img.onerror = () => {
+      console.error('Failed to load image:', logoImageUrl)
+    }
+  }
+
   return (
     <>
-      <IconButton size='small' color='error'>
+      <IconButton size='small' color='error' onClick={createPdf}>
         <Icon icon='tabler:file-type-pdf' />
       </IconButton>
+
+      <Dialog
+        open={openPdfPreview}
+        onClose={() => {
+          setOpenPdfPreview(false)
+          setPdfUrl(null) // Clear the URL when closing
+        }}
+        maxWidth='lg'
+        fullWidth
+        PaperProps={{
+          style: {
+            minHeight: '600px'
+          }
+        }}
+      >
+        <DialogTitle style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Preview Payment Receipt
+          <Button
+            onClick={() => {
+              setOpenPdfPreview(false)
+              setPdfUrl(null) // Clear the URL when closing
+            }}
+            color='error'
+            style={{ position: 'absolute', top: '8px', right: '8px' }} // Position the button in the top-right corner
+          >
+            Cancel
+          </Button>
+        </DialogTitle>
+        <DialogContent>
+          {pdfUrl && <iframe src={pdfUrl} width='100%' height='800px' title='PDF Preview' style={{ border: 'none' }} />}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -97,7 +279,7 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: () => <RowOptions />
+    renderCell: ({ row }: CellType) => <RowOptions uid={row.id} data={row} />
   }
 ]
 

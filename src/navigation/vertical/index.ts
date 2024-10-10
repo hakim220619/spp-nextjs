@@ -149,6 +149,25 @@ const navigation = (): VerticalNavItemsType => {
         path: '/ms/laporan'
       }
     ]
+  } else if (role === 210) {
+    return [
+      {
+        title: 'Dashboards',
+        icon: 'ion:home-outline',
+        subject: 'ms-ds-admin',
+        path: '/ms/dashboard/admin'
+      },
+      {
+        title: 'Tunggakan',
+        icon: 'tabler:bell-dollar',
+        path: '/ms/tunggakan'
+      },
+      {
+        title: 'Pembayaran',
+        icon: 'ion:wallet-outline',
+        path: '/ms/pembayaran/admin'
+      }
+    ]
   } else {
     return [
       {

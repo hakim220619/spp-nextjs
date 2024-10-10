@@ -6,7 +6,6 @@ import { styled } from '@mui/material/styles'
 import Typography, { TypographyProps } from '@mui/material/Typography'
 import { LayoutProps } from 'src/@core/layouts/types'
 import Icon from 'src/@core/components/icon'
-import themeConfig from 'src/configs/themeConfig'
 import urlImage from '../../../../../configs/url_image'
 
 interface Props {
@@ -76,11 +75,12 @@ const VerticalNavHeader = (props: Props) => {
       return 6
     }
   }
-
+  const [aplikasiName, setAplikasiName] = useState<string | null>(null)
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') as string)
     const storedLogo = userData.logo
     setLogo(urlImage + storedLogo)
+    setAplikasiName(userData.aplikasi_name)
   }, [])
 
   const MenuLockedIcon = () => userMenuLockedIcon || <Icon icon='tabler:circle-dot' />
@@ -99,7 +99,7 @@ const VerticalNavHeader = (props: Props) => {
           />
 
           <HeaderTitle variant='h4' sx={{ ...menuCollapsedStyles, ...(navCollapsed && !navHover ? {} : { ml: 2.5 }) }}>
-            {themeConfig.templateName}
+            {aplikasiName}
           </HeaderTitle>
         </LinkStyled>
       )}

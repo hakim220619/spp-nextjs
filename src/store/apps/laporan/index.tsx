@@ -11,7 +11,6 @@ interface DataParams {
   setting_payment_uid: any
 }
 
-
 // ** Fetch Users
 export const ListPaymentReportAdmin = createAsyncThunk('appData/ListPaymentReportAdmin', async (params: DataParams) => {
   const storedToken = window.localStorage.getItem('token')

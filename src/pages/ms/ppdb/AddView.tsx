@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, ChangeEvent, useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -21,12 +21,9 @@ import { yupResolver } from '@hookform/resolvers/yup'
 // ** Custom Imports
 import axiosConfig from '../../../configs/axiosConfig'
 import { useRouter } from 'next/navigation'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import DatePicker from 'react-datepicker'
-import { DateType } from 'src/types/forms/reactDatepickerTypes'
 
 interface FormData {
-  nisn: string
+  nik: string
   date_of_birth: string
   email: string
   full_name: string
@@ -35,7 +32,7 @@ interface FormData {
 }
 
 const schema = yup.object().shape({
-  nisn: yup.string().required('NISN is required'),
+  nik: yup.string().required('Nik is required'),
   date_of_birth: yup.date().required('Date of Birth is required'),
   email: yup.string().email('Invalid email format').required('Email is required'),
   full_name: yup.string().required('Full Name is required'),
@@ -43,18 +40,12 @@ const schema = yup.object().shape({
   unit_id: yup.string().required('Unit is required') // Validation for unit
 })
 
-const CustomInput = forwardRef(
-  ({ ...props }: { value: DateType; label: string; error: boolean; onChange: (event: ChangeEvent) => void }, ref) => {
-    return <CustomTextField fullWidth inputRef={ref} {...props} sx={{ width: '100%' }} />
-  }
-)
-
 const PpdbForm = () => {
   const router = useRouter()
   const [units, setUnits] = useState([]) // State for unit options
   const userData = JSON.parse(localStorage.getItem('userData') as string)
   const defaultValues: FormData = {
-    nisn: '',
+    nik: '',
     date_of_birth: '',
     email: '',
     full_name: '',
@@ -102,22 +93,21 @@ const PpdbForm = () => {
   }, [])
 
   const onSubmit = (data: FormData) => {
-    console.log(data)
     const date = new Date(data.date_of_birth)
-    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
-      date.getDate()
-    ).padStart(2, '0')}`
-    console.log(formattedDate)
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`
 
     const formData = new FormData()
-    formData.append('nisn', data.nisn)
+    formData.append('nik', data.nik)
     formData.append('date_of_birth', formattedDate)
     formData.append('email', data.email)
     formData.append('full_name', data.full_name)
     formData.append('phone', data.phone)
     formData.append('unit_id', data.unit_id)
     formData.append('school_id', userData.school_id)
-
+    console.log(formData)
     const storedToken = window.localStorage.getItem('token')
     axiosConfig
       .post('/registerSiswa', formData, {
@@ -128,8 +118,8 @@ const PpdbForm = () => {
         }
       })
       .then(response => {
-        console.log(response);
-        
+        console.log(response)
+
         toast.success('Successfully Added Student!')
         router.push('/ms/ppdb')
       })
@@ -169,17 +159,17 @@ const PpdbForm = () => {
             </Grid>
             <Grid item xs={12} sm={6} md={4} lg={6}>
               <Controller
-                name='nisn'
+                name='nik'
                 control={control}
                 render={({ field: { value, onChange } }) => (
                   <CustomTextField
                     fullWidth
                     value={value}
-                    label='NISN'
+                    label='Nik'
                     onChange={onChange}
                     placeholder='1242324534'
-                    error={Boolean(errors.nisn)}
-                    helperText={errors.nisn?.message}
+                    error={Boolean(errors.nik)}
+                    helperText={errors.nik?.message}
                     inputProps={{
                       inputMode: 'numeric',
                       pattern: '[0-9]*',
@@ -264,23 +254,18 @@ const PpdbForm = () => {
                 control={control}
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
-                  <DatePickerWrapper>
-                    <DatePicker
-                      selected={value ? new Date(value) : null}
-                      onChange={(date: Date | null) => onChange(date)}
-                      placeholderText='MM/DD/YYYY'
-                      dateFormat='MM/dd/yyyy'
-                      customInput={
-                        <CustomInput
-                          value={(value as any) ? (new Date(value).toLocaleDateString('en-US') as any) : ''}
-                          onChange={onChange}
-                          label='Tanggal Lahir'
-                          error={Boolean(errors.date_of_birth)}
-                          {...(errors.date_of_birth && { helperText: 'This field is required' })}
-                        />
-                      }
-                    />
-                  </DatePickerWrapper>
+                  <CustomTextField
+                    fullWidth
+                    type='date'
+                    label='Tanggal Lahir'
+                    value={value} // Ensure you're using the value from the field
+                    onChange={onChange} // Handle the change event correctly
+                    error={Boolean(errors.date_of_birth)} // Use the correct error reference
+                    helperText={errors.date_of_birth ? 'This field is required' : ''}
+                    InputLabelProps={{
+                      shrink: true // Ensures the label stays in place when the date picker is used
+                    }}
+                  />
                 )}
               />
             </Grid>

@@ -23,6 +23,7 @@ import { UsersType } from 'src/types/apps/userTypes'
 import TableHeader from 'src/pages/ms/ppdb/TableHeader'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
+import axiosConfig from 'src/configs/axiosConfig'
 
 interface CellType {
   row: UsersType
@@ -40,21 +41,62 @@ const statusPemObj: any = {
   Verified: { title: 'Verified', color: 'info' }
 }
 
-const RowOptions = ({ uid }: { uid: any }) => {
+interface StudentCandidate {
+  school_id: number
+  no_registrasi: string
+  username: string
+  password: string
+  nik: string
+  date_of_birth: string // Use string here if the date comes as a string, or Date if it's a Date object
+  email: string
+  full_name: string
+  phone: string
+  unit_id: number
+  status: 'Registered' | 'Pending' | 'Rejected' | 'Accepted' // enum type
+  order_id: string
+  redirect_url: string
+  status_pembayaran: 'Paid' | 'Pending' | 'Verified' // enum type
+  created_at: string
+}
+
+const RowOptions = ({ id }: { id: any }) => {
   const data = localStorage.getItem('userData') as string
   const getDataLocal = JSON.parse(data)
   const [open, setOpen] = useState(false)
-  const [school_id] = useState<number>(getDataLocal.school_id)
-  const [value] = useState<string>('')
+  const [student, setStudent] = useState<StudentCandidate | null>(null) // State for student data
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
-  const handleRowEditedClick = () => router.push('/ms/ppdb/' + uid)
+  // Fetch student data on component mount
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        const token = localStorage.getItem('token') // Assuming token is stored in localStorage
+
+        const response = await axiosConfig.post(
+          '/detailPpdb', // The API endpoint for fetching student data
+          { id }, // Request body with uid
+          {
+            headers: {
+              Authorization: `Bearer ${token}` // Include token in the headers
+            }
+          }
+        )
+        setStudent(response.data)
+      } catch (error) {
+        console.error('Failed to fetch student data:', error)
+      }
+    }
+
+    fetchStudentData()
+  }, [id])
+
+  const handleRowEditedClick = () => router.push('/ms/ppdb/' + id)
 
   const handleDelete = async () => {
     try {
-      await dispatch(deletePpdb(uid)).unwrap()
-      await dispatch(fetchDataPpdb({ school_id, q: value }))
+      await dispatch(deletePpdb(id)).unwrap()
+      await dispatch(fetchDataPpdb({ school_id: getDataLocal.school_id, q: '' }))
       toast.success('Successfully deleted!')
       setOpen(false)
     } catch (error) {
@@ -66,14 +108,54 @@ const RowOptions = ({ uid }: { uid: any }) => {
   const handleClickOpenDelete = () => setOpen(true)
   const handleClose = () => setOpen(false)
 
+  const [openDetails, setOpenDetails] = useState(false)
+
+  // Function to open the details dialog
+  const handleOpenDetails = () => setOpenDetails(true)
+
+  // Function to close the details dialog
+  const handleCloseDetails = () => setOpenDetails(false)
+  const handleVerifikasi = () => {
+    const token = localStorage.getItem('token') // Assuming token is stored in localStorage
+    axiosConfig
+      .post(
+        '/verifikasi-siswa-baru',
+        { id },
+        {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      .then(response => {
+        console.log(response)
+
+        toast.success('Successfully Updated!')
+        dispatch(fetchDataPpdb({ school_id: getDataLocal.school_id, q: '' }))
+        setOpenDetails(false)
+      })
+      .catch(() => {
+        toast.error("Failed. This didn't work.")
+      })
+  }
+
   return (
     <>
+      {/* Detail Button */}
+      <IconButton size='small' color='primary' onClick={handleOpenDetails}>
+        <Icon icon='tabler:info-circle' />
+      </IconButton>
+
       <IconButton size='small' color='success' onClick={handleRowEditedClick}>
         <Icon icon='tabler:edit' />
       </IconButton>
+
       <IconButton size='small' color='error' onClick={handleClickOpenDelete}>
         <Icon icon='tabler:trash' />
       </IconButton>
+
+      {/* Delete Confirmation Dialog */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{'Are you sure you want to delete this user?'}</DialogTitle>
         <DialogContent>
@@ -88,6 +170,54 @@ const RowOptions = ({ uid }: { uid: any }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Student Details Dialog */}
+      <Dialog open={openDetails} onClose={handleCloseDetails}>
+        <DialogTitle>{'Student Details'}</DialogTitle>
+        <DialogContent>
+          {student ? (
+            <div>
+              <p>
+                <strong>Full Name:</strong> {student.full_name}
+              </p>
+              <p>
+                <strong>Email:</strong> {student.email}
+              </p>
+              <p>
+                <strong>Status:</strong> {student.status}
+              </p>
+              <p>
+                <strong>Registration Number:</strong> {student.no_registrasi}
+              </p>
+              <p>
+                <strong>Phone:</strong> {student.phone}
+              </p>
+              <p>
+                <strong>Date of Birth:</strong> {student.date_of_birth}
+              </p>
+              <p>
+                <strong>Payment Status:</strong> {student.status_pembayaran}
+              </p>
+              {/* Add any other fields as needed */}
+            </div>
+          ) : (
+            <DialogContentText>Loading student details...</DialogContentText>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDetails} color='primary'>
+            Close
+          </Button>
+          <Button
+            onClick={() => {
+              handleVerifikasi()
+            }}
+            color='success'
+          >
+            Verifikasi
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
@@ -97,7 +227,7 @@ const columns: GridColDef[] = [
   { field: 'school_name', headerName: 'Sekolah', flex: 0.175, minWidth: 140 },
   { field: 'unit_name', headerName: 'Nama Unit', flex: 0.175, minWidth: 140 },
   { field: 'full_name', headerName: 'Nama Lengkap', flex: 0.175, minWidth: 140 },
-  { field: 'nisn', headerName: 'Nisn', flex: 0.25, minWidth: 180 },
+  { field: 'nik', headerName: 'Nik', flex: 0.25, minWidth: 180 },
   { field: 'email', headerName: 'Email', flex: 0.25, minWidth: 180 },
   { field: 'phone', headerName: 'No. Wa', flex: 0.25, minWidth: 180 },
   {
@@ -107,7 +237,7 @@ const columns: GridColDef[] = [
     minWidth: 180,
     valueFormatter: params => {
       const date = new Date(params.value)
-      
+
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(
         2,
         '0'
@@ -121,7 +251,6 @@ const columns: GridColDef[] = [
     minWidth: 140,
     renderCell: (params: GridRenderCellParams) => {
       const status = statusObj[params.row.status]
-      console.log(status)
 
       return (
         <CustomChip
@@ -161,7 +290,7 @@ const columns: GridColDef[] = [
     sortable: false,
     field: 'actions',
     headerName: 'Actions',
-    renderCell: ({ row }: CellType) => <RowOptions uid={row.id} />
+    renderCell: ({ row }: CellType) => <RowOptions id={row.id} />
   }
 ]
 

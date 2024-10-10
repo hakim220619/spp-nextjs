@@ -12,6 +12,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrations from 'src/views/pages/misc/FooterIllustrations'
+import { useAuth } from 'src/hooks/useAuth'
 
 // ** Styled Components
 const BoxWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -32,10 +33,20 @@ const Img = styled('img')(({ theme }) => ({
     marginTop: theme.spacing(20)
   }
 }))
-const back = () => {
-  window.history.back()
-}
+
 const Error404 = () => {
+
+  const { logout } = useAuth()
+  const back = () => {
+    document.cookie = 'userData=; Max-Age=0; path=/;'
+    document.cookie = 'token=; Max-Age=0; path=/;'
+
+    // Clear localStorage (userData and token)
+    localStorage.removeItem('userData')
+    localStorage.removeItem('token')
+    logout()
+  }
+
   return (
     <Box className='content-center'>
       <Box sx={{ p: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>

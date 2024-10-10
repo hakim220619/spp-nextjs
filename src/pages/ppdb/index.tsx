@@ -54,7 +54,7 @@ const Register = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [checked, setChecked] = useState(false) // Set default to false
   const [formData, setFormData] = useState({
-    nisn: '',
+    nik: '',
     full_name: '',
     email: '',
     phone: '62',
@@ -82,10 +82,10 @@ const Register = () => {
     const errors: any = {} // Use 'const' instead of 'let'
     let formIsValid = true
 
-    // Validate NISN
-    if (!formData.nisn) {
+    // Validate NIK
+    if (!formData.nik) {
       formIsValid = false
-      errors['nisn'] = 'NISN is required'
+      errors['nik'] = 'NIK is required'
     }
 
     // Validate full name
@@ -125,7 +125,7 @@ const Register = () => {
 
   const isFormComplete = () => {
     return (
-      formData.nisn &&
+      formData.nik &&
       formData.full_name &&
       formData.email &&
       formData.phone &&
@@ -153,7 +153,7 @@ const Register = () => {
           })
 
           setFormData({
-            nisn: '',
+            nik: '',
             full_name: '',
             email: '',
             phone: '62',
@@ -258,17 +258,17 @@ const Register = () => {
 
               <CustomTextField
                 fullWidth
-                name='nisn'
-                value={formData.nisn}
+                name='nik'
+                value={formData.nik}
                 onChange={(e: any) => {
                   const numericValue = e.target.value.replace(/[^0-9]/g, '')
-                  setFormData({ ...formData, nisn: numericValue })
+                  setFormData({ ...formData, nik: numericValue })
                 }}
-                label='NISN'
+                label='Nik'
                 placeholder='123456789'
                 inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                error={!!formErrors.nisn}
-                helperText={formErrors.nisn}
+                error={!!formErrors.nik}
+                helperText={formErrors.nik}
               />
 
               <CustomTextField

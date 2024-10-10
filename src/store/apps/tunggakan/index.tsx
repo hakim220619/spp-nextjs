@@ -21,8 +21,9 @@ export const ListPaymentTunggakan = createAsyncThunk('appData/ListPaymentTunggak
     }
   }
   const response = await axiosConfig.get('/list-tunggakan', customConfig)
+  const filteredData = response.data.filter((item: any) => item.status_lunas !== 'Paid')
 
-  return response.data
+  return filteredData
 })
 
 export const appDataSlice = createSlice({

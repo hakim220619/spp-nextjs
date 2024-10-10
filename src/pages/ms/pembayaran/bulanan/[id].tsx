@@ -9,7 +9,10 @@ import {
   Button,
   InputLabel,
   TextField,
-  CardContent
+  CardContent,
+  DialogTitle,
+  Dialog,
+  DialogContent
 } from '@mui/material'
 import { DataGrid, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
@@ -23,6 +26,9 @@ import Typography from '@mui/material/Typography'
 import axiosConfig from '../../../../configs/axiosConfig'
 import { Box } from '@mui/system'
 import toast from 'react-hot-toast'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import urlImage from 'src/configs/url_image'
 
 interface CellType {
   row: UsersType
@@ -33,20 +39,195 @@ const statusObj: any = {
   Paid: { title: 'Paid', color: 'success' },
   Verified: { title: 'Verified', color: 'warning' }
 }
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: (options: any) => jsPDF
+  }
+}
 
 const RowOptions = ({ data }: { uid: any; data: any }) => {
+  const [openPdfPreview, setOpenPdfPreview] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const dataLocal = localStorage.getItem('userData') as string
+  const getDataLocal = JSON.parse(dataLocal)
   const handleRowRedirectClick = () => window.open(data.redirect_url)
+  const formattedUpdatedAt = new Date(data.updated_at).toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
 
-  // Kondisi untuk menampilkan RowOptions jika status adalah 'verified' dan redirect_url tidak null
-  if (data.status !== 'Verified' || data.redirect_url === null) {
-    return null
+  const createPdf = async () => {
+    const doc = new jsPDF()
+
+    const logoImageUrl = `${urlImage}${getDataLocal.logo}`
+
+    const img = new Image()
+    img.src = logoImageUrl
+
+    img.onload = () => {
+      // Add the logo
+      doc.addImage(img, 'PNG', 10, 10, 20, 20)
+
+      // Add school name and address
+      doc.setFontSize(14)
+      doc.setFont('verdana', 'bold')
+      const schoolNameWidth = doc.getTextWidth(data.school_name)
+      const xSchoolNamePosition = (doc.internal.pageSize.getWidth() - schoolNameWidth) / 2
+
+      doc.text(data.school_name, xSchoolNamePosition, 20)
+      doc.setFontSize(10)
+      doc.setFont('verdana', 'normal')
+
+      const addressWidth = doc.getTextWidth(data.school_address)
+      const xAddressPosition = (doc.internal.pageSize.getWidth() - addressWidth) / 2
+
+      doc.text(data.school_address, xAddressPosition, 26)
+
+      // Draw a horizontal line
+      doc.line(10, 32, 200, 32)
+
+      // Student Information
+      // Student Information
+      // Student Information
+      const studentInfoY = 40 // Base Y position for student info
+      const lineSpacing = 4 // Adjust this value to reduce spacing
+
+      const infoLines = [
+        { label: 'NIS', value: data.nisn },
+        { label: 'Nama', value: data.full_name },
+        { label: 'Kelas', value: data.class_name },
+        { label: 'Jurusan', value: data.major_name }
+      ]
+
+      // Set positions for left and right columns
+      const leftColumnX = 10 // X position for the left column
+      const rightColumnX = 100 // X position for the right column
+      const labelOffset = 30 // Offset for the label and value
+
+      infoLines.forEach((info, index) => {
+        const yPosition = studentInfoY + Math.floor(index / 2) * lineSpacing // Increment y for each pair
+
+        if (index % 2 === 0) {
+          // Even index: Left column for the first two entries
+          doc.text(info.label, leftColumnX, yPosition)
+          doc.text(`: ${info.value}`, leftColumnX + labelOffset, yPosition) // Adjust padding for alignment
+        } else {
+          // Odd index: Right column for the last two entries
+          doc.text(info.label, rightColumnX, yPosition)
+          doc.text(`: ${info.value}`, rightColumnX + labelOffset, yPosition) // Adjust padding for alignment
+        }
+      })
+
+      // Draw another horizontal line below the student information
+      doc.line(10, studentInfoY + 2 * lineSpacing, 200, studentInfoY + 2 * lineSpacing)
+
+      // Payment details header
+      doc.text('Dengan rincian pembayaran sebagai berikut:', 10, studentInfoY + infoLines.length * 3)
+
+      const tableBody = [
+        [
+          data.id,
+          data.sp_name + ' ' + data.years,
+          data.month,
+          data.status == 'Paid' ? 'Lunas' : 'Belum Lunas',
+          formattedUpdatedAt,
+          `Rp. ${data.total_payment.toLocaleString()}`
+        ]
+      ]
+
+      // Set up the table
+      doc.autoTable({
+        startY: studentInfoY + infoLines.length * 3 + 4,
+        margin: { left: 10 },
+        head: [['ID', 'Pembayaran', 'Bulan', 'Status', 'Dibuat', 'Total Tagihan']],
+        body: tableBody,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [50, 50, 50],
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          font: 'verdana',
+          fontStyle: 'bold'
+        },
+        styles: {
+          fontSize: 8,
+          font: 'verdana'
+        },
+        alternateRowStyles: {
+          fillColor: [230, 230, 230] // Change this to your desired secondary color
+        },
+        columnStyles: {
+          0: { cellWidth: 20 }, // ID column width
+          1: { cellWidth: 50 }, // Pembayaran column width
+          2: { cellWidth: 20 }, // Status column width
+          3: { cellWidth: 20 }, // Dibuat column width
+          4: { cellWidth: 50 }, // Total Tagihan column width
+          5: { cellWidth: 30 } // Total Tagihan column width
+        }
+      })
+
+      // Create a Blob URL for the PDF
+      const pdfOutput = doc.output('blob')
+      const blobUrl = URL.createObjectURL(pdfOutput)
+      setPdfUrl(blobUrl) // Set the URL for the dialog
+      setOpenPdfPreview(true) // Open the dialog
+    }
+
+    img.onerror = () => {
+      console.error('Failed to load image:', logoImageUrl)
+    }
   }
 
   return (
     <>
-      <IconButton size='small' color='success' onClick={handleRowRedirectClick}>
-        <Icon icon='tabler:link' />
-      </IconButton>
+      {data.status === 'Paid' && (
+        <IconButton size='small' color='error' onClick={createPdf}>
+          <Icon icon='tabler:file-type-pdf' />
+        </IconButton>
+      )}
+
+      {data.status === 'Verified' && data.redirect_url && (
+        <IconButton size='small' color='success' onClick={handleRowRedirectClick}>
+          <Icon icon='tabler:link' />
+        </IconButton>
+      )}
+
+      <Dialog
+        open={openPdfPreview}
+        onClose={() => {
+          setOpenPdfPreview(false)
+          setPdfUrl(null) // Clear the URL when closing
+        }}
+        maxWidth='lg'
+        fullWidth
+        PaperProps={{
+          style: {
+            minHeight: '600px'
+          }
+        }}
+      >
+        <DialogTitle style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Preview Payment Receipt
+          <Button
+            onClick={() => {
+              setOpenPdfPreview(false)
+              setPdfUrl(null) // Clear the URL when closing
+            }}
+            color='error'
+            style={{ position: 'absolute', top: '8px', right: '8px' }} // Position the button in the top-right corner
+          >
+            Cancel
+          </Button>
+        </DialogTitle>
+        <DialogContent>
+          {pdfUrl && <iframe src={pdfUrl} width='100%' height='800px' title='PDF Preview' style={{ border: 'none' }} />}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -113,6 +294,8 @@ const UserList: React.FC = () => {
   const store = useSelector((state: RootState) => state.PembayaranByMonth)
   const router = useRouter()
   const { id } = router.query
+  const [openPdfPreview, setOpenPdfPreview] = useState(false)
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
   const storedToken = window.localStorage.getItem('token')
 
   useEffect(() => {
@@ -317,7 +500,7 @@ const UserList: React.FC = () => {
 
   const cekTransaksiById = () => {
     setJumlah('')
-    
+
     // Mengambil token yang disimpan (misalnya, dari local storage)
     const token = localStorage.getItem('token')
 
@@ -359,37 +542,193 @@ const UserList: React.FC = () => {
     router.push('/ms/dashboard/siswa/')
   }
 
+  const createPdf = async () => {
+    const doc = new jsPDF()
+
+    // Check if store.data has any items
+    if (store.data && store.data.length > 0) {
+      const pdfData: any = store.data[0] // Assuming you want to use the first item for the PDF
+
+      const logoImageUrl = `${urlImage}${getDataLocal.logo}`
+
+      const img = new Image()
+      img.src = logoImageUrl
+
+      img.onload = () => {
+        // Add the logo
+        doc.addImage(img, 'PNG', 10, 10, 20, 20)
+
+        // Add school name and address
+        doc.setFontSize(14)
+        doc.setFont('verdana', 'arial', 'sans-serif')
+        const schoolNameWidth = doc.getTextWidth(pdfData.school_name)
+        const xSchoolNamePosition = (doc.internal.pageSize.getWidth() - schoolNameWidth) / 2
+
+        doc.text(pdfData.school_name, xSchoolNamePosition, 20)
+        doc.setFontSize(10)
+        doc.setFont('verdana', 'arial', 'sans-serif')
+
+        const addressWidth = doc.getTextWidth(pdfData.school_address)
+        const xAddressPosition = (doc.internal.pageSize.getWidth() - addressWidth) / 2
+
+        doc.text(pdfData.school_address, xAddressPosition, 26)
+
+        // Draw a horizontal line
+        doc.line(10, 32, 200, 32)
+
+        // Student Information
+        const studentInfoY = 40 // Base Y position for student info
+        const lineSpacing = 4 // Adjust this value to reduce spacing
+
+        const infoLines = [
+          { label: 'NIS', value: pdfData.nisn },
+          { label: 'Nama', value: pdfData.full_name },
+          { label: 'Kelas', value: pdfData.class_name },
+          { label: 'Jurusan', value: pdfData.major_name }
+        ]
+
+        // Set positions for left and right columns
+        const leftColumnX = 10 // X position for the left column
+        const rightColumnX = 100 // X position for the right column
+        const labelOffset = 30 // Offset for the label and value
+
+        infoLines.forEach((info, index) => {
+          const yPosition = studentInfoY + Math.floor(index / 2) * lineSpacing // Increment y for each pair
+
+          if (index % 2 === 0) {
+            // Even index: Left column for the first two entries
+            doc.text(info.label, leftColumnX, yPosition)
+            doc.text(`: ${info.value}`, leftColumnX + labelOffset, yPosition) // Adjust padding for alignment
+          } else {
+            // Odd index: Right column for the last two entries
+            doc.text(info.label, rightColumnX, yPosition)
+            doc.text(`: ${info.value}`, rightColumnX + labelOffset, yPosition) // Adjust padding for alignment
+          }
+        })
+
+        // Draw another horizontal line below the student information
+        doc.line(10, studentInfoY + 2 * lineSpacing, 200, studentInfoY + 2 * lineSpacing)
+
+        // Payment details header
+        doc.text('Dengan rincian pembayaran sebagai berikut:', 10, studentInfoY + infoLines.length * 3)
+
+        // Initialize tableBody array
+        const tableBody: any = []
+
+        let totalPayment = 0 // Initialize total payment
+
+        // Populate tableBody using forEach
+        store.data.forEach((item: any) => {
+          const formattedUpdatedAt = new Date(item.updated_at).toLocaleString('id-ID', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          })
+
+          tableBody.push([
+            item.id,
+            item.sp_name + ' ' + item.years,
+            item.month,
+            item.status === 'Paid' ? 'Lunas' : item.status === 'Verified' ? 'Verifikasi Pembayaran' : 'Belum Lunas',
+            formattedUpdatedAt, // Assuming you have a created_at field
+            `Rp. ${item.total_payment.toLocaleString()}`
+          ])
+
+          // Add to total payment
+          totalPayment += item.total_payment
+        })
+
+        // Add the total row
+        tableBody.push([
+          { content: 'Total', colSpan: 5, styles: { halign: 'right', fontStyle: 'bold' } },
+          `Rp. ${totalPayment.toLocaleString()}` // Display the total payment sum
+        ])
+
+        // Set up the table
+        doc.autoTable({
+          startY: studentInfoY + infoLines.length * 3 + 4,
+          head: [['ID', 'Pembayaran', 'Bulan', 'Status', 'Created', 'Total Tagihan']],
+          margin: { left: 10 },
+          body: tableBody,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [50, 50, 50],
+            textColor: [255, 255, 255],
+            fontSize: 10,
+            font: 'verdana',
+            fontStyle: 'bold'
+          },
+          styles: {
+            fontSize: 8,
+            font: 'verdana'
+          },
+          alternateRowStyles: {
+            fillColor: [230, 230, 230] // Change this to your desired secondary color
+          },
+          columnStyles: {
+            0: { cellWidth: 20 }, // ID column width
+            1: { cellWidth: 50 }, // Pembayaran column width
+            2: { cellWidth: 20 }, // Status column width
+            3: { cellWidth: 20 }, // Dibuat column width
+            4: { cellWidth: 50 }, // Total Tagihan column width
+            5: { cellWidth: 30 } // Total Tagihan column width
+          }
+        })
+
+        // Create a Blob URL for the PDF
+        const pdfOutput = doc.output('blob')
+        const blobUrl = URL.createObjectURL(pdfOutput)
+        setPdfUrl(blobUrl) // Set the URL for the dialog
+        setOpenPdfPreview(true) // Open the dialog
+      }
+
+      img.onerror = () => {
+        console.error('Failed to load image:', logoImageUrl)
+      }
+    } else {
+      toast.error('Tidak ada data untuk membuat PDF.')
+    }
+  }
+
   return (
     <Grid container spacing={6.5}>
       <Grid item xs={12} md={9}>
         <Card>
-          <CardHeader title='Data Pembayaran' />
+          <CardHeader
+            title='Data Pembayaran'
+            action={
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {' '}
+                {/* Use a div or Box for proper layout */}
+                <Button
+                  variant='contained'
+                  color='error'
+                  onClick={() => {
+                    createPdf()
+                  }}
+                  startIcon={<Icon icon='tabler:file-type-pdf' />} // Add the icon here
+                >
+                  Cetak Semua Data
+                </Button>
+                <Button
+                  variant='contained'
+                  color='warning'
+                  onClick={() => {
+                    cekTransaksiById()
+                  }}
+                >
+                  Cek Transaksi
+                </Button>
+              </div>
+            }
+          />
+
           <Divider sx={{ m: '0 !important' }} />
-          <Box
-            sx={{
-              py: { xs: 2, md: 4 },
-              px: { xs: 3, md: 6 },
-              rowGap: 2,
-              columnGap: 4,
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <i></i>
-            <Box sx={{ rowGap: 2, display: 'flex', flexWrap: 'wrap', alignItems: 'center' }}>
-              <Button
-                variant='contained'
-                color='warning'
-                onClick={() => {
-                  cekTransaksiById()
-                }}
-              >
-                Cek Transaksi
-              </Button>
-            </Box>
-          </Box>
+
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
               <CircularProgress color='secondary' />
@@ -495,6 +834,39 @@ const UserList: React.FC = () => {
             </Grid>
           </CardContent>
         </Card>
+        <Dialog
+          open={openPdfPreview}
+          onClose={() => {
+            setOpenPdfPreview(false)
+            setPdfUrl(null) // Clear the URL when closing
+          }}
+          maxWidth='lg'
+          fullWidth
+          PaperProps={{
+            style: {
+              minHeight: '600px'
+            }
+          }}
+        >
+          <DialogTitle style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            Preview Payment Receipt
+            <Button
+              onClick={() => {
+                setOpenPdfPreview(false)
+                setPdfUrl(null) // Clear the URL when closing
+              }}
+              color='error'
+              style={{ position: 'absolute', top: '8px', right: '8px' }} // Position the button in the top-right corner
+            >
+              Cancel
+            </Button>
+          </DialogTitle>
+          <DialogContent>
+            {pdfUrl && (
+              <iframe src={pdfUrl} width='100%' height='800px' title='PDF Preview' style={{ border: 'none' }} />
+            )}
+          </DialogContent>
+        </Dialog>
       </Grid>
     </Grid>
   )

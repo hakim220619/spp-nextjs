@@ -1,8 +1,6 @@
 // ** React Imports
 import { ReactNode } from 'react'
 
-import { useRouter } from 'next/router'
-
 // ** MUI Components
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
@@ -14,6 +12,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrations from 'src/views/pages/misc/FooterIllustrations'
+import { useAuth } from 'src/hooks/useAuth'
 
 // ** Styled Components
 const BoxWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -36,8 +35,7 @@ const Img = styled('img')(({ theme }) => ({
 }))
 
 const Error500 = () => {
-  const router = useRouter()
-
+  const { logout } = useAuth()
   const handleBackToHome = () => {
     // Clear cookies (userData and token)
     document.cookie = 'userData=; Max-Age=0; path=/;'
@@ -48,7 +46,7 @@ const Error500 = () => {
     localStorage.removeItem('token')
 
     // Redirect to login page
-    router.push('/login')
+    logout()
   }
 
   return (

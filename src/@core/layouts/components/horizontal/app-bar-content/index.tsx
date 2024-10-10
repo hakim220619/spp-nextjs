@@ -9,8 +9,7 @@ import { styled, useTheme } from '@mui/material/styles'
 // ** Type Import
 import { LayoutProps } from 'src/@core/layouts/types'
 
-// ** Theme Config Import
-import themeConfig from 'src/configs/themeConfig'
+import { useEffect, useState } from 'react'
 
 interface Props {
   hidden: LayoutProps['hidden']
@@ -28,11 +27,22 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const AppBarContent = (props: Props) => {
+ 
+
   // ** Props
   const { appBarContent: userAppBarContent, appBarBranding: userAppBarBranding } = props
 
   // ** Hooks
+  const [aplikasiName, setAplikasiName] = useState<string | null>(null)
   const theme = useTheme()
+  useEffect(() => {
+    // Retrieve data from localStorage
+    const dataLocal = localStorage.getItem('userData')
+    if (dataLocal) {
+      const getDataLocal = JSON.parse(dataLocal)
+      setAplikasiName(getDataLocal.aplikasi_name)
+    }
+  }, []) // Empty dependency array to run this effect only once after initial render
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -69,7 +79,7 @@ const AppBarContent = (props: Props) => {
             />
           </svg>
           <Typography variant='h4' sx={{ ml: 2.5, fontWeight: 700, lineHeight: '24px' }}>
-            {themeConfig.templateName}
+            {aplikasiName}
           </Typography>
         </LinkStyled>
       )}

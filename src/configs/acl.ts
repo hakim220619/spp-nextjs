@@ -28,6 +28,8 @@ const defineRulesFor = (role: any, subject: string) => {
     can(['read', 'manage'], 'all')
   } else if (role === 200) {
     can(['read', 'manage'], 'all')
+  } else if (role === 210) {
+    can(['read', 'manage'], 'all')
   } else {
     can(['read', 'create', 'update', 'delete'], subject)
   }

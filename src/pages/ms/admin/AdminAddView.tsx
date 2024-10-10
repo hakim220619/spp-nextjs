@@ -143,9 +143,9 @@ const FormValidationSchema = () => {
         const userSchoolId = userData?.school_id // Gunakan optional chaining
 
         // Cek apakah school_id == 1, jika ya, tampilkan semua role
-        if (userSchoolId !== 1) {
+        if (userSchoolId != 1) {
           // Jika school_id bukan 1, filter role yang memiliki id 150 dan 180
-          rolesData = rolesData.filter((role: any) => role.id === 170 || role.id === 190 || role.id === 200)
+          rolesData = rolesData.filter((role: any) => role.id !== 150 && role.id !== 180)
         }
 
         setRoles(rolesData)

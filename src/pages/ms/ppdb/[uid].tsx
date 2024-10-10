@@ -24,7 +24,7 @@ const FormValidationSchema = () => {
   const storedToken = window.localStorage.getItem('token')
 
   // State variables
-  const [nisn, setNisn] = useState<string>('')
+  const [nik, setNik] = useState<string>('')
   const [date_of_birth, setDateOfBirth] = useState<string>('')
   const [email, setEmail] = useState<string>('')
   const [full_name, setFullName] = useState<string>('')
@@ -48,15 +48,15 @@ const FormValidationSchema = () => {
           }
         )
         .then(response => {
-          const { nisn, date_of_birth, email, full_name, phone, unit_id, status } = response.data
+          const { nik, date_of_birth, email, full_name, phone, unit_id, status } = response.data
           const date = new Date(date_of_birth)
-          const year = date.getUTCFullYear()
-          const month = `0${date.getUTCMonth() + 1}`.slice(-2) // getUTCMonth() is zero-based
-          const day = `0${date.getUTCDate()}`.slice(-2)
+          const year = date.getFullYear() // Local year
+          const month = `0${date.getMonth() + 1}`.slice(-2) // Local month (getMonth() is zero-based)
+          const day = `0${date.getDate()}`.slice(-2) // Local day
 
           // Format date in the way you need (e.g., YYYY-MM-DD)
           const formattedDateOfBirth = `${year}-${month}-${day}`
-          setNisn(nisn)
+          setNik(nik)
           setDateOfBirth(formattedDateOfBirth)
           setEmail(email)
           setFullName(full_name)
@@ -101,10 +101,17 @@ const FormValidationSchema = () => {
   }, [storedToken])
 
   const onSubmit = () => {
+    const date = new Date(date_of_birth)
+    const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')}`
+    console.log(formattedDate)
+
     const formData = {
       id: uid,
-      nisn,
-      date_of_birth,
+      nik,
+      date_of_birth: formattedDate,
       email,
       full_name,
       phone,
@@ -133,7 +140,6 @@ const FormValidationSchema = () => {
         })
     }
   }
-  console.log(date_of_birth)
 
   return (
     <Card>
@@ -154,10 +160,10 @@ const FormValidationSchema = () => {
             <Grid item xs={12} sm={6} md={4} lg={4}>
               <CustomTextField
                 fullWidth
-                label='NISN'
-                value={nisn}
-                onChange={e => setNisn(e.target.value)}
-                placeholder='NISN'
+                label='NIK'
+                value={nik}
+                onChange={e => setNik(e.target.value)}
+                placeholder='NIK'
               />
             </Grid>
 
@@ -222,7 +228,7 @@ const FormValidationSchema = () => {
                 Save
               </Button>
               <Box m={1} display='inline'></Box>
-              <Link href='/ms/kelas' passHref>
+              <Link href='/ms/ppdb' passHref>
                 <Button type='button' variant='contained' color='secondary'>
                   Back
                 </Button>

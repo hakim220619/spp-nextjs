@@ -40,6 +40,9 @@ const AuthProvider = ({ children }: Props) => {
     if (router.pathname == '/ppdb') {
       router.push('/ppdb')
       setLoading(false)
+    } else if (router.pathname == '/ppdb/login') {
+      router.push('/ppdb/login')
+      setLoading(false)
     } else {
       const initAuth = async (): Promise<void> => {
         const storedToken = window.localStorage.getItem('token')
